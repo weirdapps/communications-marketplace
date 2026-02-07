@@ -1,0 +1,8 @@
+{
+  "name": "comms-marketplace",
+  "version": "1.0.0",
+  "description": "Claude Code plugins for communications, presentations, and corporate branding",
+  "plugins": [
+    "plugins/nbg-presentation-format"
+  ]
+}
