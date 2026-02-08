@@ -1,62 +1,18 @@
 {
-  "name": "comms-marketplace",
+  "name": "nbg-presentation-format",
+  "description": "Multi-agent presentation system for NBG corporate communications. Create board-ready, pixel-perfect presentations following NBG brand guidelines.",
   "version": "2.0.0",
-  "description": "Multi-agent presentation system for NBG corporate communications. Includes specialized agents for storyline, storyboard, infographics, icons, and pixel-perfect rendering.",
-  "plugins": [
-    "plugins/nbg-presentation-format"
+  "author": {
+    "name": "weirdapps"
+  },
+  "license": "MIT",
+  "keywords": [
+    "nbg",
+    "presentation",
+    "powerpoint",
+    "pptx",
+    "brand",
+    "design"
   ],
-  "agents": [
-    {
-      "name": "nbg-presenter",
-      "path": "orchestrator/nbg-presenter/SKILL.md",
-      "description": "Master orchestrator for NBG presentations"
-    },
-    {
-      "name": "storyline-architect",
-      "path": "agents/storyline-architect/SKILL.md",
-      "description": "Strategic narrative designer"
-    },
-    {
-      "name": "storyboard-designer",
-      "path": "agents/storyboard-designer/SKILL.md",
-      "description": "Visual layout strategist"
-    },
-    {
-      "name": "infographic-specialist",
-      "path": "agents/infographic-specialist/SKILL.md",
-      "description": "Data visualization expert"
-    },
-    {
-      "name": "icon-designer",
-      "path": "agents/icon-designer/SKILL.md",
-      "description": "NBG-compliant SVG icon generator"
-    },
-    {
-      "name": "graphics-renderer",
-      "path": "agents/graphics-renderer/SKILL.md",
-      "description": "Pixel-perfect PPTX production"
-    }
-  ],
-  "commands": [
-    {
-      "name": "create-presentation",
-      "path": "commands/create-presentation.md"
-    },
-    {
-      "name": "redesign-deck",
-      "path": "commands/redesign-deck.md"
-    },
-    {
-      "name": "create-infographic",
-      "path": "commands/create-infographic.md"
-    },
-    {
-      "name": "create-icon",
-      "path": "commands/create-icon.md"
-    },
-    {
-      "name": "polish-slides",
-      "path": "commands/polish-slides.md"
-    }
-  ]
+  "commands": "./commands"
 }
