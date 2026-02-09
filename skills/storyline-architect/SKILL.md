@@ -151,9 +151,11 @@ presentation:
 - Action items
 - Next steps
 
-### Thank You
-- Closing slide
-- Contact info optional
+### Back Cover
+- Closing slide with centered NBG building oval logo
+- **NO "Thank You" or "Questions" text** (NBG brand guideline)
+- Plain white background
+- Contact info should be on a separate dedicated slide if needed
 
 ## Title Writing Rules
 
@@ -466,10 +468,11 @@ presentation:
       recommended_visual: "numbered_list_infographic"
 
     - slide_id: 8
-      type: thankyou
+      type: back_cover
       key_message: "Closing"
       content:
-        title: "Thank You"
+        # Plain white slide with centered NBG building oval logo
+        # NO text - just the logo image
 ```
 
 ## Behavior Rules

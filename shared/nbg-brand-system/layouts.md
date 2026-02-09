@@ -1,235 +1,241 @@
 # NBG Slide Layout Catalog
 
-## Template Overview
+## Slide Dimensions
+```yaml
+width: 13.33"
+height: 7.5"
+pptxgenjs: LAYOUT_WIDE
+emu: 12,192,000 x 6,858,000
+```
 
-- **Total Slides**: 205 example slides
-- **Slide Layouts**: 131 unique layouts
-- **Slide Masters**: 16 masters
-- **Themes**: 18 theme files + 6 theme overrides
-- **Languages**: EN (English) and GR (Greek)
+## Logo Placement (from Template)
 
-## Template Section Index
+### Small Logo - Content Slides
+Use for ALL content slides, charts, tables, infographics.
 
-| Section | Slides | Description |
-|---------|--------|-------------|
-| 01 Instructions | 2-12 | Color palette, fonts, bullets, icons usage |
-| 02 Covers | 13-59 | Title/cover slides (47 variants) |
-| 03 Contents | 60-63 | Table of contents layouts |
-| 04 Dividers | 64-88 | Section dividers (25 variants) |
-| 05 Page Layouts | 89-114 | Content page templates |
-| 06 Page Layout Examples | 115-136 | Real-world content examples |
-| 07 Charts & Infographics | 137-180 | All data visualization types |
-| 08 Tables | 181-184 | Table layouts |
-| 09 Contact Page | 185-187 | Contact information slides |
-| 10 Back Covers | 188-195 | Thank you/closing slides |
-| 11 Segment Logos | 196+ | Brand segment logos |
+| Element | Position (x, y) | Size (w x h) | Edge Distance |
+|---------|-----------------|--------------|---------------|
+| Small Logo | 0.374", 7.071" | 0.822" x 0.236" | 0.19" from bottom |
+
+### Large Logo - Covers & Dividers
+Use for cover slides and section dividers only.
+
+| Element | Position (x, y) | Size (w x h) |
+|---------|-----------------|--------------|
+| Large Logo | 0.374", 6.271" | 2.191" x 0.630" |
+
+### Back Cover Logo - Centered
+Plain back cover with centered oval NBG building logo (NO text).
+
+| Element | Position (x, y) | Size (w x h) | Notes |
+|---------|-----------------|--------------|-------|
+| Centered Oval Logo | 5.44", 2.98" | 2.45" x 1.54" | Centered on slide |
+
+Asset: `assets/nbg-back-cover-logo.png`
+
+## Page Numbers
+
+### Placement
+Page numbers appear on **content slides only** (not cover, dividers, back cover).
+
+| Element | Position (x, y) | Size (w x h) | Edge Distance |
+|---------|-----------------|--------------|---------------|
+| Page Number | 12.2265", 7.1554" | 0.748" x 0.152" | 0.36" right, 0.19" bottom |
+
+### Styling
+- **Font**: Aptos, 10pt
+- **Color**: Medium Gray `#939793`
+- **Alignment**: Right
+
+### Which Slides Get Page Numbers
+| Slide Type | Page Number |
+|------------|-------------|
+| Cover | No |
+| Divider | No |
+| Content | Yes |
+| Chart | Yes |
+| Infographic | Yes |
+| Table | Yes |
+| Back Cover | No |
+
+## Standard Margins
+| Edge | Value |
+|------|-------|
+| Left margin | 0.37" |
+| Right margin | 0.37" |
+| Top (title) | 0.5" |
+| Top (content) | 1.33" |
 
 ## Cover Slides
 
-### Cover Elements
+### Elements
 | Element | Font | Size | Position (x, y) |
 |---------|------|------|-----------------|
 | Title | Aptos | 48pt | 0.37", 1.39" |
 | Subtitle | Aptos | 48pt | 0.37", 2.90" |
 | Location | Aptos | 14pt | 0.37", 4.58" |
-| Date (DD/MM/YYYY) | Aptos | 14pt | 0.37", 4.97" |
+| Date | Aptos | 14pt | 0.37", 4.97" |
 
-### Cover Dimensions
+### Dimensions
 - Title text box: 7.86" wide x 1.56" tall
 - Subtitle text box: 7.86" wide x 1.44" tall
-- Title can span two lines
 
-### Cover Variants
-- Text only (white background)
-- Text with background image
-- Full-bleed imagery with overlay
+### Colors
+- Title: Dark Teal `#003841`
+- Subtitle: NBG Teal `#007B85`
+- Date: Medium Gray `#939793`
 
 ## Section Dividers
 
-### Divider Elements
+### Elements
 | Element | Font | Size | Position |
 |---------|------|------|----------|
 | Section Number | Aptos | 60pt | 0.37", 2.84" |
-| Section Title | Aptos | 60pt | 1.86", 2.84" |
+| Section Title | Aptos | 48pt | 1.86", 2.84" |
 
 ### Number Format
 - Two-digit: "01", "02", "03", etc.
-- Color: NBG Teal (`#007B85`)
-- Tab-separated from title text
+- Color: NBG Teal `#007B85`
+- Title Color: Dark Teal `#003841`
 
 ## Content Layouts
 
-### Standard Content Layout
+### Full Width Content
+```yaml
+full_width:
+  title:
+    x: 0.37"
+    y: 0.5"
+    w: 12.59"
+    h: 0.6"
+  content:
+    x: 0.37"
+    y: 1.33"
+    w: 12.59"
+    h: 4.5"
+```
+
+### Two Column (50/50)
+```yaml
+two_column_even:
+  left:
+    x: 0.37"
+    y: 1.33"
+    w: 5.5"
+    h: 4.5"
+  right:
+    x: 6.1"
+    y: 1.33"
+    w: 5.5"
+    h: 4.5"
+```
+
+### Two Column (40/60 - Text/Chart)
+```yaml
+two_column_text_chart:
+  text:
+    x: 0.37"
+    y: 1.33"
+    w: 4.5"
+    h: 4.5"
+  chart:
+    x: 5.1"
+    y: 1.2"
+    w: 6.7"
+    h: 4.6"
+```
+
+### Three Column
+```yaml
+three_column:
+  col1:
+    x: 0.37"
+    y: 1.33"
+    w: 3.6"
+  col2:
+    x: 4.2"
+    y: 1.33"
+    w: 3.6"
+  col3:
+    x: 8.0"
+    y: 1.33"
+    w: 3.6"
+```
+
+## Content Typography
+
 | Element | Font | Size | Spacing |
 |---------|------|------|---------|
-| Title | Aptos | 18-24pt | Line: 0.9 |
-| Body text | Aptos | 11pt | Before: 9pt |
-| Bullet L1 | Aptos | 24pt | Before: 10pt |
-| Bullet L2 | Aptos | 20pt | Before: 5pt |
-| Bullet L3 | Aptos | 18pt | Before: 5pt |
+| Title | Aptos | 24pt | Line: 0.9 |
+| Body text | Aptos | 11-14pt | Before: 9pt |
+| Bullet L1 | Aptos | 14pt | Before: 14pt |
+| Bullet L2 | Aptos | 12pt | Before: 5pt |
 | Footnotes | Aptos | 8pt | - |
 
-### Layout Variants
-| Layout | Description |
-|--------|-------------|
-| Page 1/2 _Image Right | Half text, half image (right) |
-| Page 1/2 _Image Left | Half text, half image (left) |
-| Page 1/4 _Image Right | Quarter image placement |
-| Page 1/4 _Image Left | Quarter image placement |
-| Page Cut Edges _Image Right | Edge-to-edge image right |
-| Page Cut Edges _Image Left | Edge-to-edge image left |
-| 2/3 _Image Right | Two-thirds image |
-| Full Page | Full bleed content |
-| Blank Page | Empty layout |
+## Back Cover / Closing Slides
 
-### Placeholder Types
-| Type | Count | Usage |
-|------|-------|-------|
-| body | 328 | Main content areas |
-| sldNum | 116 | Slide numbers |
-| ctrTitle | 33 | Centered titles |
-| pic | 11 | Image placeholders |
-| title | 3 | Standard titles |
-| tbl | 3 | Table placeholders |
+**IMPORTANT**: NBG presentations should NOT use "Thank You" or "Questions" text. Use a **plain back cover** instead.
+
+### Plain Back Cover (REQUIRED)
+- White background
+- Centered oval NBG building logo
+- **NO text at all**
+- **NO corner logo**
+- **NO page number**
+
+### What NOT to Include
+- "Thank You" text
+- "Questions?" text
+- "Q&A" labels
+- Contact information (use dedicated slides)
+- Any decorative elements
 
 ## Infographic Patterns
 
 ### Numbered List (3x3 grid)
 - 9 items with numbers 1-9
-- Each item: Number + Title + Description
+- Each: Number + Title + Description
 - Numbers: Large, teal colored
-- Even grid distribution
 
 ### Sequential Steps (2x3 grid)
-- 6 items with "01", "02", "03", etc.
+- 6 items with "01", "02", etc.
 - Two-digit numbering
-- Compact paragraph descriptions
 
-### Vertical List
-- Left-aligned items with teal indicator bars
-- Icon/bullet on left, text on right
-- Stacked vertical layout
+### KPI Dashboard
+- 2x3 grid layout
+- Large numbers with labels
+- Trend indicators
 
-### Funnel/Process
-- Stages: Awareness -> Knowledge -> Desire -> Reinforcement
-- Converging visual shape
-- Stage labels with descriptions
-
-### Calendar/Timeline
-- Month headers (January, February, etc.)
-- Date markers with numbered indicators
-- Event descriptions below dates
-
-### Horizontal Process
-- Sequential stages with horizontal flow
-- Stage labels above
-- Descriptions below each stage
-
-### Numbered Steps with Icons
-- Large "01", "02", "03", "04" markers
-- Connecting lines between steps
-- Title and description per step
-
-## Timeline & Project Slides
-
-### Project Timeline Structure
-- Horizontal timeline with month labels
-- Multiple workstream rows
-- Milestone markers (diamond shapes)
-- "Today" indicator
-- Duration bars
-
-### Common Workstream Categories
-- Research, Content, Design
-- Design System, Info Arch
-- Front-End, Development
-
-### Project Status Layout
-- Timeline header with "Today" marker
-- Key deliverable milestones
-- 4-column workstream cards
-- Status indicators
-
-## Contact Page Layouts
-
-### Layout 1: Full-width list
-- Tab-separated: Name, Phone, Email
-- Title below name
-- Address at bottom
-
-### Layout 2: Card grid
-- 2-column card layout
-- Photo/icon placeholder
-- Name, title, phone, email per card
-- Division info at bottom
-
-### Contact Typography
-| Element | Size |
-|---------|------|
-| Page title | 24pt |
-| Contact name | 14pt |
-| Contact details | 11-12pt |
-
-## Thank You / Closing Slides
-
-### Elements
-- "Thank You" text: Large (similar to cover)
-- Optional subtitle: Smaller
-- Minimal design, white background
-
-### Variants
-- Text only
-- Text with background image
-- Text with logo emphasis
-
-## Element Positioning Reference
-
-### Standard Margins
-| Edge | Value |
-|------|-------|
-| Left margin | 0.36-0.38" |
-| Top margin (title) | 0.6" |
-| Top margin (content) | 1.33" |
-| Right margin | 0.36" |
-| Bottom (logo area) | 5.45" from top |
-
-### Common Widths
-| Element | Width |
-|---------|-------|
-| Full-width content | 11.5" |
-| Half-page content | 5.5-6" |
-| Two-column (each) | ~5.5" |
-| Three-column (each) | ~3.5" |
-| Logo | 2.14-2.94" (see SKILL.md) |
+### Timeline (Horizontal)
+- Month/date markers
+- Milestone points
+- Event descriptions
 
 ## Shape Presets
 
 | Shape | Usage |
 |-------|-------|
-| Rectangle (rect) | Backgrounds, containers, cards |
-| Rounded Rectangle (roundRect) | Buttons, cards, callouts |
+| Rectangle | Backgrounds, containers |
+| Rounded Rectangle | Cards, callouts, buttons |
 | Triangle | Arrows, indicators |
-| Ellipse | Icons, bullets, highlights |
-| Chevron | Process steps, arrows |
+| Ellipse | Icons, bullets |
 | Line | Dividers, timelines |
-| Arc | Progress indicators |
 
 ## Communication Use Case Guide
 
 ### Executive Summaries
-Cover -> Divider -> Key Metrics -> Charts -> Thank You
+Cover -> Key Metrics -> Charts -> Back Cover
 
 ### Project Updates
-Cover -> Contents -> Dividers -> Timeline -> Status -> Charts -> Next Steps
+Cover -> Contents -> Timeline -> Status -> Next Steps -> Back Cover
 
 ### Data Presentations
-Cover -> Contents -> Charts (bar, line, pie) -> Tables -> Key Takeaways
+Cover -> Contents -> Charts (bar, line, doughnut) -> Tables -> Key Takeaways -> Back Cover
+
+**Note**: Never use pie charts - always use doughnut.
 
 ### Strategy Decks
-Cover -> Dividers -> Infographics -> Process Flows -> Timeline -> Contact
-
-### Training/Educational
-Cover -> Contents -> Page Layouts (with images) -> Infographics -> Summary
+Cover -> Dividers -> Infographics -> Process Flows -> Timeline -> Back Cover
 
 ### Financial Reports
-Cover -> Contents -> KPI Metrics -> Charts -> Tables -> Disclaimers -> Contact
+Cover -> Contents -> KPI Metrics -> Charts -> Tables -> Disclaimers -> Back Cover

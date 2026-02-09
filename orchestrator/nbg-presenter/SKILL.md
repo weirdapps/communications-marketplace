@@ -141,8 +141,20 @@ IF input is "just format this":
 - [ ] Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Background: white
 - [ ] Font: Aptos
-- [ ] Logo: bottom-left
+- [ ] Logo: bottom-left on all slides (except back cover)
+- [ ] Page numbers: bottom-right on content slides only
+- [ ] Back cover: centered oval logo (NO "Thank You" text)
+- [ ] Charts: doughnut (NEVER pie), enhanced line charts
 - [ ] Scannable in 5-7 seconds
+
+## Critical Rules (MUST ENFORCE)
+
+| Rule | Enforcement |
+|------|-------------|
+| **NO pie charts** | Reject any pie chart - use doughnut instead |
+| **NO "Thank You" slides** | Replace with plain back cover with centered logo |
+| **Page numbers** | Content slides only - NOT cover, dividers, back cover |
+| **Line charts** | Must use smooth curves, 3pt lines, visible markers |
 
 ## Communication Protocol
 

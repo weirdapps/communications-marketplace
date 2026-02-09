@@ -1,66 +1,119 @@
-# Comms Marketplace v2.0
+# Comms Marketplace v2.1
 
 Multi-agent presentation system for National Bank of Greece (NBG) corporate communications.
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     NBG PRESENTER                             │
-│                    (Master Orchestrator)                         │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        ▼                     ▼                     ▼
-┌───────────────┐    ┌───────────────┐    ┌───────────────┐
-│   STORYLINE   │    │  STORYBOARD   │    │   GRAPHICS    │
-│   ARCHITECT   │ → │   DESIGNER    │ → │   RENDERER    │
-└───────────────┘    └───────────────┘    └───────────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
-       ┌───────────┐   ┌───────────┐   ┌───────────┐
-       │INFOGRAPHIC│   │   ICON    │   │  (Other)  │
-       │SPECIALIST │   │ DESIGNER  │   │           │
-       └───────────┘   └───────────┘   └───────────┘
+                    NBG PRESENTER
+                  (Master Orchestrator)
+                          |
+        +-----------------+-----------------+
+        v                 v                 v
+  STORYLINE         STORYBOARD         GRAPHICS
+  ARCHITECT          DESIGNER          RENDERER
+        |                 |
+        |    +------------+------------+
+        |    v            v            v
+        | INFOGRAPHIC    ICON       (Other)
+        | SPECIALIST   DESIGNER
 ```
+
+## Quick Start
+
+```bash
+# Create a presentation
+/create-presentation Q4 Digital Banking Results for Board
+
+# Redesign existing deck
+/redesign-deck /path/to/presentation.pptx
+
+# Create infographic or icon
+/create-infographic Timeline for 2024 milestones
+/create-icon Mobile banking app
+```
+
+## NBG Brand Essentials
+
+### Slide Dimensions
+```
+Width:  13.33" (LAYOUT_WIDE)
+Height: 7.5"
+EMU:    12,192,000 x 6,858,000
+```
+
+### Colors (no # prefix for PptxGenJS)
+| Name | Hex | Usage |
+|------|-----|-------|
+| Dark Teal | `003841` | Titles, icons |
+| NBG Teal | `007B85` | Brand, section numbers |
+| Cyan | `00ADBF` | Primary chart color |
+| Bright Cyan | `00DFF8` | Accents, bullets |
+| Dark Text | `202020` | Body text |
+| Medium Gray | `939793` | Page numbers, muted text |
+| Light Gray | `BEC1BE` | Subtle elements |
+| Off-white | `F5F8F6` | Light backgrounds |
+| White | `FFFFFF` | Default background |
+
+### Chart Colors (in order)
+```javascript
+chartColors: ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8']
+```
+
+### Typography
+- **Primary Font**: Aptos
+- **Fallback**: Arial, Calibri
+- **Bullet Font**: Arial (character code '2022')
+
+### Logo Placement (from Template)
+
+**Small logo - for content slides (most common):**
+```javascript
+{ x: 0.374, y: 7.071, w: 0.822, h: 0.236 }
+```
+
+**Large logo - for covers and dividers:**
+```javascript
+{ x: 0.374, y: 6.271, w: 2.191, h: 0.630 }
+```
+
+### Page Numbers (Content Slides Only)
+```javascript
+{
+  x: 12.2265, y: 7.1554, w: 0.748, h: 0.152,
+  fontFace: 'Aptos', fontSize: 10, color: '939793',
+  align: 'right', valign: 'middle', margin: 0
+}
+```
+**Note:** Logo and page number are aligned at 0.19" from bottom edge.
+
+### Back Cover
+Plain white slide with centered oval NBG building logo:
+```javascript
+{ x: 5.44, y: 2.98, w: 2.45, h: 1.54 }  // Centered on slide
+```
+
+## Critical Rules
+
+| Rule | Requirement |
+|------|-------------|
+| **NO pie charts** | Always use doughnut charts instead |
+| **NO "Thank You" slides** | Use plain back cover with centered oval logo |
+| **Page numbers** | Content slides ONLY - not cover, dividers, back cover |
+| **Line charts** | Smooth curves, 3pt lines, visible markers (size 10) |
+| **Chart axis colors** | Always specify explicit NBG colors to avoid defaults |
+| **Text margins** | Always set `margin: 0` on all text boxes |
 
 ## Agents
 
-### NBG Presenter (Orchestrator)
-Master conductor that coordinates all specialist agents.
-- **Path**: `orchestrator/nbg-presenter/SKILL.md`
-- **Purpose**: Analyze input, plan workflow, delegate to specialists, ensure quality
-
-### Storyline Architect
-Strategic narrative designer.
-- **Path**: `agents/storyline-architect/SKILL.md`
-- **Purpose**: Transform raw content into compelling executive storylines
-- **Output**: Slide-by-slide narrative with key messages
-
-### Storyboard Designer
-Visual layout strategist.
-- **Path**: `agents/storyboard-designer/SKILL.md`
-- **Purpose**: Decide HOW each slide should look
-- **Output**: Layout specs, positioning, visual element requirements
-
-### Infographic Specialist
-Data visualization expert.
-- **Path**: `agents/infographic-specialist/SKILL.md`
-- **Purpose**: Transform data into clear, NBG-branded visuals
-- **Output**: Chart configs, diagram specs, SVG code
-
-### Icon Designer
-NBG-compliant icon generator.
-- **Path**: `agents/icon-designer/SKILL.md`
-- **Purpose**: Create custom SVG icons matching NBG style
-- **Output**: Production-ready SVG code
-
-### Graphics Renderer
-Pixel-perfect PPTX production.
-- **Path**: `agents/graphics-renderer/SKILL.md`
-- **Purpose**: Assemble final presentation with exact formatting
-- **Output**: Board-ready .pptx file
+| Agent | Purpose | Output |
+|-------|---------|--------|
+| **NBG Presenter** | Master orchestrator | Workflow coordination |
+| **Storyline Architect** | Narrative design | Slide-by-slide story with key messages |
+| **Storyboard Designer** | Visual layout | Layout specs, positioning, element requirements |
+| **Infographic Specialist** | Data visualization | Chart configs, diagram specs |
+| **Icon Designer** | SVG icons | NBG-compliant SVG code |
+| **Graphics Renderer** | PPTX production | Board-ready .pptx file |
 
 ## Commands
 
@@ -72,130 +125,73 @@ Pixel-perfect PPTX production.
 | `/create-icon` | Create NBG-compliant SVG icon |
 | `/polish-slides` | Quick formatting to NBG standards |
 
-## NBG Brand Essentials
-
-### Slide Dimensions
-- **EMU**: 12,192,000 x 6,858,000
-- **Inches**: 13.33" x 7.5" (use LAYOUT_WIDE in PptxGenJS)
-
-### Primary Colors
-| Name | Hex | Usage |
-|------|-----|-------|
-| Dark Teal | `#003841` | Titles, icons |
-| NBG Teal | `#007B85` | Brand, section numbers |
-| Bright Cyan | `#00DFF8` | Accents, bullets |
-| Dark Text | `#202020` | Body text |
-
-### Typography
-- **Primary Font**: Aptos
-- **Fallback**: Arial, Calibri
-
-### Logo
-- **Position**: (0.34", 6.6")
-- **Greek**: 2.14" x 0.62"
-- **English**: 2.94" x 0.62"
-
-## Directory Structure
-
-```
-comms-marketplace/
-├── orchestrator/
-│   └── nbg-presenter/       # Master orchestrator
-├── agents/
-│   ├── storyline-architect/    # Narrative design
-│   ├── storyboard-designer/    # Visual layout
-│   ├── infographic-specialist/ # Data visualization
-│   ├── icon-designer/          # SVG icons
-│   └── graphics-renderer/      # PPTX production
-├── shared/
-│   └── nbg-brand-system/       # Shared brand references
-├── commands/                   # Slash commands
-├── assets/                     # Logos, images
-├── plugins/
-│   └── nbg-presentation-format/ # Legacy plugin (maintained)
-└── templates/                  # Slide templates
-```
-
-## Shared Brand System
-
-All agents reference the shared brand system at `shared/nbg-brand-system/`:
-- `colors.md` - Complete color palette
-- `typography.md` - Font specifications
-- `layouts.md` - Slide layout catalog
-- `charts.md` - Chart configurations
-- `icons.md` - Icon design rules
-- `dimensions.md` - Positioning reference
-
-## Assets
-
-| Asset | Path | Size |
-|-------|------|------|
-| Greek Logo | `assets/nbg-logo-gr.svg` | 214 x 62 px |
-| English Logo | `assets/nbg-logo.svg` | 294 x 62 px |
-| PNG Fallback | `assets/nbg-logo-fallback.png` | - |
-
-## Template Files
-
-- **EN**: `/Users/plessas/Downloads/Powerpoint - Version 1.0_EN.pptx`
-- **GR**: `/Users/plessas/Downloads/Powerpoint - Version 1.0_GR.pptx`
-
-## Installation
-
-```bash
-cd ~/.claude/plugins/marketplaces/
-git clone https://github.com/weirdapps/comms-marketplace.git
-```
-
-## Usage Examples
-
-### Create a Presentation
-```
-/create-presentation Q4 Digital Banking Results for Board
-```
-
-### Redesign Existing Deck
-```
-/redesign-deck /path/to/messy-presentation.pptx
-```
-
-### Create an Infographic
-```
-/create-infographic Timeline showing project milestones for 2024
-```
-
-### Create an Icon
-```
-/create-icon Mobile banking app icon
-```
-
-### Quick Polish
-```
-/polish-slides [paste content or path]
-```
-
 ## Quality Standards
 
 Every presentation must pass:
 - [ ] Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Background: white (#FFFFFF)
 - [ ] Font: Aptos throughout
-- [ ] Logo: bottom-left on every slide
+- [ ] Small logo on content slides (0.822" x 0.236")
+- [ ] Page numbers on content slides only (not cover, dividers, back cover)
+- [ ] Page number and logo aligned at 0.19" from bottom
+- [ ] No pie charts (use doughnut)
+- [ ] No "Thank You" slides (use plain back cover)
 - [ ] One key message per slide
 - [ ] Scannable in 5-7 seconds
-- [ ] Board-ready appearance
+
+## Directory Structure
+
+```
+comms-marketplace/
+├── orchestrator/nbg-presenter/     # Master orchestrator
+├── agents/                         # Agent duplicates (legacy)
+├── skills/                         # Active agent skills
+│   ├── storyline-architect/
+│   ├── storyboard-designer/
+│   ├── infographic-specialist/
+│   ├── icon-designer/
+│   ├── graphics-renderer/
+│   └── nbg-presenter/
+├── shared/nbg-brand-system/        # Brand specifications
+│   ├── colors.md
+│   ├── typography.md
+│   ├── layouts.md
+│   ├── charts.md
+│   ├── icons.md
+│   └── dimensions.md
+├── commands/                       # Slash commands
+├── assets/                         # Logos, images
+│   ├── nbg-logo-gr.svg            # Greek logo
+│   ├── nbg-logo.svg               # English logo
+│   ├── nbg-back-cover-logo.png    # Centered oval for back cover
+│   └── NBG-PRESENTATION-SPEC.md   # Complete specification
+└── plugins/nbg-presentation-format/ # Legacy plugin
+```
+
+## Assets
+
+| Asset | Path | Size | Usage |
+|-------|------|------|-------|
+| Greek Logo | `assets/nbg-logo-gr.svg` | 214 x 62 px | Greek presentations |
+| English Logo | `assets/nbg-logo.svg` | 294 x 62 px | English presentations |
+| Back Cover Logo | `assets/nbg-back-cover-logo.png` | 245 x 154 px | Centered on back cover |
 
 ## Version History
 
-### v2.0.0 (Current)
+### v2.1.0 (Current)
+- Fixed logo sizing (small for content, large for covers)
+- Fixed page number positioning from template
+- Added explicit chart axis color handling
+- Updated back cover specifications
+- Comprehensive documentation cleanup
+
+### v2.0.0
 - Multi-agent architecture
 - Specialized agents for each task
-- New commands
-- Shared brand system
 
 ### v1.0.0 (Legacy)
 - Monolithic nbg-presentation-format plugin
-- Basic formatting guidelines
 
 ## License
 
-Proprietary - Internal use only
+Proprietary - National Bank of Greece internal use only

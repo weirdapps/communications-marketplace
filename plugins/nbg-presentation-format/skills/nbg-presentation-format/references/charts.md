@@ -1,183 +1,246 @@
 # NBG Chart Specifications
 
-## Chart Types Available
+## Critical Rules
 
-| Chart Type | Count in Template | Usage |
-|------------|-------------------|-------|
-| Bar Chart | 46 | Comparisons, rankings |
-| Line Chart | 40 | Trends, time series |
-| Doughnut Chart | 36 | Proportions, percentages |
-| Pie Chart | 10 | Simple proportions |
-| Area Chart | 2 | Cumulative trends |
-| Waterfall Chart | 1+ | Financial flows, changes |
+### NEVER Use Pie Charts
+**Pie charts are PROHIBITED.** Always use **doughnut charts** instead:
+- More modern and professional appearance
+- Center hole provides space for key metrics
+- Better visual hierarchy
+
+### Always Specify Explicit Colors
+**CRITICAL:** Always specify explicit NBG colors for all chart elements to avoid PptxGenJS defaults (like #333333):
+- `catAxisLabelColor`
+- `valAxisLabelColor`
+- `catAxisLineColor`
+- `legendColor`
+- `dataLabelColor`
+
+## Chart Type Hierarchy
+
+| Priority | Chart Type | Use For |
+|----------|------------|---------|
+| 1 | **Doughnut** | Proportions, percentages (ALWAYS instead of pie) |
+| 2 | **Bar** | Comparisons, rankings, categories |
+| 3 | **Line** | Trends, time series |
+| 4 | **Waterfall** | Financial flows, breakdowns |
+| 5 | **Area** | Cumulative trends over time |
 
 ## Color Sequence
 
-Use these colors in order for chart data series:
+Use these colors in order for data series (no # prefix):
 
-| Order | Hex | Name |
-|-------|-----|------|
-| 1 | `#00ADBF` | Cyan (primary) |
-| 2 | `#003841` | Dark Teal |
-| 3 | `#007B85` | NBG Teal |
-| 4 | `#939793` | Medium Gray |
-| 5 | `#BEC1BE` | Light Gray |
-| 6 | `#00DFF8` | Bright Cyan |
+| Order | Hex | Name | RGB |
+|-------|-----|------|-----|
+| 1 | `00ADBF` | Cyan | 0, 173, 191 |
+| 2 | `003841` | Dark Teal | 0, 56, 65 |
+| 3 | `007B85` | NBG Teal | 0, 123, 133 |
+| 4 | `939793` | Medium Gray | 147, 151, 147 |
+| 5 | `BEC1BE` | Light Gray | 190, 193, 190 |
+| 6 | `00DFF8` | Bright Cyan | 0, 223, 248 |
 
-### Additional Chart Colors
-| Hex | Usage |
-|-----|-------|
-| `#B5B7B5` | Light gray series |
-| `#F5F9F6` | Chart backgrounds |
-| `#D9D9D9` | Neutral gray |
-| `#00E2FC` | Highlight accent |
+```javascript
+const NBG_CHART_COLORS = ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8'];
+```
 
-## Chart Style Settings
+## Bar Chart Configuration
 
-### General Settings
-- **Style ID**: 102 (most common) or 2 (fallback)
-- **Rounded Corners**: Off (`roundedCorners val="0"`)
-- **Auto Title Deleted**: Yes (titles handled separately)
-- **Data Labels**: Bold, 65% luminance text
+```javascript
+slide.addChart(pptx.ChartType.bar, chartData, {
+  x: 0.37, y: 1.3, w: 8.0, h: 4.8,
+  chartColors: ['00ADBF'],
 
-### Doughnut/Pie Chart Settings
-- Use scheme colors: accent1 through accent6
-- `varyColors="1"` for multi-colored segments
-- No 3D effects (`bubble3D val="0"`)
-- **Hole size**: 50% for doughnut charts
+  // Data labels
+  showValue: true,
+  valueFontFace: 'Aptos',
+  valueFontSize: 11,
+  valueFontBold: true,
+  valueFontColor: '202020',  // Explicit NBG color
 
-### Bar Chart Settings
-- **Direction**: Column (`barDir val="col"`) or Bar (`barDir val="bar"`)
-- **Grouping**: Clustered (`grouping val="clustered"`)
-- **Gap Width**: 30% (`barGapWidthPct: 30`)
-- **Data Labels**: Show values, bold text
+  // Bar spacing
+  barGapWidthPct: 35,
 
-### Line Chart Settings
-- **Grouping**: Standard (`grouping val="standard"`)
-- **Line Width**: 25400 EMUs (2pt)
-- **Markers**: None (`symbol val="none"`)
-- **Line Cap**: Round
-- **Smooth**: False (straight lines)
+  // Category axis
+  catAxisLabelFontFace: 'Aptos',
+  catAxisLabelFontSize: 12,
+  catAxisLabelColor: '202020',      // EXPLICIT - avoid defaults
+  catAxisLineColor: 'BEC1BE',       // EXPLICIT - avoid defaults
+  catAxisLineSize: 0.5,
 
-### Waterfall Chart Settings
-- **Layout ID**: `waterfall`
-- **Data Label Position**: Outside end (`pos="outEnd"`)
-- **Font**: Aptos, 10pt for labels, 12pt bold for title
-- **Title Color**: Accent 1 (Dark Teal)
+  // Value axis
+  valAxisHidden: true,
+  valAxisLabelColor: '202020',      // EXPLICIT - even if hidden
+
+  // Grid lines
+  catGridLine: { style: 'none' },
+  valGridLine: { style: 'none' },
+
+  // Legend
+  showLegend: false,
+
+  // Plot area
+  plotArea: { border: { color: 'BEC1BE', pt: 0 } },
+});
+```
+
+## Doughnut Chart Configuration
+
+**ALWAYS use doughnut instead of pie charts.**
+
+```javascript
+slide.addChart(pptx.ChartType.doughnut, chartData, {
+  x: 0.37, y: 1.4, w: 5.5, h: 4.5,
+  chartColors: ['00ADBF', '003841'],
+
+  // Doughnut settings
+  holeSize: 55,
+  showLabel: false,
+  showPercent: true,
+
+  // Data labels
+  dataLabelFontFace: 'Aptos',
+  dataLabelFontSize: 12,
+  dataLabelColor: '202020',         // EXPLICIT - avoid defaults
+
+  // Legend
+  showLegend: true,
+  legendPos: 'b',
+  legendFontFace: 'Aptos',
+  legendFontSize: 12,
+  legendColor: '202020',            // EXPLICIT - avoid defaults
+});
+```
+
+## Line Chart Configuration (Enhanced)
+
+Line charts should have smooth curves, thick lines, and visible markers.
+
+```javascript
+slide.addChart(pptx.ChartType.line, chartData, {
+  x: 0.37, y: 1.4, w: 7.0, h: 3.8,
+  chartColors: ['AA0028'],  // Example: alert color for CMTs
+
+  // Line styling (ENHANCED)
+  lineSize: 3,              // Thicker lines
+  lineSmooth: true,         // Smooth curves
+  lineDash: 'solid',
+
+  // Markers (VISIBLE)
+  showMarker: true,
+  markerSize: 10,           // Large markers
+
+  // Data labels
+  showValue: true,
+  valueFontFace: 'Aptos',
+  valueFontSize: 11,
+  valueFontBold: true,
+  valueFontColor: '202020',
+  dataLabelPosition: 't',   // Above markers
+  dataLabelFontFace: 'Aptos',
+  dataLabelColor: '202020', // EXPLICIT
+
+  // Category axis
+  catAxisLabelFontFace: 'Aptos',
+  catAxisLabelFontSize: 12,
+  catAxisLabelColor: '202020',      // EXPLICIT
+  catAxisLineShow: true,
+  catAxisLineColor: 'BEC1BE',       // EXPLICIT
+  catAxisLineSize: 1,
+
+  // Value axis
+  valAxisHidden: true,
+  valAxisLabelColor: '202020',      // EXPLICIT
+
+  // Grid lines
+  catGridLine: { style: 'none' },
+  valGridLine: { color: 'BEC1BE', style: 'dot', size: 0.75 },
+
+  // Legend
+  showLegend: false,
+
+  // Plot area
+  plotArea: {
+    fill: { color: 'FFFFFF' },
+    border: { color: 'BEC1BE', pt: 0.5 }
+  },
+});
+```
+
+## Status Colors for Charts
+
+| Status | Hex | Use For |
+|--------|-----|---------|
+| Success/Positive | `73AF3C` | Growth, improvements |
+| Alert/Negative | `AA0028` | Declines, issues, CMTs |
+| Neutral | `939793` | Baseline, previous period |
 
 ## Chart Design Best Practices
 
 ### Clean, Minimal Charts
 1. **Remove clutter**: Hide gridlines where possible
-2. **Single focus**: Each chart communicates ONE key message
+2. **Single focus**: Each chart = ONE key message
 3. **Data labels**: Only show if they add value
-4. **Legend**: Position at top or right, never obscuring data
-5. **Colors**: Use max 3-4 colors per chart
+4. **Legend**: Position at bottom or right, never obscuring data
+5. **Colors**: Max 3-4 colors per chart
 
 ### Supporting Key Messages
-- Add callout boxes for insights (e.g., "+113% increase")
-- Use annotations for policy changes or events
-- Keep subtitle/description explaining the data context
+- Add callout boxes for insights (e.g., "+47%", "-800K")
+- Use roundRect shapes for highlight callouts
+- Keep subtitle explaining the data context
 
 ### Layout Tips
-- **Two-column**: Chart on left/right, insight callout opposite
-- **Full-width**: For single, important chart with annotations
-- **Bar charts**: Use `barGapWidthPct: 30` for clean spacing
+- **Two-column**: Chart on right, text/bullets on left (40/60 split)
+- **Full-width**: Single important chart with annotations
+- **Bar charts**: Use `barGapWidthPct: 35` for clean spacing
 
-## PptxGenJS Chart Configuration
+## Complete Chart Colors Reference
 
 ```javascript
-// NBG Chart color array (NO # prefix!)
-const NBG_CHART_COLORS = [
-  '00ADBF',  // Cyan (primary)
-  '003841',  // Dark Teal
-  '007B85',  // NBG Teal
-  '939793',  // Medium Gray
-  'BEC1BE',  // Light Gray
-  '00DFF8',  // Bright Cyan
-];
+const NBG = {
+  colors: {
+    // Chart series (in order)
+    cyan: '00ADBF',
+    darkTeal: '003841',
+    teal: '007B85',
+    mediumGray: '939793',
+    lightGray: 'BEC1BE',
+    brightCyan: '00DFF8',
 
-// Bar chart example
-slide.addChart(pptx.charts.BAR, chartData, {
-  x: 1, y: 1.5, w: 10, h: 4.5,
-  chartColors: NBG_CHART_COLORS,
-  showValue: true,
-  valueFontFace: 'Aptos',
-  valueFontSize: 10,
-  valueFontBold: true,
-  barGapWidthPct: 30,
-  catAxisLabelFontFace: 'Aptos',
-  catAxisLabelFontSize: 10,
-  valAxisLabelFontFace: 'Aptos',
-  valAxisLabelFontSize: 10,
-});
+    // Text/labels
+    darkText: '202020',
 
-// Doughnut chart example
-slide.addChart(pptx.charts.DOUGHNUT, chartData, {
-  x: 1, y: 1.5, w: 5, h: 4.5,
-  chartColors: NBG_CHART_COLORS,
-  holeSize: 50,
-  showLabel: true,
-  showPercent: true,
-});
+    // Status
+    success: '73AF3C',
+    alert: 'AA0028',
 
-// Line chart example
-slide.addChart(pptx.charts.LINE, chartData, {
-  x: 1, y: 1.5, w: 10, h: 4.5,
-  chartColors: NBG_CHART_COLORS,
-  lineSize: 2,
-  lineSmooth: false,
-  showMarker: false,
-});
+    // Backgrounds
+    white: 'FFFFFF',
+    offWhite: 'F5F8F6',
+  },
 
-// Pie chart example
-slide.addChart(pptx.charts.PIE, chartData, {
-  x: 1, y: 1.5, w: 5, h: 4.5,
-  chartColors: NBG_CHART_COLORS,
-  showLabel: true,
-  showPercent: true,
-});
+  chartColors: ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8'],
+};
 ```
 
-## Table Specifications
+## Avoiding Default Colors
 
-### Default Table Style
-- **Style ID**: `{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}`
-- **Style Name**: "Medium Style 2 - Accent 1"
-- **Border Width**: 1pt
-- **Border Color**: White (#FFFFFF)
-
-### Table Color Scheme
-| Element | Color |
-|---------|-------|
-| Header Row | Dark Teal `#003841` with white text |
-| Body Cells | 20% tint of `#003841` (light teal) |
-| Alternating Rows | 40% tint of `#003841` |
-| Borders | White `#FFFFFF` |
-| Text | Dark Text `#202020` |
-
-### Table Typography
-| Element | Font | Size |
-|---------|------|------|
-| Header | Aptos Bold | 11pt |
-| Cell text | Aptos | 10-11pt |
-| Footnotes | Aptos | 8pt |
-
-### PptxGenJS Table Configuration
+PptxGenJS may inject default colors (like #333333) if you don't specify them explicitly. Always include these properties:
 
 ```javascript
-// NBG Table style
-const nbgTableStyle = {
-  fontFace: 'Aptos',
-  fontSize: 10,
-  color: '202020',
-  margin: 0,
-  border: { pt: 1, color: 'FFFFFF' },
-  fill: { color: 'E6F0F1' },  // Light teal tint
-};
+// ALWAYS INCLUDE THESE to avoid #333333 defaults:
+catAxisLabelColor: '202020',
+valAxisLabelColor: '202020',
+catAxisLineColor: 'BEC1BE',
+legendColor: '202020',
+dataLabelColor: '202020',
+valueFontColor: '202020',
+```
 
-// Header row style
-const nbgTableHeaderStyle = {
+## Table Configuration
+
+```javascript
+// Header row
+const headerStyle = {
   fontFace: 'Aptos',
   fontSize: 11,
   bold: true,
@@ -185,41 +248,24 @@ const nbgTableHeaderStyle = {
   fill: { color: '003841' },
 };
 
-// Create table
-slide.addTable(tableData, {
-  x: 1, y: 1.5, w: 10,
+// Data rows
+const cellStyle = {
   fontFace: 'Aptos',
   fontSize: 10,
   color: '202020',
+  fill: { color: 'E6F0F1' },  // Light teal tint
+};
+
+// Alternating rows
+const altCellStyle = {
+  ...cellStyle,
+  fill: { color: 'F0F5F3' },
+};
+
+// Table options
+{
   border: { pt: 1, color: 'FFFFFF' },
-  fill: { color: 'E6F0F1' },
-  colW: [2, 3, 2, 3],
-  rowH: 0.5,
   align: 'left',
   valign: 'middle',
-});
+}
 ```
-
-## Chart Combination Patterns
-
-### Bar + Pie (side-by-side)
-- Shared color palette
-- Equal or 60/40 width split
-
-### Multiple Bar Charts (grid)
-- 2x or 4x grid layouts
-- Consistent axis scaling across all charts
-
-### Line + Supporting Data
-- Chart with supporting metrics
-- Text annotations for context
-
-### Infographic + Chart
-- Mixed visualization types
-- Supporting data tables
-- Text annotations
-
-### Text + Chart (two-column)
-- Text explanation in one column
-- Chart in the other column
-- 40/60 or 50/50 split

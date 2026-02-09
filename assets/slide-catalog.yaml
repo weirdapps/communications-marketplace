@@ -65,11 +65,16 @@ templates:
         contact_minimal: 187      # Minimal contact info
 
       back_covers:
-        plain_logo: 190           # Truly empty slide with logo from master (CLEANEST)
+        plain_logo: 190           # White bg with centered oval NBG building logo (PREFERRED)
         plain_dark: 193           # Dark background, empty slide
         plain_minimal: 191        # Minimal back cover
         plain_white: 192          # White back cover
-        quiet: 190                # Alias - completely empty, no decorative elements
+        quiet: 190                # Alias for plain_logo - no "Thank You" text
+
+# Back cover specifications (for PptxGenJS generation):
+# - Logo asset: ~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-back-cover-logo.png
+# - Centered position: x=5.44", y=2.98", w=2.45", h=1.54"
+# - NEVER use "Thank You" or "Questions" text on back covers
 
   EN:
     path: "~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-EN.pptx"

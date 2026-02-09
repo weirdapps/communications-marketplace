@@ -138,13 +138,73 @@ lIns="0" tIns="0" rIns="0" bIns="0"
 - **Text**: Dark Teal `#003841`
 - **Building icon**: Bright Cyan `#00DEF8`
 
-### Logo Placement - RECOMMENDED SIZING
-**IMPORTANT: Use smaller logo sizing for cleaner slides.**
+### Logo Placement - TEMPLATE STANDARD
 
-| Version | Position (x, y) | Size (w × h) | Notes |
-|---------|-----------------|--------------|-------|
-| Greek (preferred) | 0.34", 5.9" | 2.14" × 0.62" | Smaller, cleaner look |
-| English | 0.34", 5.9" | 2.94" × 0.62" | Proportionally wider |
+**Two logo sizes in template:**
+
+| Type | Position (x, y) | Size (w × h) | Usage |
+|------|-----------------|--------------|-------|
+| **Small (content)** | 0.374", 7.071" | 0.822" × 0.236" | Content slides, charts, tables |
+| Large (covers) | 0.374", 6.271" | 2.191" × 0.630" | Cover slides, section dividers |
+
+**For most slides, use the SMALL logo** - it's positioned 0.19" from the bottom edge, aligned with the page number.
+
+## Page Numbers
+
+### Page Number Placement
+Page numbers appear on **content slides only** (not on cover, dividers, or back cover).
+
+| Element | Position (x, y) | Size (w × h) | Edge Distance |
+|---------|-----------------|--------------|---------------|
+| Page Number | 12.2265", 7.1554" | 0.748" × 0.152" | 0.36" right, 0.19" bottom |
+
+**Note:** Page number and logo are aligned at the same distance from bottom (0.19").
+
+### Page Number Styling
+- **Font**: Aptos
+- **Size**: 10pt
+- **Color**: Medium Gray `#939793`
+- **Alignment**: Right
+
+### Which Slides Get Page Numbers
+| Slide Type | Page Number |
+|------------|-------------|
+| Cover | No |
+| Divider | No |
+| Content | Yes |
+| Chart | Yes |
+| Infographic | Yes |
+| Table | Yes |
+| Back Cover | No |
+
+### PptxGenJS Implementation
+```javascript
+// Logo for content slides (small version)
+const NBG_LOGO = {
+  x: 0.374,
+  y: 7.071,
+  w: 0.822,
+  h: 0.236
+};
+
+// Page number (content slides only)
+let pageNumber = 0;
+
+function addPageNumber(slide) {
+  pageNumber++;
+  slide.addText(String(pageNumber), {
+    x: 12.2265, y: 7.1554, w: 0.748, h: 0.152,
+    fontFace: 'Aptos',
+    fontSize: 10,
+    color: '939793',
+    align: 'right',
+    valign: 'middle',
+    margin: 0,
+  });
+}
+```
+
+---
 
 ### Legacy Large Logo (avoid)
 The original template uses a larger logo which can look oversized:
@@ -344,15 +404,20 @@ const nbgOptions = {
 
 ## Chart Specifications
 
-### Chart Types Available (138 charts in template)
-| Chart Type | Count | Usage |
-|------------|-------|-------|
-| Bar Chart | 46 | Comparisons, rankings |
-| Line Chart | 40 | Trends, time series |
-| Doughnut Chart | 36 | Proportions, percentages |
-| Pie Chart | 10 | Simple proportions |
-| Area Chart | 2 | Cumulative trends |
-| Waterfall Chart | 1+ | Financial flows, changes |
+### CRITICAL: Chart Type Selection
+**NEVER use pie charts.** Always use **doughnut charts** instead:
+- More modern and professional appearance
+- Center hole provides space for key metrics
+- Better visual hierarchy
+
+### Recommended Chart Types
+| Chart Type | Usage | Priority |
+|------------|-------|----------|
+| **Doughnut** | Proportions, percentages | **ALWAYS prefer over pie** |
+| **Bar Chart** | Comparisons, rankings | Primary for categories |
+| **Line Chart** | Trends, time series | Primary for time data |
+| **Waterfall** | Financial flows | Budget/flow analysis |
+| **Area Chart** | Cumulative trends | Stacked time data |
 
 ### Chart Color Sequence (use NBG theme colors)
 Charts should use colors in this order for data series:
@@ -391,11 +456,14 @@ Charts should use colors in this order for data series:
 - **Grouping**: Clustered (`grouping val="clustered"`)
 - **Data Labels**: Show values, bold text
 
-### Line Chart Settings
+### Line Chart Settings (Enhanced)
 - **Grouping**: Standard (`grouping val="standard"`)
-- **Line Width**: 25400 EMUs (2pt)
-- **Markers**: None (`symbol val="none"`)
-- **Line Cap**: Round
+- **Line Width**: 3pt (thicker for visibility)
+- **Line Style**: Solid, smooth curves (`lineSmooth: true`)
+- **Markers**: Show with size 10pt for emphasis
+- **Data Labels**: Position above markers
+- **Grid Lines**: Dotted gray (subtle reference)
+- **Category Axis**: Visible with 1pt line
 
 ### Waterfall Chart Settings
 - **Layout ID**: `waterfall`
@@ -935,18 +1003,53 @@ Logo Size:     4.01" x 0.84"
 
 ---
 
-## Thank You / Closing Slides
+## Back Cover Slides (Closing)
 
-### Elements
-| Element | Font | Size |
-|---------|------|------|
-| "Thank You" text | Aptos Regular | Large (similar to cover) |
-| Optional subtitle | Aptos Regular | Smaller |
+**IMPORTANT**: NBG presentations should NOT use "Thank You" or "Questions" text on closing slides. Instead, use a **plain back cover** with the centered NBG building oval logo.
 
-### Variants
-- Text only
-- Text with background image
-- Text with logo emphasis
+### Plain Back Cover (PREFERRED)
+The standard NBG back cover is a white slide with only the centered oval NBG building logo.
+
+| Element | Position (x, y) | Size (w × h) | Description |
+|---------|-----------------|--------------|-------------|
+| Centered Oval Logo | 5.44", 2.98" | 2.45" × 1.54" | NBG building in cyan oval |
+
+### Back Cover Logo Asset
+**File**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-back-cover-logo.png`
+- **Description**: Bright cyan oval with dark teal NBG building illustration
+- **Format**: PNG with transparency
+- **Usage**: Center of slide for back cover only
+
+### PptxGenJS Back Cover Implementation
+```javascript
+// Plain back cover with centered oval logo
+const slide = pptx.addSlide();
+slide.background = { color: 'FFFFFF' };
+
+// Add centered oval NBG building logo
+slide.addImage({
+  path: '~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-back-cover-logo.png',
+  x: 5.44,  // Centered: (13.33 - 2.45) / 2
+  y: 2.98,  // Centered: (7.5 - 1.54) / 2
+  w: 2.45,
+  h: 1.54,
+});
+```
+
+### What NOT to Include on Back Covers
+- "Thank You" text
+- "Questions?" text
+- "Q&A" labels
+- Contact information (use dedicated contact slides instead)
+- Any decorative elements
+
+### Variants (from Template)
+| Slide Index | Description | Use Case |
+|-------------|-------------|----------|
+| 190 | Plain white with centered oval logo | **Default/Preferred** |
+| 191 | Minimal back cover | Alternative |
+| 192 | Plain white | Simple variant |
+| 193 | Dark background | Dark theme presentations |
 
 ---
 

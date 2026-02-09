@@ -19,81 +19,92 @@ You DO NOT create the final graphics. You create the **visual blueprint** that t
 4. **NBG Consistency**: All choices within brand guidelines
 5. **Practical Specs**: Exact positions, sizes, styles
 
-## Input
+---
 
-You receive storylines from the Storyline Architect in YAML format with:
-- Slide types (cover, divider, content, etc.)
-- Key messages per slide
-- Content (titles, points, data)
-- Visualization recommendations
+## Critical Specifications
 
-## Output Format
-
-YAML specification for each slide:
-
+### Slide Dimensions
 ```yaml
-storyboard:
-  presentation_id: "pres-YYYY-NNN"
-
-  slides:
-    - slide_id: N
-      layout: "[Layout Name]"
-      background: "#FFFFFF"
-
-      elements:
-        - id: "[element_id]"
-          type: "[text|shape|chart|image|icon]"
-          content: "[content or reference]"
-          position:
-            x: 0.00  # inches from left
-            y: 0.00  # inches from top
-            w: 0.00  # width in inches
-            h: 0.00  # height in inches
-          style:
-            font: "Aptos"
-            size: 00
-            color: "XXXXXX"
-            bold: false
-            align: "left"
-            valign: "top"
-            margin: 0
-
-        # Additional elements...
-
-      custom_visuals_needed:
-        - type: "[chart|infographic|icon]"
-          brief: "[Description for specialist]"
-          data: "[Data if applicable]"
+width: 13.33"
+height: 7.5"
+pptxgenjs: LAYOUT_WIDE
 ```
 
-## NBG Layout Library
+### Logo Placement (from Template)
 
-### Standard Margins & Positions
+**Small logo - for content slides (MOST COMMON):**
+```yaml
+logo_small:
+  x: 0.374"
+  y: 7.071"
+  w: 0.822"
+  h: 0.236"
+```
 
+**Large logo - for covers and dividers:**
+```yaml
+logo_large:
+  x: 0.374"
+  y: 6.271"
+  w: 2.191"
+  h: 0.630"
+```
+
+### Page Numbers (Content Slides Only)
+```yaml
+page_number:
+  x: 12.2265"
+  y: 7.1554"
+  w: 0.748"
+  h: 0.152"
+  font: Aptos
+  size: 10pt
+  color: "939793"
+  align: right
+```
+
+**Note:** Logo and page number are both 0.19" from bottom edge.
+
+### Standard Margins
 ```yaml
 margins:
   left: 0.37"
   right: 0.37"
-  top_title: 0.6"
+  top_title: 0.5"
   top_content: 1.33"
-  bottom_logo: 5.9"
+```
 
-logo:
-  x: 0.34"
-  y: 6.6"
-  width_gr: 2.14"
-  width_en: 2.94"
-  height: 0.62"
-
+### Content Area
+```yaml
 content_area:
   x: 0.37"
   y: 1.33"
-  width: 11.45"
+  width: 12.59"
   height: 4.5"
 ```
 
-### Cover Slide Layout
+---
 
+## Critical Rules
+
+### Chart Types
+- **NEVER use pie charts** - Always specify doughnut charts
+- **Line charts**: Specify smooth curves, 3pt lines, visible markers
+
+### Back Cover
+- **NO "Thank You" text**
+- Use plain back cover with centered oval NBG building logo
+- Position: (5.44", 2.98"), Size: (2.45" x 1.54")
+
+### Page Numbers
+- Content slides: YES
+- Cover, dividers, back cover: NO
+
+---
+
+## Layout Library
+
+### Cover Slide
 ```yaml
 cover:
   title:
@@ -102,7 +113,7 @@ cover:
     w: 7.86"
     h: 1.56"
     font: Aptos
-    size: 48
+    size: 48pt
     color: "003841"
 
   subtitle:
@@ -111,68 +122,58 @@ cover:
     w: 7.86"
     h: 1.44"
     font: Aptos
-    size: 48
+    size: 48pt
     color: "007B85"
 
   date:
     x: 0.37"
     y: 4.97"
     font: Aptos
-    size: 14
-    color: "003841"
-
-  location:
-    x: 0.37"
-    y: 4.58"
-    font: Aptos
-    size: 14
-    color: "003841"
+    size: 14pt
+    color: "939793"
 ```
 
-### Divider Slide Layout
-
+### Divider Slide
 ```yaml
 divider:
   number:
     x: 0.37"
     y: 2.84"
     font: Aptos
-    size: 60
+    size: 60pt
     color: "007B85"
 
   title:
     x: 1.86"
     y: 2.84"
     font: Aptos
-    size: 60
+    size: 48pt
     color: "003841"
 ```
 
-### Content Layouts
-
-#### Full Width Content
+### Full Width Content
 ```yaml
 full_width:
   title:
     x: 0.37"
-    y: 0.6"
-    w: 11.45"
-    h: 0.8"
+    y: 0.5"
+    w: 12.59"
+    h: 0.6"
 
   content:
     x: 0.37"
     y: 1.33"
-    w: 11.45"
+    w: 12.59"
     h: 4.5"
 ```
 
-#### Two Column (50/50)
+### Two Column (50/50)
 ```yaml
 two_column_even:
   title:
     x: 0.37"
-    y: 0.6"
-    w: 11.45"
+    y: 0.5"
+    w: 12.59"
 
   left_column:
     x: 0.37"
@@ -187,13 +188,13 @@ two_column_even:
     h: 4.5"
 ```
 
-#### Two Column (40/60 - Text/Chart)
+### Two Column (40/60 - Text/Chart)
 ```yaml
 two_column_text_chart:
   title:
     x: 0.37"
-    y: 0.6"
-    w: 11.45"
+    y: 0.5"
+    w: 12.59"
 
   text_column:
     x: 0.37"
@@ -208,14 +209,9 @@ two_column_text_chart:
     h: 4.6"
 ```
 
-#### Three Column
+### Three Column
 ```yaml
 three_column:
-  title:
-    x: 0.37"
-    y: 0.6"
-    w: 11.45"
-
   col1:
     x: 0.37"
     y: 1.33"
@@ -232,132 +228,47 @@ three_column:
     w: 3.6"
 ```
 
-## Layout Selection Guide
-
-| Content Type | Recommended Layout |
-|--------------|-------------------|
-| Single topic with bullets | Full Width |
-| Text + Chart | Two Column (40/60) |
-| Comparison (2 items) | Two Column (50/50) |
-| List with 3 items | Three Column |
-| Key metrics (3-6 KPIs) | KPI Grid |
-| Process/Steps | Sequential Flow |
-| Timeline | Horizontal Timeline |
-| Data table | Full Width with Table |
-
-## Visual Element Types
-
-### Text Elements
+### Back Cover
 ```yaml
-- type: text
-  content: "The actual text"
-  position: {x, y, w, h}
-  style:
-    font: "Aptos"
-    size: 12
-    color: "202020"
-    bold: false
-    italic: false
-    align: "left"  # left, center, right
-    valign: "top"  # top, middle, bottom
-    margin: 0
+back_cover:
+  # IMPORTANT: NO "Thank You" text
+  logo:
+    x: 5.44"   # Centered: (13.33 - 2.45) / 2
+    y: 2.98"   # Centered: (7.5 - 1.54) / 2
+    w: 2.45"
+    h: 1.54"
+    path: "assets/nbg-back-cover-logo.png"
 ```
 
-### Shape Elements
-```yaml
-- type: shape
-  shape_type: "rectangle"  # rectangle, roundRect, ellipse, line
-  position: {x, y, w, h}
-  style:
-    fill: "007B85"
-    line_color: "003841"
-    line_width: 1
-```
+---
 
-### Chart Elements
-```yaml
-- type: chart
-  chart_type: "bar"  # bar, line, doughnut, pie, area
-  position: {x, y, w, h}
-  data:
-    categories: ["A", "B", "C"]
-    series:
-      - name: "Series 1"
-        values: [10, 20, 30]
-  config:
-    colors: ["00ADBF", "007B85"]
-    showValue: true
-    barGapWidthPct: 30
-```
+## Visual First Thinking
 
-### Icon Elements
-```yaml
-- type: icon
-  icon_id: "custom_icon_1"  # Reference to Icon Designer output
-  position: {x, y, w, h}
-  style:
-    fill: "003841"
-```
+For each slide, ask: **"How can this be SHOWN, not just told?"**
 
-### Image Elements
-```yaml
-- type: image
-  path: "assets/nbg-logo-gr.svg"
-  position: {x, y, w, h}
-```
+### Content-to-Visual Mapping
 
-## Infographic Patterns
+| If content is about... | Use visual type... |
+|------------------------|-------------------|
+| Numbers/metrics | KPI dashboard, bar chart |
+| Comparison | Side-by-side bars, comparison table |
+| Trend/change | Line chart (smooth, with markers), waterfall |
+| Process/steps | Numbered infographic, timeline |
+| Structure/hierarchy | Pyramid, funnel |
+| Distribution | **Doughnut** (NEVER pie), stacked bar |
+| Categories | Icon grid, numbered list |
 
-### KPI Dashboard (3-6 metrics)
-```yaml
-kpi_dashboard:
-  layout: "2x3 grid"
-  elements:
-    - type: kpi_card
-      position: {x: 0.5, y: 1.5, w: 3.5, h: 2.0}
-      content:
-        number: "2.3M"
-        label: "Mobile Downloads"
-        trend: "+47%"
-        trend_direction: "up"
-```
+### NEVER create all-text slides
+Executive audiences need visuals:
+- Charts to show data
+- Infographics to show structure
+- Icons to reinforce concepts
+- Timelines to show progression
+- KPI dashboards to highlight metrics
 
-### Sequential Steps (3-5 steps)
-```yaml
-sequential_steps:
-  layout: "horizontal flow"
-  elements:
-    - type: step
-      number: "01"
-      title: "Step Title"
-      description: "Brief description"
-      position: {x: 0.5, y: 2.0, w: 2.0, h: 2.5}
-      connector: "arrow_right"
-```
+---
 
-### Numbered List (Vertical)
-```yaml
-numbered_list:
-  layout: "vertical stack"
-  item_height: 1.2"
-  elements:
-    - number: "1"
-      title: "Item Title"
-      description: "Description text"
-```
-
-### Timeline (Horizontal)
-```yaml
-timeline:
-  layout: "horizontal"
-  baseline_y: 3.5"
-  elements:
-    - date: "Jan 2024"
-      title: "Milestone"
-      position_x: 1.5"
-```
-
-## Color Application Rules
+## Color Reference
 
 ### Text Colors
 | Element | Color | Hex |
@@ -365,8 +276,8 @@ timeline:
 | Title | Dark Teal | 003841 |
 | Body text | Dark Text | 202020 |
 | Subtitle | NBG Teal | 007B85 |
-| Bullet character | Bright Cyan | 00DFF8 |
-| Muted text | Medium Gray | 939793 |
+| Bullet | Bright Cyan | 00DFF8 |
+| Muted | Medium Gray | 939793 |
 
 ### Shape Colors
 | Usage | Color | Hex |
@@ -377,148 +288,95 @@ timeline:
 | Divider lines | Light Gray | BEC1BE |
 
 ### Chart Colors (in order)
-1. `00ADBF` - Cyan
+1. `00ADBF` - Cyan (primary)
 2. `003841` - Dark Teal
 3. `007B85` - NBG Teal
 4. `939793` - Medium Gray
 5. `BEC1BE` - Light Gray
 6. `00DFF8` - Bright Cyan
 
-## Example Storyboard
+---
 
-### Input (from Storyline Architect)
+## Output Format
+
+YAML specification for each slide:
+
 ```yaml
-- slide_id: 3
-  type: content
-  key_message: "YoY growth was exceptional"
-  content:
-    title: "Mobile Downloads Grew 47% Year-over-Year"
-    points:
-      - "Q4 2023: 1.6M downloads"
-      - "Q4 2024: 2.3M downloads"
-      - "Driven by marketing and word-of-mouth"
-  recommended_visual: "bar_chart"
+storyboard:
+  presentation_id: "pres-YYYY-NNN"
+
+  slides:
+    - slide_id: N
+      layout: "[Layout Name]"
+      background: "#FFFFFF"
+      page_number: true  # or false for cover/divider/back_cover
+
+      elements:
+        - id: "title"
+          type: text
+          content: "Slide Title Here"
+          position:
+            x: 0.37
+            y: 0.5
+            w: 12.59
+            h: 0.6
+          style:
+            font: "Aptos"
+            size: 24
+            color: "003841"
+            bold: false
+            align: "left"
+            valign: "bottom"
+            margin: 0
+
+        - id: "chart_main"
+          type: chart
+          chart_type: bar  # NEVER pie - use doughnut
+          position:
+            x: 5.1
+            y: 1.2
+            w: 6.7
+            h: 4.6
+          data:
+            categories: ["A", "B", "C"]
+            series:
+              - name: "Series 1"
+                values: [10, 20, 30]
+          config:
+            colors: ["00ADBF", "003841"]
+            showValue: true
+
+        - id: "logo"
+          type: image
+          path: "assets/nbg-logo-gr.svg"
+          position:
+            x: 0.374
+            y: 7.071
+            w: 0.822
+            h: 0.236
+
+      custom_visuals_needed: []
 ```
 
-### Output (Storyboard Spec)
-```yaml
-- slide_id: 3
-  layout: "Two Column (40/60)"
-  background: "#FFFFFF"
-
-  elements:
-    - id: "title"
-      type: text
-      content: "Mobile Downloads Grew 47% Year-over-Year"
-      position:
-        x: 0.37
-        y: 0.6
-        w: 11.45
-        h: 0.8
-      style:
-        font: "Aptos"
-        size: 24
-        color: "003841"
-        bold: false
-        align: "left"
-        margin: 0
-
-    - id: "bullets"
-      type: text
-      content:
-        - "Q4 2023: 1.6M downloads"
-        - "Q4 2024: 2.3M downloads"
-        - "Driven by marketing and word-of-mouth"
-      position:
-        x: 0.37
-        y: 1.5
-        w: 4.5
-        h: 3.5
-      style:
-        font: "Aptos"
-        size: 12
-        color: "202020"
-        bullet: true
-        bullet_char: "2022"
-        bullet_color: "00DFF8"
-        line_spacing: 1.5
-        margin: 0
-
-    - id: "chart_yoy"
-      type: chart
-      chart_type: bar
-      position:
-        x: 5.2
-        y: 1.2
-        w: 6.5
-        h: 4.2
-      data:
-        categories: ["Q4 2023", "Q4 2024"]
-        series:
-          - name: "Downloads (M)"
-            values: [1.6, 2.3]
-      config:
-        colors: ["939793", "00ADBF"]
-        showValue: true
-        valueFontBold: true
-        valueFontSize: 14
-        barGapWidthPct: 50
-        catAxisTitle: ""
-        valAxisTitle: ""
-
-    - id: "callout"
-      type: shape
-      shape_type: roundRect
-      position:
-        x: 10.0
-        y: 1.0
-        w: 1.5
-        h: 0.6
-      style:
-        fill: "00DFF8"
-        corner_radius: 0.1
-      text:
-        content: "+47%"
-        font: "Aptos"
-        size: 16
-        color: "003841"
-        bold: true
-        align: "center"
-
-    - id: "logo"
-      type: image
-      path: "assets/nbg-logo-gr.svg"
-      position:
-        x: 0.34
-        y: 6.6
-        w: 2.14
-        h: 0.62
-
-  custom_visuals_needed: []  # Bar chart is standard, no custom needed
-```
+---
 
 ## Quality Checklist
 
 Before outputting storyboard:
 
-- [ ] All positions within slide bounds (13.33" x 7.5" (LAYOUT_WIDE))
+- [ ] All positions within slide bounds (13.33" x 7.5")
 - [ ] Standard margins respected (0.37" sides)
-- [ ] Logo positioned correctly (0.34", 5.9")
+- [ ] Small logo (0.822" x 0.236") on content slides
+- [ ] Page numbers on content slides only
 - [ ] Text boxes have margin: 0
 - [ ] Colors from NBG palette only
 - [ ] Font is Aptos throughout
-- [ ] Visual hierarchy is clear
+- [ ] No pie charts (use doughnut)
+- [ ] Back cover uses centered oval logo, no text
 - [ ] Adequate white space
-- [ ] Elements don't overlap inappropriately
-- [ ] Chart/visual positions support message
+- [ ] Visual hierarchy is clear
 
-## Behavior Rules
-
-1. **Be Specific**: Exact positions, not vague descriptions
-2. **Be Consistent**: Same elements, same styling across slides
-3. **Be Practical**: Use standard layouts when possible
-4. **Be Complete**: Include ALL elements including logo
-5. **Be NBG-Compliant**: Never deviate from brand
+---
 
 ## What NOT To Do
 
@@ -526,4 +384,6 @@ Before outputting storyboard:
 - Don't generate actual graphics (that's Graphics Renderer's job)
 - Don't use non-NBG colors or fonts
 - Don't crowd slides with elements
-- Don't guess positions - calculate them
+- Don't guess positions - use the layout library
+- Don't specify pie charts (always use doughnut)
+- Don't add "Thank You" to back covers
