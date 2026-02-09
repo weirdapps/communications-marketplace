@@ -103,6 +103,8 @@ Plain white slide with centered oval NBG building logo:
 | **Line charts** | Smooth curves, 3pt lines, visible markers (size 10) |
 | **Chart axis colors** | Always specify explicit NBG colors to avoid defaults |
 | **Text margins** | Always set `margin: 0` on all text boxes |
+| **Text alignment** | Always use `valign: 'top'` - never middle or bottom |
+| **Title box sizing** | Size to fit text (~0.4" for single-line, ~0.7" for two-line) |
 
 ## Agents
 
@@ -134,6 +136,8 @@ Every presentation must pass:
 - [ ] Small logo on content slides (0.822" x 0.236")
 - [ ] Page numbers on content slides only (not cover, dividers, back cover)
 - [ ] Page number and logo aligned at 0.19" from bottom
+- [ ] All text boxes: `margin: 0`, `valign: 'top'`
+- [ ] Title boxes sized to fit text (not oversized)
 - [ ] No pie charts (use doughnut)
 - [ ] No "Thank You" slides (use plain back cover)
 - [ ] One key message per slide
@@ -178,7 +182,12 @@ comms-marketplace/
 
 ## Version History
 
-### v2.1.0 (Current)
+### v2.2.0 (Current)
+- All text boxes: margin: 0, valign: 'top'
+- Title boxes sized to fit text (reduced heights)
+- Updated layout constants with correct body positioning
+
+### v2.1.0
 - Fixed logo sizing (small for content, large for covers)
 - Fixed page number positioning from template
 - Added explicit chart axis color handling

@@ -20,10 +20,25 @@ slide:
 margins:
   left: 0.37"
   right: 0.37"
-  top_title: 0.6"
-  top_content: 1.33"
+  top_title: 0.5"
+  top_content: 1.1"
   bottom: 0.5"
 ```
+
+## Text Box Rules
+
+**CRITICAL**: All text boxes must follow these rules:
+
+| Property | Value | Reason |
+|----------|-------|--------|
+| `margin` | `0` | No internal padding |
+| `valign` | `'top'` | Never middle or bottom |
+| Height | Fit content | No oversized boxes |
+
+### Title Box Sizing
+- Single-line title: `h: 0.4"`
+- Two-line title: `h: 0.7"`
+- Never use large heights that leave empty space
 
 ## Logo Placement (from Template)
 
@@ -202,12 +217,16 @@ content:
     x: 0.37"
     y: 0.5"
     w: 12.59"
-    h: 0.6"
+    h: 0.4"      # Tight fit for single-line
+    valign: top  # ALWAYS top-aligned
+    margin: 0
   body:
     x: 0.37"
-    y: 1.33"
+    y: 1.1"      # Starts close to title
     w: 12.59"
-    h: 5.0"
+    h: 5.2"
+    valign: top  # ALWAYS top-aligned
+    margin: 0
 ```
 
 ## PptxGenJS Layout Constants
@@ -269,12 +288,18 @@ const LAYOUT = {
     centerY: 2.84
   },
 
-  // Content positions
+  // Content positions (tight title, top-aligned)
   content: {
     titleY: 0.5,
-    titleH: 0.6,
-    bodyY: 1.33,
+    titleH: 0.4,   // Tight fit
+    bodyY: 1.1,    // Close to title
     bodyW: 12.59
   }
+};
+
+// TEXT BOX DEFAULTS (apply to ALL text)
+const TEXT_DEFAULTS = {
+  margin: 0,       // No internal padding
+  valign: 'top',   // ALWAYS top-aligned
 };
 ```

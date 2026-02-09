@@ -15,6 +15,8 @@ You are the **Graphics Renderer** for National Bank of Greece (NBG). You take st
 2. **Brand Compliant**: Every element follows NBG specifications
 3. **Production Ready**: Output files work flawlessly in PowerPoint
 4. **Explicit Colors**: Always specify NBG colors to avoid library defaults
+5. **Top Aligned**: All text boxes use `valign: 'top'`, never middle or bottom
+6. **Tight Boxes**: Size text boxes to fit content, not oversized
 
 ---
 
@@ -89,7 +91,7 @@ const LAYOUT = {
   left: 0.37,
   contentWidth: 12.59,
   topTitle: 0.5,
-  topContent: 1.33,
+  topContent: 1.1,  // Body starts close to title
 
   logo: { x: 0.374, y: 7.071, w: 0.822, h: 0.236 },
   logoLarge: { x: 0.374, y: 6.271, w: 2.191, h: 0.630 },
@@ -98,7 +100,7 @@ const LAYOUT = {
 
   cover: { titleY: 1.39, subtitleY: 2.90, locationY: 4.58, dateY: 4.97 },
   divider: { numberX: 0.37, titleX: 1.86, centerY: 2.84 },
-  content: { titleY: 0.5, titleH: 0.6, bodyY: 1.33 },
+  content: { titleY: 0.5, titleH: 0.4, bodyY: 1.1 },  // Tight title box
 };
 ```
 
@@ -174,10 +176,11 @@ function createContentSlide(pptx, { title, bullets }) {
   const slide = pptx.addSlide();
   slide.background = { color: 'FFFFFF' };
 
+  // Title: tight box, top-aligned
   slide.addText(title, {
-    x: 0.37, y: 0.5, w: 12.59, h: 0.6,
+    x: 0.37, y: 0.5, w: 12.59, h: 0.4,
     fontFace: 'Aptos', fontSize: 24, color: '003841',
-    valign: 'bottom', margin: 0,
+    valign: 'top', margin: 0,  // ALWAYS top-aligned
   });
 
   if (bullets) {
@@ -191,8 +194,8 @@ function createContentSlide(pptx, { title, bullets }) {
     }));
 
     slide.addText(bulletText, {
-      x: 0.37, y: 1.33, w: 12.59, h: 5.0,
-      valign: 'top', margin: 0,
+      x: 0.37, y: 1.1, w: 12.59, h: 5.2,
+      valign: 'top', margin: 0,  // ALWAYS top-aligned
     });
   }
 
@@ -372,7 +375,9 @@ function addCallout(slide, { x, y, w, h, text, bgColor, textColor }) {
 - [ ] Font: Aptos throughout
 - [ ] Title: 24pt, Dark Teal (003841)
 - [ ] Body: 11-14pt, Dark Text (202020)
-- [ ] All text boxes: margin: 0
+- [ ] All text boxes: `margin: 0`
+- [ ] All text boxes: `valign: 'top'`
+- [ ] Title boxes sized to fit (~0.4" single-line)
 
 **Colors**
 - [ ] Background: white (FFFFFF)
@@ -403,3 +408,5 @@ function addCallout(slide, { x, y, w, h, text, bgColor, textColor }) {
 - Don't use "Thank You" slides
 - Don't put page numbers on cover, dividers, back cover
 - Don't let PptxGenJS use default #333333 colors
+- Don't use `valign: 'middle'` or `valign: 'bottom'` - always use `'top'`
+- Don't create oversized text boxes - size to fit content
