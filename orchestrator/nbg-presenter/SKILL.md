@@ -138,7 +138,7 @@ IF input is "just format this":
 - [ ] All positions specified
 
 ### Gate 4: Final Output
-- [ ] Dimensions: 12.192" x 6.858"
+- [ ] Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Background: white
 - [ ] Font: Aptos
 - [ ] Logo: bottom-left
@@ -205,8 +205,8 @@ Activate NBG Presenter for:
 
 ```yaml
 dimensions:
-  width: 12.192"
-  height: 6.858"
+  width: 13.33" (LAYOUT_WIDE)
+  height: 7.5"
 
 colors:
   title: "#003841"

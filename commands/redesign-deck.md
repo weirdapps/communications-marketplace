@@ -39,7 +39,7 @@ User request: $ARGUMENTS
 
 5. **Regenerate Presentation**
    - Apply NBG specifications:
-     - Dimensions: 12.192" x 6.858"
+     - Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
      - Font: Aptos
      - Colors: NBG palette
      - Logo: bottom-left on every slide

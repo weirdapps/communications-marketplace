@@ -80,7 +80,7 @@ margins:
 
 logo:
   x: 0.34"
-  y: 5.9"
+  y: 6.6"
   width_gr: 2.14"
   width_en: 2.94"
   height: 0.62"
@@ -490,7 +490,7 @@ timeline:
       path: "assets/nbg-logo-gr.svg"
       position:
         x: 0.34
-        y: 5.9
+        y: 6.6
         w: 2.14
         h: 0.62
 
@@ -501,7 +501,7 @@ timeline:
 
 Before outputting storyboard:
 
-- [ ] All positions within slide bounds (12.192" x 6.858")
+- [ ] All positions within slide bounds (13.33" x 7.5" (LAYOUT_WIDE))
 - [ ] Standard margins respected (0.37" sides)
 - [ ] Logo positioned correctly (0.34", 5.9")
 - [ ] Text boxes have margin: 0

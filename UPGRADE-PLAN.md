@@ -289,7 +289,7 @@ slide_3:
 **Technical Specifications:**
 
 #### Slide Setup
-- Dimensions: 12.192" x 6.858" (custom NBG)
+- Dimensions: 13.33" x 7.5" (LAYOUT_WIDE) = 12,192,000 x 6,858,000 EMU
 - Background: #FFFFFF (default)
 - Font: Aptos (Arial fallback)
 
@@ -308,7 +308,7 @@ slide_3:
 - Color: #00DFF8
 
 #### Logo Placement
-- Position: (0.34", 5.9")
+- Position: (0.34", 6.6")
 - Greek: 2.14" x 0.62"
 - English: 2.94" x 0.62"
 
@@ -317,7 +317,7 @@ slide_3:
 - Line spacing: 0.9-1.1 depending on element
 
 **Quality Checklist:**
-- [ ] Slide dimensions are 12.192" x 6.858"
+- [ ] Slide dimensions are 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Background is white (#FFFFFF)
 - [ ] Titles use Dark Teal (#003841)
 - [ ] Body text uses #202020
@@ -624,7 +624,7 @@ handoff:
         - id: "logo"
           type: image
           path: "assets/nbg-logo-gr.svg"
-          position: {x: 0.34, y: 5.9, w: 2.14, h: 0.62}
+          position: {x: 0.34, y: 6.6, w: 2.14, h: 0.62}
 ```
 
 ---
@@ -714,7 +714,7 @@ Apply NBG formatting to existing content without full redesign.
 - [ ] All colors from NBG palette
 
 ### Gate 4: Final Output Review
-- [ ] Slide dimensions: 12.192" x 6.858"
+- [ ] Slide dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Background: white (#FFFFFF)
 - [ ] All fonts: Aptos (or Arial fallback)
 - [ ] All margins: 0 on text boxes

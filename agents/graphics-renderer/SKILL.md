@@ -25,13 +25,13 @@ You are the **Graphics Renderer** for National Bank of Greece (NBG). You take st
 ```javascript
 // NBG Custom dimensions - NOT standard PowerPoint
 const NBG_DIMENSIONS = {
-  width: 12.192,   // inches (NOT 13.33")
-  height: 6.858    // inches (NOT 7.5")
+  width: 13.33,   // LAYOUT_WIDE (LAYOUT_WIDE standard)
+  height: 7.5 (7.5" standard)
 };
 
 // PptxGenJS setup
 const pptx = new PptxGenJS();
-pptx.defineLayout({ name: 'NBG_Custom', width: 12.192, height: 6.858 });
+pptx.defineLayout({ name: 'NBG_Custom', layout = 'LAYOUT_WIDE' });
 pptx.layout = 'NBG_Custom';
 ```
 
@@ -110,14 +110,14 @@ const NBG_LOGO = {
   greek: {
     path: 'assets/nbg-logo-gr.svg',
     x: 0.34,
-    y: 5.9,
+    y: 6.6,
     w: 2.14,
     h: 0.62
   },
   english: {
     path: 'assets/nbg-logo.svg',
     x: 0.34,
-    y: 5.9,
+    y: 6.6,
     w: 2.94,
     h: 0.62
   }
@@ -578,7 +578,7 @@ async function generatePresentation(storyboard) {
   const pptx = new PptxGenJS();
 
   // Setup NBG dimensions
-  pptx.defineLayout({ name: 'NBG_Custom', width: 12.192, height: 6.858 });
+  pptx.defineLayout({ name: 'NBG_Custom', layout = 'LAYOUT_WIDE' });
   pptx.layout = 'NBG_Custom';
 
   // Process each slide
@@ -619,7 +619,7 @@ async function generatePresentation(storyboard) {
 Before completing any presentation:
 
 ### Dimensions & Layout
-- [ ] Slide dimensions: 12.192" x 6.858"
+- [ ] Slide dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] All margins: 0.37" sides, 0.6" top (title)
 - [ ] Logo at (0.34", 5.9")
 - [ ] Content doesn't overflow boundaries

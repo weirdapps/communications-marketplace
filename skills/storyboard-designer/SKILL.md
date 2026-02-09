@@ -80,7 +80,7 @@ margins:
 
 logo:
   x: 0.34"
-  y: 5.9"
+  y: 6.6"
   width_gr: 2.14"
   width_en: 2.94"
   height: 0.62"
@@ -230,6 +230,51 @@ three_column:
     x: 8.0"
     y: 1.33"
     w: 3.6"
+```
+
+## Creative Visual Selection (CRITICAL)
+
+### Avoid Text-Only Slides
+**NEVER create all-text slides for executive audiences.** Every content slide should have visual elements:
+- Charts to show data
+- Infographics to show structure
+- Icons to reinforce concepts
+- Timelines to show progression
+- KPI dashboards to highlight metrics
+
+### Visual First Thinking
+For each slide, ask: **"How can this be SHOWN, not just told?"**
+
+| If the content is about... | Use visual type... |
+|----------------------------|-------------------|
+| Numbers/metrics | KPI dashboard, bar chart |
+| Comparison | Side-by-side bars, comparison table |
+| Trend/change | Line chart, waterfall |
+| Process/steps | Numbered infographic, timeline |
+| Structure/hierarchy | Pyramid, funnel |
+| Distribution | Pie/doughnut, stacked bar |
+| Categories | Icon grid, numbered list |
+
+### Content-to-Visual Mapping
+
+```yaml
+recommended_visual_mapping:
+  # Data content → Chart types
+  "growth": "bar_chart"
+  "trend": "line_chart"
+  "comparison": "comparison_chart"
+  "breakdown": "pie_chart"
+  "progression": "waterfall_chart"
+
+  # Structural content → Infographics
+  "priorities": "numbered_infographic"
+  "steps": "timeline"
+  "strategy": "kpi_dashboard"
+  "options": "numbered_infographic"
+  "pillars": "numbered_infographic"
+
+  # Default fallback
+  "bullets_only": "numbered_infographic"  # NEVER just bullets!
 ```
 
 ## Layout Selection Guide
@@ -490,7 +535,7 @@ timeline:
       path: "assets/nbg-logo-gr.svg"
       position:
         x: 0.34
-        y: 5.9
+        y: 6.6
         w: 2.14
         h: 0.62
 
@@ -501,7 +546,7 @@ timeline:
 
 Before outputting storyboard:
 
-- [ ] All positions within slide bounds (12.192" x 6.858")
+- [ ] All positions within slide bounds (13.33" x 7.5" (LAYOUT_WIDE))
 - [ ] Standard margins respected (0.37" sides)
 - [ ] Logo positioned correctly (0.34", 5.9")
 - [ ] Text boxes have margin: 0

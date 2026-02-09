@@ -5,7 +5,7 @@ Shared brand guidelines for all NBG presentation agents.
 ## Quick Reference
 
 ### Dimensions
-- **Slide**: 12.192" x 6.858" (NOT standard PowerPoint)
+- **Slide**: 13.33" x 7.5" (LAYOUT_WIDE) (NOT standard PowerPoint)
 - **Margins**: 0.37" sides, 0.6" top for title
 
 ### Colors

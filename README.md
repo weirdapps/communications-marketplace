@@ -75,8 +75,8 @@ Pixel-perfect PPTX production.
 ## NBG Brand Essentials
 
 ### Slide Dimensions
-- **Width**: 12.192" (NOT 13.33")
-- **Height**: 6.858" (NOT 7.5")
+- **EMU**: 12,192,000 x 6,858,000
+- **Inches**: 13.33" x 7.5" (use LAYOUT_WIDE in PptxGenJS)
 
 ### Primary Colors
 | Name | Hex | Usage |
@@ -91,7 +91,7 @@ Pixel-perfect PPTX production.
 - **Fallback**: Arial, Calibri
 
 ### Logo
-- **Position**: (0.34", 5.9")
+- **Position**: (0.34", 6.6")
 - **Greek**: 2.14" x 0.62"
 - **English**: 2.94" x 0.62"
 
@@ -176,7 +176,7 @@ git clone https://github.com/weirdapps/comms-marketplace.git
 ## Quality Standards
 
 Every presentation must pass:
-- [ ] Dimensions: 12.192" x 6.858"
+- [ ] Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Background: white (#FFFFFF)
 - [ ] Font: Aptos throughout
 - [ ] Logo: bottom-left on every slide

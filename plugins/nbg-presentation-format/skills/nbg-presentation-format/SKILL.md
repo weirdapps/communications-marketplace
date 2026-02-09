@@ -7,14 +7,44 @@ description: Create presentations and visual assets following National Bank of G
 
 ## Purpose
 
-Generate pixel-perfect presentations, slides, charts, and icons that match the National Bank of Greece corporate design system. Visual consistency with NBG brand guidelines is mandatory.
+Generate **McKinsey-quality, board-ready** presentations that match the National Bank of Greece corporate design system. Every deck should meet the standard expected by C-level executives and Board of Directors.
+
+## McKinsey-Quality Multi-Agent Workflow
+
+For complex presentations, use the specialized agent pipeline:
+
+### Agent Pipeline
+```
+INPUT → Storyline Architect → Storyboard Designer → Specialists → Graphics Renderer → OUTPUT
+```
+
+| Agent | Purpose | Skill Location |
+|-------|---------|----------------|
+| **Storyline Architect** | Strategic narrative, Pyramid Principle, SCQA | `skills/storyline-architect/` |
+| **Storyboard Designer** | Visual layouts, exact positioning | `skills/storyboard-designer/` |
+| **Infographic Specialist** | Charts, KPI dashboards, diagrams | `skills/infographic-specialist/` |
+| **Icon Designer** | Custom NBG-compliant icons | `skills/icon-designer/` |
+| **Graphics Renderer** | Pixel-perfect PPTX assembly | `skills/graphics-renderer/` |
+| **NBG Presenter** | Master orchestrator | `skills/nbg-presenter/` |
+
+### McKinsey Quality Standards
+- **Pyramid Principle**: Lead with the answer, support with arguments
+- **SCQA Framework**: Situation → Complication → Question → Answer
+- **One Message Per Slide**: No exceptions
+- **Action Titles**: Full sentences that tell the story, not labels
+- **5-7 Second Rule**: Every slide scannable at a glance
+- **"So What?" Test**: Every slide must matter
+
+## Technical Specifications
 
 ## Quick Reference
 
 ### Slide Dimensions (CRITICAL)
-- **Width**: 12.192 inches (NOT standard 13.33")
-- **Height**: 6.858 inches (NOT standard 7.5")
-- **Aspect Ratio**: 16:9 (NBG custom dimensions)
+- **EMU**: 12,192,000 x 6,858,000 (NBG template standard)
+- **Inches**: 13.33" x 7.5" (use LAYOUT_WIDE in PptxGenJS)
+- **Aspect Ratio**: 16:9 widescreen
+
+**Note**: Use `pptx.layout = 'LAYOUT_WIDE'` - do NOT use custom defineLayout.
 
 ### Primary Colors
 | Name | Hex | Usage |
@@ -31,21 +61,49 @@ Generate pixel-perfect presentations, slides, charts, and icons that match the N
 - **Fallback**: Calibri, Tahoma
 
 ### Logo Placement
-- **Position**: Bottom-left corner (x=0.34", y=5.9")
+- **Position**: Bottom-left corner (x=0.34", y=6.6")
 - **Greek logo**: 2.14" x 0.62" (preferred)
 - **English logo**: 2.94" x 0.62"
 - **Assets**: `../../assets/` (relative to this skill)
 
-## Slide Creation Workflow
+## Automated Tools (Recommended)
+
+Use the NBG presentation tools for streamlined workflow:
+
+### NBG Builder (One-Step Creation)
+```bash
+python ~/.claude/plugins/marketplaces/comms-marketplace/tools/nbg-presentation/nbg_build.py outline.yaml output.pptx
+```
+
+### Chart Data Injection
+```bash
+python ~/.claude/plugins/marketplaces/comms-marketplace/tools/nbg-presentation/inject_chart_data.py input.pptx config.json output.pptx
+```
+
+### Table Data Injection
+```bash
+python ~/.claude/plugins/marketplaces/comms-marketplace/tools/nbg-presentation/inject_table_data.py input.pptx config.json output.pptx
+```
+
+### Brand Validation
+```bash
+python ~/.claude/plugins/marketplaces/comms-marketplace/tools/nbg-presentation/nbg_validate.py presentation.pptx
+```
+
+### Slide Catalog
+See `~/.claude/plugins/marketplaces/comms-marketplace/assets/slide-catalog.yaml` for semantic slide type mappings.
+
+---
+
+## Manual Slide Creation Workflow
 
 ### Step 1: Set Up Presentation
 ```javascript
 const PptxGenJS = require('pptxgenjs');
 const pptx = new PptxGenJS();
 
-// NBG custom dimensions (CRITICAL - do not use defaults)
-pptx.defineLayout({ name: 'NBG_Custom', width: 12.192, height: 6.858 });
-pptx.layout = 'NBG_Custom';
+// Use LAYOUT_WIDE (13.33" x 7.5") to match NBG template EMU values
+pptx.layout = 'LAYOUT_WIDE';
 ```
 
 ### Step 2: Apply NBG Styles
@@ -77,7 +135,7 @@ const NBG = {
 // Assets located in comms-marketplace/assets/
 slide.addImage({
   path: 'assets/nbg-logo-gr.svg',  // or absolute path to marketplace assets
-  x: 0.34, y: 5.9, w: 2.14, h: 0.62
+  x: 0.34, y: 6.6, w: 2.14, h: 0.62
 });
 ```
 
@@ -99,9 +157,10 @@ slide.addImage({
 - Bullets: Bright Cyan (#00DFF8)
 - Text box margins: 0 on all sides
 
-### Thank You Slide
-- Large text: 60pt Aptos, Dark Teal
-- Minimal design, white background
+### Back Cover Slide
+- **Always include** a plain back cover slide as the final slide
+- Use template slides 190-193 (plain with NBG logo only)
+- **Do NOT use "Thank You" slides** (slide 195) - these are not wanted
 
 ## Text Formatting Rules
 
@@ -182,10 +241,13 @@ See `references/icons.md` for complete icon specifications.
 
 ## Template Files
 
-- **EN Template**: `/Users/plessas/Downloads/Powerpoint - Version 1.0_EN.pptx`
-- **GR Template**: `/Users/plessas/Downloads/Powerpoint - Version 1.0_GR.pptx`
+- **EN Template**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-EN.pptx`
+- **GR Template**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-GR.pptx`
 - **Logo assets**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/`
-- **Full spec**: `assets/NBG-PRESENTATION-SPEC.md`
+  - `nbg-logo-gr.svg` - Greek logo (214 × 62 px)
+  - `nbg-logo.svg` - English logo (294 × 62 px)
+  - `nbg-logo-fallback.png` - PNG fallback
+- **Full spec**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/NBG-PRESENTATION-SPEC.md`
 
 ## Common Patterns
 
@@ -220,14 +282,35 @@ Preferred for slides with charts/tables:
 
 ## Quality Checklist
 
-Before completing any NBG presentation:
-- [ ] Slide dimensions are 12.192" x 6.858" (not default)
+### McKinsey Standards (Content)
+- [ ] Pyramid Principle applied: Answer first, then support
+- [ ] Every slide has exactly ONE key message
+- [ ] All titles are insight-driven ACTION TITLES (full sentences)
+- [ ] Every slide passes "So What?" test
+- [ ] Read-through test: Titles alone tell the complete story
+- [ ] Arguments are MECE (Mutually Exclusive, Collectively Exhaustive)
+
+### NBG Brand Compliance (Visual)
+- [ ] Slide dimensions: 12192000 x 6858000 EMU (LAYOUT_WIDE = 13.33" x 7.5")
 - [ ] Background is white (#FFFFFF) or off-white (#F5F8F6)
 - [ ] Titles use Dark Teal (#003841)
 - [ ] Body text uses Dark Text (#202020)
 - [ ] All text boxes have margin: 0
-- [ ] Logo placed in bottom-left corner
+- [ ] Logo placed in bottom-left corner (0.34", 6.6")
 - [ ] Font is Aptos (or Arial fallback)
 - [ ] Section numbers use "01", "02" format with NBG Teal
 - [ ] Charts use NBG color sequence
 - [ ] Bullets use Bright Cyan (#00DFF8)
+- [ ] Scannable in 5-7 seconds
+- [ ] Plain back cover (no "Thank You" slides)
+- [ ] Quiet covers/dividers preferred (minimal decorative elements)
+
+### Accessibility & Readability
+- [ ] **Contrast ratio**: Minimum 4.5:1 for body text, 3:1 for large text (WCAG AA)
+- [ ] **Font colors match backgrounds**:
+  - Light backgrounds (#FFFFFF, #F5F8F6): Use Dark Teal (#003841) or Dark Text (#202020)
+  - Dark backgrounds (#003841, #007B85): Use White (#FFFFFF) or Off-white (#F5F8F6)
+- [ ] **Minimum font sizes**: 24pt body for large rooms, 12pt minimum for handouts
+- [ ] **Elements within bounds**: All content inside safe margins (0.37" from edges)
+- [ ] **No text on busy backgrounds**: Avoid placing text over complex images/patterns
+- [ ] **Color not sole indicator**: Don't rely only on color to convey meaning

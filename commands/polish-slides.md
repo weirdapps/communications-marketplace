@@ -18,7 +18,7 @@ User request: $ARGUMENTS
    - Focus on formatting, not narrative
 
 2. **Apply NBG Formatting**
-   - Dimensions: 12.192" x 6.858"
+   - Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
    - Background: white (#FFFFFF)
    - Font: Aptos throughout
    - All text boxes: margin: 0
@@ -46,7 +46,7 @@ User request: $ARGUMENTS
 ## NBG Formatting Specs
 
 ### Dimensions
-- 12.192" x 6.858" (NOT default)
+- 13.33" x 7.5" (LAYOUT_WIDE) (NOT default)
 
 ### Colors (no # for PptxGenJS)
 - darkTeal: '003841' (titles)
@@ -60,7 +60,7 @@ User request: $ARGUMENTS
 - Fallback: Arial, Calibri
 
 ### Logo
-- Position: x=0.34", y=5.9"
+- Position: x=0.34", y=6.6"
 - Greek: 2.14" x 0.62"
 - English: 2.94" x 0.62"
 

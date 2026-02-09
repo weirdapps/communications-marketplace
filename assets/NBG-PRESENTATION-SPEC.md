@@ -10,10 +10,17 @@ This document contains the complete design specifications for creating presentat
 - **Languages**: Available in EN (English) and GR (Greek)
 
 ## Slide Dimensions
-- **Width**: 12,192,000 EMUs (12.192 inches / 30.97 cm)
-- **Height**: 6,858,000 EMUs (6.858 inches / 17.42 cm)
-- **Aspect Ratio**: 16:9 Widescreen (custom NBG dimensions)
-- **PptxGenJS dimensions**: `{ w: 12.192, h: 6.858 }` (NBG custom, NOT standard 13.33 x 7.5)
+
+**EMU Values** (from template):
+- **Width**: 12,192,000 EMUs
+- **Height**: 6,858,000 EMUs
+
+**Standard Inch Conversion** (914,400 EMU = 1 inch):
+- **Width**: 13.33 inches
+- **Height**: 7.5 inches
+- **Aspect Ratio**: 16:9 Widescreen
+
+**PptxGenJS**: Use `pptx.layout = 'LAYOUT_WIDE'` (matches NBG template EMU values)
 
 ## Color Scheme ("NBG Colors 2")
 
@@ -193,7 +200,7 @@ Based on the template structure:
 
 When creating presentations in NBG format:
 
-1. **Use NBG custom dimensions** (12.192" x 6.858", NOT standard 13.33 x 7.5)
+1. **Use LAYOUT_WIDE** (13.33" x 7.5" = 12192000 x 6858000 EMU)
 2. **Apply NBG color scheme** with primary teal (#007B85) and bright cyan (#00DFF8)
 3. **Use Aptos font family** (or Arial as fallback)
 4. **Set all text box margins to 0** (lIns, tIns, rIns, bIns = 0)
@@ -212,9 +219,8 @@ When creating presentations in NBG format:
 ```javascript
 const pptx = new PptxGenJS();
 
-// Set NBG custom slide dimensions (NOT standard 16:9)
-pptx.defineLayout({ name: 'NBG_Custom', width: 12.192, height: 6.858 });
-pptx.layout = 'NBG_Custom';
+// Use LAYOUT_WIDE to match NBG template EMU values (12192000 x 6858000)
+pptx.layout = 'LAYOUT_WIDE';
 
 // Define NBG colors
 const NBG_COLORS = {
@@ -297,8 +303,8 @@ When using html2pptx for NBG presentations, ensure proper text box settings:
 ```javascript
 // In html2pptx options
 const nbgOptions = {
-  slideWidth: 12.192,
-  slideHeight: 6.858,
+  slideWidth: 13.33,  // LAYOUT_WIDE
+  slideHeight: 7.5,
   defaultTextStyle: {
     fontFace: 'Aptos',
     fontSize: 12,
@@ -646,7 +652,7 @@ Fallback:      Calibri
 
 ### Essential Measurements
 ```
-Slide:         12.192" x 6.858"
+Slide:         13.33" x 7.5" (LAYOUT_WIDE)
 Text Margins:  0 (all sides)
 Logo Position: x=0.34", y=5.45"
 Logo Size:     4.01" x 0.84"
@@ -992,8 +998,8 @@ const PptxGenJS = require('pptxgenjs');
 const pptx = new PptxGenJS();
 
 // === SLIDE DIMENSIONS ===
-pptx.defineLayout({ name: 'NBG_Custom', width: 12.192, height: 6.858 });
-pptx.layout = 'NBG_Custom';
+// Use LAYOUT_WIDE (13.33" x 7.5") to match NBG template EMU values
+pptx.layout = 'LAYOUT_WIDE';
 
 // === COMPLETE COLOR PALETTE ===
 const NBG = {

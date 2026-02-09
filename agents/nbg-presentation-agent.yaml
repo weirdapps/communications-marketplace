@@ -1,0 +1,156 @@
+# NBG Presentation Agent Configuration
+# Creates NBG-formatted presentations using official templates
+
+name: nbg-presentation
+description: |
+  Creates professional presentations following National Bank of Greece (NBG)
+  brand guidelines. Uses official NBG templates with correct dimensions, colors,
+  fonts, and layouts.
+
+version: "1.0.0"
+
+# Trigger patterns
+triggers:
+  - "create nbg presentation"
+  - "nbg format"
+  - "nbg styled"
+  - "national bank of greece presentation"
+  - "in nbg format"
+
+# Available tools
+tools:
+  slide_catalog:
+    path: "../assets/slide-catalog.yaml"
+    description: "Semantic mapping of slide types to template indices"
+
+  nbg_build:
+    path: "../tools/nbg-presentation/nbg_build.py"
+    description: "Build complete presentations from YAML outlines"
+    usage: "python nbg_build.py outline.yaml output.pptx"
+
+  inject_chart_data:
+    path: "../tools/nbg-presentation/inject_chart_data.py"
+    description: "Inject real data into chart placeholders"
+    usage: "python inject_chart_data.py input.pptx config.json output.pptx"
+
+  inject_table_data:
+    path: "../tools/nbg-presentation/inject_table_data.py"
+    description: "Inject real data into table placeholders"
+    usage: "python inject_table_data.py input.pptx config.json output.pptx"
+
+  nbg_validate:
+    path: "../tools/nbg-presentation/nbg_validate.py"
+    description: "Validate presentations against NBG brand guidelines"
+    usage: "python nbg_validate.py presentation.pptx"
+
+# Templates
+templates:
+  GR: "~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-GR.pptx"
+  EN: "~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-EN.pptx"
+
+# Brand guidelines summary
+brand:
+  dimensions:
+    width: "13.33 inches"
+    height: "7.5 inches"
+    emu_width: 12192000
+    emu_height: 6858000
+    pptxgenjs: "LAYOUT_WIDE"
+
+  colors:
+    dark_teal: "#003841"      # Titles, headings, icons
+    nbg_teal: "#007B85"       # Primary brand, section numbers
+    cyan: "#00ADBF"           # Chart primary
+    bright_cyan: "#00DFF8"    # Accent, bullets
+    dark_text: "#202020"      # Body text
+    off_white: "#F5F8F6"      # Light backgrounds
+    white: "#FFFFFF"          # Main background
+
+  chart_colors:
+    - "#00ADBF"  # Cyan (primary)
+    - "#003841"  # Dark Teal
+    - "#007B85"  # NBG Teal
+    - "#939793"  # Medium Gray
+    - "#BEC1BE"  # Light Gray
+    - "#00DFF8"  # Bright Cyan
+
+  fonts:
+    primary: "Aptos"
+    bullet: "Arial"
+    fallback: ["Calibri", "Tahoma"]
+
+  rules:
+    - "Always use white (#FFFFFF) or off-white (#F5F8F6) backgrounds"
+    - "Never include 'Thank You' slides"
+    - "Always end with plain back cover with NBG logo"
+    - "Section numbers use '01', '02' format in NBG Teal"
+    - "Bullets use Bright Cyan (#00DFF8)"
+    - "All text boxes must have margin: 0"
+    - "Logo placement: bottom-left (x=0.34\", y=6.6\")"
+
+# Workflow
+workflow:
+  steps:
+    1: "Determine presentation type and content requirements"
+    2: "Select appropriate slides from catalog"
+    3: "Create YAML outline with content"
+    4: "Run nbg_build.py to generate presentation"
+    5: "Run nbg_validate.py to verify brand compliance"
+
+  presets:
+    executive_summary:
+      - "covers/simple_white"
+      - "content/text_with_bullets"
+      - "charts/bar_dual"
+      - "tables/half_page"
+      - "back_covers/plain_logo"
+
+    competitor_analysis:
+      - "covers/simple_white"
+      - "content/text_with_bullets"
+      - "tables/half_page"
+      - "charts/pie_with_text"
+      - "charts/bar_dual"
+      - "infographics/numbered_6"
+      - "back_covers/plain_logo"
+
+    quarterly_report:
+      - "covers/simple_white"
+      - "dividers/section_white"
+      - "charts/line_with_text"
+      - "charts/bar_dual"
+      - "tables/full_page"
+      - "back_covers/plain_logo"
+
+# Example outline format
+example_outline: |
+  template: GR
+  title: "My Presentation"
+
+  slides:
+    - type: covers/simple_white
+      content:
+        title: "Presentation Title"
+        subtitle: "Subtitle Here"
+        location: "Athens, Greece"
+        date: "February 2026"
+
+    - type: content/text_with_bullets
+      content:
+        title: "Section Title"
+        paragraphs:
+          - text: "Introduction paragraph."
+          - text: "Bullet point one"
+            bullet: true
+          - text: "Bullet point two"
+            bullet: true
+
+    - type: charts/pie_single
+      content:
+        title: "Chart Title"
+      chart:
+        type: pie
+        labels: ["A", "B", "C"]
+        values: [40, 35, 25]
+
+    - type: back_covers/plain_logo
