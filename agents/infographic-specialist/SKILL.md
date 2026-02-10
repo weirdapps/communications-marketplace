@@ -134,6 +134,9 @@ You receive:
 
 **Best For**: Financial flows, step-by-step changes
 
+**IMPORTANT**: For OOXML editing (existing presentations), waterfall charts are created as stacked bar charts with three series: Base (invisible), Increase (cyan), and Decrease (red). See `shared/nbg-brand-system/ooxml-charts.md` for detailed XML structure.
+
+#### PptxGenJS Approach
 ```javascript
 {
   type: "waterfall",
@@ -147,6 +150,26 @@ You receive:
     showValue: true
   }
 }
+```
+
+#### OOXML Stacked Bar Approach (for editing existing PPTX)
+
+Data structure for embedded Excel:
+| Category | Base | Increase | Decrease |
+|----------|------|----------|----------|
+| Start Item | 0 | 100 | 0 |
+| Revenue | 100 | 50 | 0 |
+| Costs | 120 | 0 | 30 |
+| Tax | 90 | 0 | 10 |
+| End | 0 | 80 | 0 |
+
+**Base calculation**: Previous running total that positions the visible bar.
+
+Colors:
+- Base series: `<a:noFill/>` (invisible)
+- Increase series: `00ADBF` (NBG Cyan)
+- Decrease series: `AA0028` (NBG Red)
+- Total bar: Can use `003841` (Dark Teal) or same as Increase
 ```
 
 ---

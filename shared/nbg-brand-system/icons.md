@@ -164,3 +164,36 @@ Before outputting any icon, verify:
 | Success/positive | `#73AF3C` |
 | Alert/negative | `#AA0028` |
 | Primary brand highlight | `#007B85` |
+
+---
+
+## External Logos (Non-NBG)
+
+For competitive analysis, interbank comparisons, and market context slides, external bank logos are available:
+
+### Greek Bank Logos
+Location: `assets/bank-logos/`
+
+| Bank | File | Usage |
+|------|------|-------|
+| Alpha Bank | `alpha-bank.png` | Interbank transaction charts |
+| Piraeus Bank | `piraeus-bank.png` | Market share comparisons |
+| Eurobank | `eurobank.png` | Competitive analysis |
+
+### Usage in OOXML Editing
+
+When adding external logos to slides via XML:
+1. Copy PNG files to `ppt/media/` folder
+2. Add relationship entries in slide `.rels` file
+3. Add `<p:pic>` elements to slide XML
+
+See `assets/bank-logos/README.md` for detailed XML snippets and positioning guidelines.
+
+### Positioning for Horizontal Bar Charts
+
+When replacing chart category labels with logos:
+```
+Logo size: 350,000 x 350,000 EMU (~0.38")
+X position: 450,000 EMU (aligned left)
+Y positions: Spaced at 1,300,000 EMU intervals
+```
