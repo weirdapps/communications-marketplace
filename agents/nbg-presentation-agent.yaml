@@ -45,8 +45,8 @@ tools:
 
 # Templates
 templates:
-  GR: "~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-GR.pptx"
-  EN: "~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-EN.pptx"
+  GR: "~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-GR.pptx"
+  EN: "~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-EN.pptx"
 
 # Brand guidelines summary
 brand:

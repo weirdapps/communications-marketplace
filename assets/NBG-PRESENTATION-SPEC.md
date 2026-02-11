@@ -1233,7 +1233,7 @@ The standard NBG back cover is a white slide with only the centered oval NBG bui
 | Centered Oval Logo | 5.44", 2.98" | 2.45" × 1.54" | NBG building in cyan oval |
 
 ### Back Cover Logo Asset
-**File**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-back-cover-logo.png`
+**File**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-back-cover-logo.png`
 - **Description**: Bright cyan oval with dark teal NBG building illustration
 - **Format**: PNG with transparency
 - **Usage**: Center of slide for back cover only
@@ -1246,7 +1246,7 @@ slide.background = { color: 'FFFFFF' };
 
 // Add centered oval NBG building logo
 slide.addImage({
-  path: '~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-back-cover-logo.png',
+  path: '~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-back-cover-logo.png',
   x: 5.44,  // Centered: (13.33 - 2.45) / 2
   y: 2.98,  // Centered: (7.5 - 1.54) / 2
   w: 2.45,

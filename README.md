@@ -1,4 +1,4 @@
-# Comms Marketplace v3.0
+# Communications Marketplace v3.0
 
 Multi-agent presentation system for National Bank of Greece (NBG) corporate communications. Create McKinsey-quality, board-ready presentations using a coordinated agent pipeline.
 
@@ -7,7 +7,7 @@ Multi-agent presentation system for National Bank of Greece (NBG) corporate comm
 ### One-Line Install (Recommended)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/weirdapps/comms-marketplace/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/weirdapps/communications-marketplace/main/install.sh | bash
 ```
 
 This will:
@@ -23,17 +23,17 @@ This will:
 mkdir -p ~/.claude/plugins/marketplaces
 
 # Clone repository
-git clone git@github.com:weirdapps/comms-marketplace.git ~/.claude/plugins/marketplaces/comms-marketplace
+git clone git@github.com:weirdapps/communications-marketplace.git ~/.claude/plugins/marketplaces/communications-marketplace
 
 # Run installer for CLAUDE.md setup
-cd ~/.claude/plugins/marketplaces/comms-marketplace
+cd ~/.claude/plugins/marketplaces/communications-marketplace
 ./install.sh
 ```
 
 ### Update Existing Installation
 
 ```bash
-cd ~/.claude/plugins/marketplaces/comms-marketplace && git pull
+cd ~/.claude/plugins/marketplaces/communications-marketplace && git pull
 ```
 
 ## Architecture
@@ -73,7 +73,7 @@ cd ~/.claude/plugins/marketplaces/comms-marketplace && git pull
 ## Directory Structure
 
 ```
-comms-marketplace/
+communications-marketplace/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin manifest
 │

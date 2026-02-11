@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# NBG Comms Marketplace Uninstaller
+# NBG Communications Marketplace Uninstaller
 #
 # Usage:
 #   ./uninstall.sh
@@ -14,15 +14,15 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-INSTALL_DIR="$HOME/.claude/plugins/marketplaces/comms-marketplace"
+INSTALL_DIR="$HOME/.claude/plugins/marketplaces/communications-marketplace"
 CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
 echo ""
-echo -e "${YELLOW}NBG Comms Marketplace Uninstaller${NC}"
+echo -e "${YELLOW}NBG Communications Marketplace Uninstaller${NC}"
 echo ""
 
 # Confirm
-read -p "Are you sure you want to uninstall comms-marketplace? [y/N] " -n 1 -r
+read -p "Are you sure you want to uninstall communications-marketplace? [y/N] " -n 1 -r
 echo ""
 
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then

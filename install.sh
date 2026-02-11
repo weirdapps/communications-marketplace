@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# NBG Comms Marketplace Installer
+# NBG Communications Marketplace Installer
 # Creates McKinsey-quality presentations with NBG branding
 #
 # Usage:
-#   curl -sSL https://raw.githubusercontent.com/weirdapps/comms-marketplace/main/install.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/weirdapps/communications-marketplace/main/install.sh | bash
 #
 # Or clone first, then run:
 #   ./install.sh
@@ -22,16 +22,16 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 # Configuration
-REPO_URL="https://github.com/weirdapps/comms-marketplace.git"
-REPO_SSH="git@github.com:weirdapps/comms-marketplace.git"
-INSTALL_DIR="$HOME/.claude/plugins/marketplaces/comms-marketplace"
+REPO_URL="https://github.com/weirdapps/communications-marketplace.git"
+REPO_SSH="git@github.com:weirdapps/communications-marketplace.git"
+INSTALL_DIR="$HOME/.claude/plugins/marketplaces/communications-marketplace"
 CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
 # Print banner
 print_banner() {
     echo ""
     echo -e "${CYAN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}  ${BOLD}NBG Comms Marketplace Installer${NC}                              ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${BOLD}NBG Communications Marketplace Installer${NC}                              ${CYAN}║${NC}"
     echo -e "${CYAN}║${NC}  Create McKinsey-quality presentations with NBG branding       ${CYAN}║${NC}"
     echo -e "${CYAN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
@@ -131,10 +131,10 @@ generate_claude_md_content() {
 
 ## NBG PRESENTATION FORMAT (MANDATORY WORKFLOW)
 
-**CRITICAL**: When asked to create ANY presentation for NBG or "in NBG format", you MUST follow the comms-marketplace multi-agent workflow. Do NOT skip to html2pptx or other shortcuts.
+**CRITICAL**: When asked to create ANY presentation for NBG or "in NBG format", you MUST follow the communications-marketplace multi-agent workflow. Do NOT skip to html2pptx or other shortcuts.
 
-### Comms-Marketplace Location
-`~/.claude/plugins/marketplaces/comms-marketplace/` (v3.0)
+### Communications-Marketplace Location
+`~/.claude/plugins/marketplaces/communications-marketplace/` (v3.0)
 
 ### MANDATORY WORKFLOW (Read These Files First)
 Before creating any NBG presentation, read these files in order:
@@ -192,12 +192,12 @@ chartColors: ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8']
 ```
 
 ### Assets & Templates
-- **Logo (Greek)**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-logo-gr.svg`
-- **Logo (English)**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-logo.svg`
-- **Back Cover Logo**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-back-cover-logo.png`
-- **Template EN**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-EN.pptx`
-- **Template GR**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-GR.pptx`
-- **Full Spec**: `~/.claude/plugins/marketplaces/comms-marketplace/assets/NBG-PRESENTATION-SPEC.md`
+- **Logo (Greek)**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-logo-gr.svg`
+- **Logo (English)**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-logo.svg`
+- **Back Cover Logo**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-back-cover-logo.png`
+- **Template EN**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-EN.pptx`
+- **Template GR**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-GR.pptx`
+- **Full Spec**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/NBG-PRESENTATION-SPEC.md`
 
 ### Trigger Phrases (Activate NBG Workflow)
 - "Create NBG presentation"

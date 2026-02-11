@@ -7,7 +7,7 @@ description: "NBG PowerPoint Template Slide Catalog"
 
 templates:
   GR:
-    path: "~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-GR.pptx"
+    path: "~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-GR.pptx"
     slides:
       covers:
         simple_white: 16          # White background, title + subtitle (has decorative elements)
@@ -72,12 +72,12 @@ templates:
         quiet: 190                # Alias for plain_logo - no "Thank You" text
 
 # Back cover specifications (for PptxGenJS generation):
-# - Logo asset: ~/.claude/plugins/marketplaces/comms-marketplace/assets/nbg-back-cover-logo.png
+# - Logo asset: ~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-back-cover-logo.png
 # - Centered position: x=5.44", y=2.98", w=2.45", h=1.54"
 # - NEVER use "Thank You" or "Questions" text on back covers
 
   EN:
-    path: "~/.claude/plugins/marketplaces/comms-marketplace/assets/templates/NBG-Template-EN.pptx"
+    path: "~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-EN.pptx"
     slides:
       # Same structure as GR - indices are identical
       covers:
