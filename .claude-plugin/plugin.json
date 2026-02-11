@@ -1,7 +1,7 @@
 {
-  "name": "nbg-presentation-format",
-  "description": "Multi-agent presentation system for NBG corporate communications. Create board-ready, pixel-perfect presentations following NBG brand guidelines.",
-  "version": "2.0.0",
+  "name": "comms-marketplace",
+  "description": "Multi-agent presentation system for NBG corporate communications. Create McKinsey-quality, board-ready presentations following NBG brand guidelines using a coordinated agent pipeline.",
+  "version": "3.0.0",
   "author": {
     "name": "weirdapps"
   },
@@ -12,7 +12,71 @@
     "powerpoint",
     "pptx",
     "brand",
-    "design"
+    "design",
+    "mckinsey",
+    "storyline",
+    "storyboard"
   ],
-  "commands": "./commands"
+  "commands": "./commands",
+  "agents": {
+    "nbg-presenter": {
+      "path": "./orchestrator/nbg-presenter/SKILL.md",
+      "description": "Master orchestrator for NBG presentations. Coordinates all specialist agents.",
+      "triggers": [
+        "create NBG presentation",
+        "NBG format",
+        "board-ready",
+        "make this board-ready",
+        "redesign this deck",
+        "format for the board"
+      ]
+    },
+    "storyline-architect": {
+      "path": "./agents/storyline-architect/SKILL.md",
+      "description": "Creates narrative structure using Pyramid Principle and SCQA framework."
+    },
+    "storyboard-designer": {
+      "path": "./agents/storyboard-designer/SKILL.md",
+      "description": "Designs visual layouts with exact positioning for each slide."
+    },
+    "graphics-renderer": {
+      "path": "./agents/graphics-renderer/SKILL.md",
+      "description": "Assembles pixel-perfect PPTX files using PptxGenJS."
+    },
+    "infographic-specialist": {
+      "path": "./agents/infographic-specialist/SKILL.md",
+      "description": "Creates charts, diagrams, KPI dashboards, and data visualizations."
+    },
+    "icon-designer": {
+      "path": "./agents/icon-designer/SKILL.md",
+      "description": "Generates NBG-compliant SVG icons with solid fills."
+    }
+  },
+  "brand": {
+    "path": "./shared/nbg-brand-system",
+    "description": "Single source of truth for NBG brand specifications."
+  },
+  "assets": {
+    "logos": {
+      "greek": "./assets/nbg-logo-gr.svg",
+      "english": "./assets/nbg-logo.svg",
+      "backCover": "./assets/nbg-back-cover-logo.png",
+      "fallback": "./assets/nbg-logo-fallback.png"
+    },
+    "templates": {
+      "english": "./assets/templates/NBG-Template-EN.pptx",
+      "greek": "./assets/templates/NBG-Template-GR.pptx"
+    },
+    "spec": "./assets/NBG-PRESENTATION-SPEC.md"
+  },
+  "workflow": {
+    "pipeline": [
+      "storyline-architect",
+      "storyboard-designer",
+      "infographic-specialist",
+      "icon-designer",
+      "graphics-renderer"
+    ],
+    "orchestrator": "nbg-presenter"
+  }
 }

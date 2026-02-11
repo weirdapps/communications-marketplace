@@ -72,18 +72,34 @@ Page numbers appear on **content slides only** (not cover, dividers, back cover)
 | Element | Font | Size | Position (x, y) |
 |---------|------|------|-----------------|
 | Title | Aptos | 48pt | 0.37", 1.39" |
-| Subtitle | Aptos | 48pt | 0.37", 2.90" |
+| Subtitle | Aptos | **36pt** | 0.37", 2.27" |
 | Location | Aptos | 14pt | 0.37", 4.58" |
 | Date | Aptos | 14pt | 0.37", 4.97" |
 
 ### Dimensions
-- Title text box: 7.86" wide x 1.56" tall
-- Subtitle text box: 7.86" wide x 1.44" tall
+- Title text box: 7.86" wide x 1.00" tall
+- Subtitle text box: 7.86" wide x 0.80" tall
 
 ### Colors
 - Title: Dark Teal `#003841`
 - Subtitle: NBG Teal `#007B85`
+- Location: Dark Teal `#003841`
 - Date: Medium Gray `#939793`
+
+## Contents / TOC Slide
+
+### Elements
+| Element | Font | Size | Color | Position |
+|---------|------|------|-------|----------|
+| "Contents" Header | Aptos Bold | **32pt** | #003841 | 0.37", 0.36" |
+| Section Number | Aptos Bold | **18pt** | #007B85 | 0.37", y (see below) |
+| Section Title | Aptos Bold | **16pt** | #003841 | 1.10", y |
+| Description | Aptos | **12pt** | #595959 | 1.10", y + 0.35" |
+
+### Spacing
+- First item Y: 1.48"
+- Vertical spacing: 0.85" per item
+- Max items: 6-7 (to fit with logo)
 
 ## Section Dividers
 
@@ -91,7 +107,7 @@ Page numbers appear on **content slides only** (not cover, dividers, back cover)
 | Element | Font | Size | Position |
 |---------|------|------|----------|
 | Section Number | Aptos | 60pt | 0.37", 2.84" |
-| Section Title | Aptos | 48pt | 1.86", 2.84" |
+| Section Title | Aptos | **48pt** | 1.86", 2.84" |
 
 ### Number Format
 - Two-digit: "01", "02", "03", etc.
@@ -190,6 +206,27 @@ three_column:
 - Contact information (use dedicated slides)
 - Any decorative elements
 
+## Metric Card Component
+
+### Standard KPI Card
+Light background card for displaying key metrics.
+
+| Property | Value |
+|----------|-------|
+| Background | #F5F8F6 |
+| Border | 1pt #333333 |
+| Corner radius | 6.25% |
+| Size | 1.40" x 0.80" (typical) |
+
+### Card Elements
+| Element | Font | Size | Color | Alignment |
+|---------|------|------|-------|-----------|
+| Value | Aptos Bold | **18pt** | #007B85 | Center |
+| Label | Aptos | **9pt** | #202020 | Center |
+
+### Usage
+Place metric cards in the right margin of chart slides for key callouts.
+
 ## Infographic Patterns
 
 ### Numbered List (3x3 grid)
@@ -204,7 +241,7 @@ three_column:
 ### KPI Dashboard
 - 2x3 grid layout
 - Large numbers with labels
-- Trend indicators
+- Use Metric Card components
 
 ### Timeline (Horizontal)
 - Month/date markers

@@ -42,7 +42,11 @@ User request: $ARGUMENTS
      - Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
      - Font: Aptos
      - Colors: NBG palette
-     - Logo: bottom-left on every slide
+     - Small logo: 0.374", 7.071" (content slides)
+     - Large logo: 0.374", 6.271" (covers/dividers)
+     - Page numbers: 12.2265", 7.1554" (content slides only)
+     - Back cover: centered oval logo (no text)
+     - Charts: doughnut only (NEVER pie)
 
 6. **Quality Assurance**
    - Brand compliance check
@@ -77,7 +81,10 @@ User request: $ARGUMENTS
 - [ ] Visual quality improved
 - [ ] One message per slide
 - [ ] Insight-driven titles
-- [ ] Correct dimensions and formatting
-- [ ] Logo on every slide
+- [ ] Correct dimensions and formatting (13.33" x 7.5")
+- [ ] Logo on every slide (correct size/position per type)
+- [ ] Page numbers on content slides only
+- [ ] Plain back cover with centered logo (no "Thank You")
+- [ ] Doughnut charts only (no pie charts)
 - [ ] Board-ready appearance
 </success_criteria>

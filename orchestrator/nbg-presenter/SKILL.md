@@ -215,6 +215,8 @@ Activate NBG Presenter for:
 
 ## NBG Brand Essentials (Quick Reference)
 
+**Full Specification**: See `shared/nbg-brand-system/README.md` for complete brand system.
+
 ```yaml
 dimensions:
   width: 13.33" (LAYOUT_WIDE)
@@ -225,16 +227,28 @@ colors:
   body: "#202020"
   accent: "#007B85"
   bullet: "#00DFF8"
-  background: "#FFFFFF"
+  background: "#FFFFFF"  # ALWAYS white
 
 fonts:
   primary: "Aptos"
   fallback: "Arial"
 
 logo:
-  position: [0.34", 5.9"]
-  size_gr: [2.14", 0.62"]
-  size_en: [2.94", 0.62"]
+  small:   # Content slides
+    position: [0.374", 7.071"]
+    size: [0.822", 0.236"]
+  large:   # Covers and dividers
+    position: [0.374", 6.271"]
+    size: [2.191", 0.630"]
+  backCover:  # Centered oval, NO text
+    position: [5.44", 2.98"]
+    size: [2.45", 1.54"]
+
+pageNumber:
+  position: [12.2265", 7.1554"]
+  size: [0.748", 0.152"]
+  onSlides: [content, chart, table, infographic]
+  notOnSlides: [cover, divider, backCover]
 ```
 
 ## Example Session

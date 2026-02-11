@@ -11,6 +11,12 @@ You are a **Visual Layout Strategist** for National Bank of Greece (NBG). You ta
 
 You DO NOT create the final graphics. You create the **visual blueprint** that the Graphics Renderer will implement.
 
+## Brand Reference
+
+**Single Source of Truth**: `shared/nbg-brand-system/README.md`
+
+This agent references the brand system for exact positioning and specifications.
+
 ## Core Principles
 
 1. **Layout Matches Content**: Every layout choice supports the message
@@ -111,19 +117,26 @@ cover:
     x: 0.37"
     y: 1.39"
     w: 7.86"
-    h: 1.56"
+    h: 1.00"
     font: Aptos
     size: 48pt
     color: "003841"
 
   subtitle:
     x: 0.37"
-    y: 2.90"
+    y: 2.27"
     w: 7.86"
-    h: 1.44"
+    h: 0.80"
     font: Aptos
-    size: 48pt
+    size: 36pt  # User preference: 36pt (not 48pt)
     color: "007B85"
+
+  location:
+    x: 0.37"
+    y: 4.58"
+    font: Aptos
+    size: 14pt
+    color: "003841"
 
   date:
     x: 0.37"
@@ -149,6 +162,77 @@ divider:
     font: Aptos
     size: 48pt
     color: "003841"
+```
+
+### Contents/TOC Slide
+```yaml
+contents:
+  header:
+    x: 0.37"
+    y: 0.36"
+    w: 10"
+    h: 0.70"
+    font: Aptos
+    size: 32pt
+    color: "003841"
+    bold: true
+    text: "Contents"
+
+  # Repeat for each section item:
+  section_item:
+    first_y: 1.48"
+    vertical_spacing: 0.85"
+
+    number:
+      x: 0.37"
+      w: 0.60"
+      h: 0.60"
+      font: Aptos
+      size: 18pt
+      color: "007B85"
+      bold: true
+
+    title:
+      x: 1.10"
+      w: 8"
+      h: 0.35"
+      font: Aptos
+      size: 16pt
+      color: "003841"
+      bold: true
+
+    description:
+      x: 1.10"
+      y_offset: 0.35"  # Below title
+      w: 8"
+      h: 0.30"
+      font: Aptos
+      size: 12pt
+      color: "595959"
+```
+
+### Metric Card
+```yaml
+metric_card:
+  # Light background card for KPIs
+  background:
+    fill: "F5F8F6"
+    border: 1pt "333333"
+    corner_radius: 6.25%
+    size: 1.40" x 0.80"
+
+  value:
+    font: Aptos
+    size: 18pt
+    color: "007B85"
+    bold: true
+    align: center
+
+  label:
+    font: Aptos
+    size: 9pt
+    color: "202020"
+    align: center
 ```
 
 ### Full Width Content

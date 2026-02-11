@@ -1,6 +1,6 @@
-# Comms Marketplace v2.1
+# Comms Marketplace v3.0
 
-Multi-agent presentation system for National Bank of Greece (NBG) corporate communications.
+Multi-agent presentation system for National Bank of Greece (NBG) corporate communications. Create McKinsey-quality, board-ready presentations using a coordinated agent pipeline.
 
 ## Architecture
 
@@ -12,11 +12,11 @@ Multi-agent presentation system for National Bank of Greece (NBG) corporate comm
         v                 v                 v
   STORYLINE         STORYBOARD         GRAPHICS
   ARCHITECT          DESIGNER          RENDERER
-        |                 |
-        |    +------------+------------+
-        |    v            v            v
-        | INFOGRAPHIC    ICON       (Other)
-        | SPECIALIST   DESIGNER
+                          |
+            +-------------+-------------+
+            v             v             v
+       INFOGRAPHIC      ICON         (Other)
+       SPECIALIST     DESIGNER
 ```
 
 ## Quick Start
@@ -31,9 +31,68 @@ Multi-agent presentation system for National Bank of Greece (NBG) corporate comm
 # Create infographic or icon
 /create-infographic Timeline for 2024 milestones
 /create-icon Mobile banking app
+
+# Quick polish
+/polish-slides [content]
 ```
 
-## NBG Brand Essentials
+## Directory Structure
+
+```
+comms-marketplace/
+├── .claude-plugin/
+│   └── plugin.json              # Plugin manifest
+│
+├── orchestrator/
+│   └── nbg-presenter/           # Master orchestrator
+│       └── SKILL.md
+│
+├── agents/                      # Specialist agents
+│   ├── storyline-architect/
+│   │   └── SKILL.md
+│   ├── storyboard-designer/
+│   │   └── SKILL.md
+│   ├── graphics-renderer/
+│   │   └── SKILL.md
+│   ├── infographic-specialist/
+│   │   └── SKILL.md
+│   └── icon-designer/
+│       └── SKILL.md
+│
+├── shared/nbg-brand-system/     # SINGLE SOURCE OF TRUTH
+│   ├── README.md                # Brand quick reference
+│   ├── colors.md                # Complete color palette
+│   ├── typography.md            # Font specifications
+│   ├── layouts.md               # Slide layout catalog
+│   ├── dimensions.md            # Positioning reference
+│   ├── charts.md                # Chart configurations
+│   ├── icons.md                 # Icon design rules
+│   └── ooxml-charts.md          # OOXML chart editing
+│
+├── commands/                    # Slash commands
+│   ├── create-presentation.md
+│   ├── redesign-deck.md
+│   ├── create-infographic.md
+│   ├── create-icon.md
+│   └── polish-slides.md
+│
+├── assets/                      # Brand assets
+│   ├── nbg-logo-gr.svg          # Greek logo
+│   ├── nbg-logo.svg             # English logo
+│   ├── nbg-back-cover-logo.png  # Centered oval for back cover
+│   ├── nbg-logo-fallback.png    # PNG fallback
+│   ├── NBG-PRESENTATION-SPEC.md # Complete specification
+│   ├── bank-logos/              # External bank logos
+│   └── templates/               # PPTX templates
+│       ├── NBG-Template-EN.pptx
+│       └── NBG-Template-GR.pptx
+│
+└── README.md                    # This file
+```
+
+## NBG Brand Quick Reference
+
+**Full Specification**: See `shared/nbg-brand-system/README.md`
 
 ### Slide Dimensions
 ```
@@ -42,7 +101,7 @@ Height: 7.5"
 EMU:    12,192,000 x 6,858,000
 ```
 
-### Colors (no # prefix for PptxGenJS)
+### Primary Colors (no # prefix for PptxGenJS)
 | Name | Hex | Usage |
 |------|-----|-------|
 | Dark Teal | `003841` | Titles, icons |
@@ -50,61 +109,40 @@ EMU:    12,192,000 x 6,858,000
 | Cyan | `00ADBF` | Primary chart color |
 | Bright Cyan | `00DFF8` | Accents, bullets |
 | Dark Text | `202020` | Body text |
-| Medium Gray | `939793` | Page numbers, muted text |
-| Light Gray | `BEC1BE` | Subtle elements |
-| Off-white | `F5F8F6` | Light backgrounds |
-| White | `FFFFFF` | Default background |
+| White | `FFFFFF` | **ALWAYS** for backgrounds |
+| Off-white | `F5F8F6` | Light backgrounds for cards |
 
 ### Chart Colors (in order)
 ```javascript
-chartColors: ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8']
+['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8']
 ```
-
-### Typography
-- **Primary Font**: Aptos
-- **Fallback**: Arial, Calibri
-- **Bullet Font**: Arial (character code '2022')
 
 ### Logo Placement (from Template)
+| Type | Position | Size | Usage |
+|------|----------|------|-------|
+| Small | 0.374", 7.071" | 0.822" x 0.236" | Content slides |
+| Large | 0.374", 6.271" | 2.191" x 0.630" | Covers, dividers |
+| Back Cover | 5.44", 2.98" | 2.45" x 1.54" | Centered oval |
 
-**Small logo - for content slides (most common):**
-```javascript
-{ x: 0.374, y: 7.071, w: 0.822, h: 0.236 }
-```
-
-**Large logo - for covers and dividers:**
-```javascript
-{ x: 0.374, y: 6.271, w: 2.191, h: 0.630 }
-```
-
-### Page Numbers (Content Slides Only)
-```javascript
-{
-  x: 12.2265, y: 7.1554, w: 0.748, h: 0.152,
-  fontFace: 'Aptos', fontSize: 10, color: '939793',
-  align: 'right', valign: 'middle', margin: 0
-}
-```
-**Note:** Logo and page number are aligned at 0.19" from bottom edge.
-
-### Back Cover
-Plain white slide with centered oval NBG building logo:
-```javascript
-{ x: 5.44, y: 2.98, w: 2.45, h: 1.54 }  // Centered on slide
-```
+### Page Numbers
+- **Position**: 12.2265", 7.1554" (0.748" x 0.152")
+- **On**: Content, chart, table, infographic slides
+- **NOT on**: Cover, divider, back cover
 
 ## Critical Rules
 
-| Rule | Requirement |
+| Rule | Enforcement |
 |------|-------------|
-| **NO pie charts** | Always use doughnut charts instead |
-| **NO "Thank You" slides** | Use plain back cover with centered oval logo |
-| **Page numbers** | Content slides ONLY - not cover, dividers, back cover |
-| **Line charts** | Smooth curves, 3pt lines, visible markers (size 10) |
-| **Chart axis colors** | Always specify explicit NBG colors to avoid defaults |
-| **Text margins** | Always set `margin: 0` on all text boxes |
-| **Text alignment** | Always use `valign: 'top'` - never middle or bottom |
-| **Title box sizing** | Size to fit text (~0.4" for single-line, ~0.7" for two-line) |
+| **White backgrounds ONLY** | Never use dark themes |
+| **NO pie charts** | Always use doughnut instead |
+| **NO "Thank You" slides** | Use plain back cover with centered logo |
+| **Page numbers** | Content slides only |
+| **Content titles** | 24pt action titles (full sentences) |
+| **Cover subtitle** | 36pt (not 48pt) |
+| **Title weight** | Aptos Regular (not SemiBold) |
+| **Text boxes** | `margin: 0`, `valign: 'top'` ALWAYS |
+| **Line charts** | Smooth curves, 3pt lines, visible markers |
+| **Chart colors** | ALWAYS specify explicit NBG colors |
 
 ## Agents
 
@@ -112,8 +150,8 @@ Plain white slide with centered oval NBG building logo:
 |-------|---------|--------|
 | **NBG Presenter** | Master orchestrator | Workflow coordination |
 | **Storyline Architect** | Narrative design | Slide-by-slide story with key messages |
-| **Storyboard Designer** | Visual layout | Layout specs, positioning, element requirements |
-| **Infographic Specialist** | Data visualization | Chart configs, diagram specs |
+| **Storyboard Designer** | Visual layout | Layout specs, positioning |
+| **Infographic Specialist** | Data visualization | Chart configs, diagrams |
 | **Icon Designer** | SVG icons | NBG-compliant SVG code |
 | **Graphics Renderer** | PPTX production | Board-ready .pptx file |
 
@@ -133,66 +171,37 @@ Every presentation must pass:
 - [ ] Dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Background: white (#FFFFFF)
 - [ ] Font: Aptos throughout
-- [ ] Small logo on content slides (0.822" x 0.236")
-- [ ] Page numbers on content slides only (not cover, dividers, back cover)
-- [ ] Page number and logo aligned at 0.19" from bottom
+- [ ] Correct logo sizes and positions
+- [ ] Page numbers on content slides only
 - [ ] All text boxes: `margin: 0`, `valign: 'top'`
-- [ ] Title boxes sized to fit text (not oversized)
 - [ ] No pie charts (use doughnut)
 - [ ] No "Thank You" slides (use plain back cover)
 - [ ] One key message per slide
 - [ ] Scannable in 5-7 seconds
 
-## Directory Structure
+## McKinsey Quality Standards
 
-```
-comms-marketplace/
-├── orchestrator/nbg-presenter/     # Master orchestrator
-├── agents/                         # Agent duplicates (legacy)
-├── skills/                         # Active agent skills
-│   ├── storyline-architect/
-│   ├── storyboard-designer/
-│   ├── infographic-specialist/
-│   ├── icon-designer/
-│   ├── graphics-renderer/
-│   └── nbg-presenter/
-├── shared/nbg-brand-system/        # Brand specifications
-│   ├── colors.md
-│   ├── typography.md
-│   ├── layouts.md
-│   ├── charts.md
-│   ├── icons.md
-│   └── dimensions.md
-├── commands/                       # Slash commands
-├── assets/                         # Logos, images
-│   ├── nbg-logo-gr.svg            # Greek logo
-│   ├── nbg-logo.svg               # English logo
-│   ├── nbg-back-cover-logo.png    # Centered oval for back cover
-│   └── NBG-PRESENTATION-SPEC.md   # Complete specification
-└── plugins/nbg-presentation-format/ # Legacy plugin
-```
-
-## Assets
-
-| Asset | Path | Size | Usage |
-|-------|------|------|-------|
-| Greek Logo | `assets/nbg-logo-gr.svg` | 214 x 62 px | Greek presentations |
-| English Logo | `assets/nbg-logo.svg` | 294 x 62 px | English presentations |
-| Back Cover Logo | `assets/nbg-back-cover-logo.png` | 245 x 154 px | Centered on back cover |
+- **Pyramid Principle**: Lead with the answer, support with arguments
+- **SCQA Framework**: Situation, Complication, Question, Answer
+- **One Message Per Slide**: No exceptions
+- **Action Titles**: Full sentences that tell the story, not labels
+- **5-7 Second Rule**: Every slide scannable at a glance
+- **"So What?" Test**: Every slide must matter
 
 ## Version History
 
-### v2.2.0 (Current)
-- All text boxes: margin: 0, valign: 'top'
-- Title boxes sized to fit text (reduced heights)
-- Updated layout constants with correct body positioning
+### v3.0.0 (Current)
+- **Restructured**: Clean, deduplicated architecture
+- **Single source of truth**: All brand specs in `shared/nbg-brand-system/`
+- **Removed duplicates**: Eliminated `skills/` folder, merged into `agents/`
+- **Removed legacy**: Removed `plugins/nbg-presentation-format/`
+- **Enhanced plugin.json**: Proper agent registration for Claude Code
+- **Harmonized specs**: Consistent specifications across all files
 
-### v2.1.0
-- Fixed logo sizing (small for content, large for covers)
-- Fixed page number positioning from template
-- Added explicit chart axis color handling
-- Updated back cover specifications
-- Comprehensive documentation cleanup
+### v2.3.0
+- User preference updates (cover subtitle: 36pt, content title: 24pt)
+- Contents/TOC slide component
+- Metric card component
 
 ### v2.0.0
 - Multi-agent architecture

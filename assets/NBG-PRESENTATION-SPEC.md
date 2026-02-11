@@ -97,14 +97,24 @@ This document contains the complete design specifications for creating presentat
 ### Font Sizes
 | Level | Size (points) | Centipoints | Usage |
 |-------|---------------|-------------|-------|
-| Title | 44pt | 4400 | Slide titles |
+| Cover Title | 48pt | 4800 | Cover slide main title |
+| Cover Subtitle | 36pt | 3600 | Cover slide subtitle |
+| Section Divider Number | 60pt | 6000 | Large section numbers (01, 02) |
+| Section Divider Title | 48pt | 4800 | Section divider heading |
+| **Content Slide Title** | **24pt** | 2400 | Action titles on content slides |
+| Contents Header | 32pt | 3200 | "Contents" page title |
 | Level 1 Body | 28pt | 2800 | Main bullet points |
 | Level 2 Body | 24pt | 2400 | Sub-bullets |
 | Level 3 Body | 20pt | 2000 | Third-level bullets |
-| Subheadings | 18pt | 1800 | Section subheadings |
+| Metric Value | 18pt | 1800 | KPI numbers in cards |
+| TOC Section Title | 16pt | 1600 | Contents section titles |
+| Subheadings | 14pt | 1400 | Secondary labels, dates |
 | Default Body | **12pt** | 1200 | General text (most common) |
+| Chart Title | 12pt | 1200 | Chart/graph titles (bold) |
+| TOC Description | 12pt | 1200 | Contents section descriptions |
 | Secondary | 11pt | 1100 | Secondary body text |
-| Small Text | 10pt | 1000 | Captions, notes |
+| Small Text | 10pt | 1000 | Captions, page numbers |
+| Metric Label | 9pt | 900 | KPI labels in cards |
 | Footnotes | 8pt | 800 | Footnotes, legal text |
 
 ### Text Box Settings
@@ -321,14 +331,26 @@ const defaultTextStyle = {
   margin: 0,  // Zero margins on all sides
 };
 
-// Title style
+// Content slide title (action title)
 const titleStyle = {
   fontFace: 'Aptos',
-  fontSize: 44,
+  fontSize: 24,  // Content slide titles use 24pt
   color: NBG_COLORS.darkTeal,
   bold: false,
   margin: 0,
 };
+
+// Cover slide title
+const coverTitleStyle = {
+  fontFace: 'Aptos',
+  fontSize: 48,
+  color: NBG_COLORS.darkTeal,
+  bold: false,
+  margin: 0,
+};
+
+// Card background color
+const CARD_BACKGROUND = 'F5F8F6';
 
 // Bullet style
 const bulletStyle = {
@@ -396,9 +418,28 @@ const nbgOptions = {
 
 ### Background Style
 **IMPORTANT: Use WHITE backgrounds for all slides (not dark themes).**
-- Slide background: `#FFFFFF` (white) or `#F5F8F6` (off-white)
+- Slide background: `#FFFFFF` (white) - ALWAYS preferred
 - Text color: `#202020` (dark text) or `#003841` (dark teal) for titles
+- Card backgrounds: `#F5F8F6` (very light gray)
 - Avoid dark charcoal/black backgrounds unless specifically requested
+
+### Typography Preferences
+- **Title weight**: Aptos Regular (not SemiBold)
+- **Content slide titles**: 24pt (action titles as complete sentences)
+- **Cover titles**: 48pt
+- **Section dividers**: 60pt number, 48pt title
+
+### Card Components
+- **Card background**: `#F5F8F6` (light) - preferred default
+- **Metric cards**: Light background only (no filled accent variants)
+- **KPI values**: 18pt bold, #007B85 (teal)
+- **KPI labels**: 9pt, #202020
+
+### Contents/TOC Format
+- **Include descriptions**: Yes (title + description for each section)
+- **Section numbers**: Bold 18pt, #007B85
+- **Section titles**: Bold 16pt, #003841
+- **Descriptions**: Regular 12pt, #595959
 
 ---
 
@@ -580,6 +621,159 @@ const nbgTableHeaderStyle = {
 
 ---
 
+## Contents/TOC Slide Specifications
+
+### Contents Slide Layout
+The Contents (Table of Contents) slide uses a numbered section format with descriptions.
+
+| Element | Font | Size | Color | Position |
+|---------|------|------|-------|----------|
+| "Contents" Header | Aptos Bold | 32pt | #003841 | x=0.37", y=0.36" |
+| Section Number | Aptos Bold | 18pt | #007B85 | x=0.37" (column) |
+| Section Title | Aptos Bold | 16pt | #003841 | x=1.10" (column) |
+| Section Description | Aptos Regular | 12pt | #595959 | x=1.10" (below title) |
+
+### Section Item Structure
+Each section item consists of:
+```
+01   Project background                    ← Number: 18pt bold #007B85
+     Platform development approach...     ← Description: 12pt #595959
+```
+
+### Vertical Spacing
+| Element | Value |
+|---------|-------|
+| First item Y position | 1.48" |
+| Item vertical spacing | 0.85" |
+| Number-to-title gap | 0.73" (horizontal) |
+| Title-to-description gap | 0.35" (vertical) |
+
+### PptxGenJS Contents Implementation
+```javascript
+function addContentsSlide(sections) {
+  const slide = pptx.addSlide();
+  slide.background = { color: 'FFFFFF' };
+
+  // Header
+  slide.addText('Contents', {
+    x: 0.37, y: 0.36, w: 10, h: 0.70,
+    fontSize: 32, bold: true,
+    fontFace: 'Aptos',
+    color: '003841',
+    margin: 0,
+  });
+
+  // Section items
+  sections.forEach((section, i) => {
+    const y = 1.48 + (i * 0.85);
+
+    // Number
+    slide.addText(String(i + 1).padStart(2, '0'), {
+      x: 0.37, y, w: 0.60, h: 0.60,
+      fontSize: 18, bold: true,
+      fontFace: 'Aptos',
+      color: '007B85',
+      margin: 0,
+    });
+
+    // Title
+    slide.addText(section.title, {
+      x: 1.10, y, w: 8, h: 0.35,
+      fontSize: 16, bold: true,
+      fontFace: 'Aptos',
+      color: '003841',
+      margin: 0,
+    });
+
+    // Description
+    slide.addText(section.description, {
+      x: 1.10, y: y + 0.35, w: 8, h: 0.30,
+      fontSize: 12,
+      fontFace: 'Aptos',
+      color: '595959',
+      margin: 0,
+    });
+  });
+
+  return slide;
+}
+```
+
+---
+
+## Card & Callout Components
+
+### Standard Info Card
+Light background card for grouping related content.
+
+| Property | Value |
+|----------|-------|
+| Background | #F5F8F6 |
+| Border | None |
+| Corner radius | 5% (roundRect adj=5057) |
+| Padding | 0.15" all sides |
+
+### KPI Metric Card
+For displaying key performance indicators and metrics.
+
+| Property | Value |
+|----------|-------|
+| Background | #F5F8F6 |
+| Border | 1pt #333333 |
+| Corner radius | 6.25% (roundRect adj=6250) |
+| Size | 1.40" × 0.80" (typical) |
+
+| Element | Font | Size | Color | Alignment |
+|---------|------|------|-------|-----------|
+| Value | Aptos Bold | 18pt | #007B85 | Center |
+| Label | Aptos Regular | 9pt | #202020 | Center |
+
+### PptxGenJS Metric Card Implementation
+```javascript
+function addMetricCard(slide, x, y, value, label) {
+  // Card background
+  slide.addShape(pptx.ShapeType.roundRect, {
+    x, y, w: 1.40, h: 0.80,
+    fill: { color: 'F5F8F6' },
+    line: { color: '333333', pt: 1 },
+    rectRadius: 0.05,
+  });
+
+  // Value
+  slide.addText(value, {
+    x, y: y + 0.05, w: 1.40, h: 0.40,
+    fontSize: 18, bold: true,
+    fontFace: 'Aptos',
+    color: '007B85',
+    align: 'center',
+    valign: 'middle',
+    margin: 0,
+  });
+
+  // Label
+  slide.addText(label, {
+    x, y: y + 0.45, w: 1.40, h: 0.30,
+    fontSize: 9,
+    fontFace: 'Aptos',
+    color: '202020',
+    align: 'center',
+    valign: 'top',
+    margin: 0,
+  });
+}
+```
+
+### Highlight Card (Optional Accent)
+For emphasized content blocks.
+
+| Property | Value |
+|----------|-------|
+| Background | #CBFAFF (light cyan) |
+| Border | None |
+| Corner radius | 5% |
+
+---
+
 ## Icon Specifications
 
 ### Icon Style
@@ -656,14 +850,14 @@ const nbgTableHeaderStyle = {
 // Create white background slide
 const slide = pptx.addSlide();
 
-// White background (default, but explicit)
+// White background (ALWAYS use white)
 slide.background = { color: 'FFFFFF' };
 
-// Title (Dark Teal)
-slide.addText('Slide Title', {
-  x: 0.34, y: 0.36,
-  w: 11.5, h: 1.3,
-  fontSize: 44,
+// Action Title (24pt Dark Teal) - complete sentence
+slide.addText('ATM volumes remained stable at 109M transactions in FY2025', {
+  x: 0.37, y: 0.50,
+  w: 12.60, h: 0.50,
+  fontSize: 24,
   fontFace: 'Aptos',
   color: '003841',
   margin: 0,
@@ -671,19 +865,30 @@ slide.addText('Slide Title', {
 
 // Body content (Dark text)
 slide.addText('Content here', {
-  x: 0.34, y: 1.7,
-  w: 11.5, h: 4.5,
+  x: 0.37, y: 1.33,
+  w: 11.50, h: 5.00,
   fontSize: 12,
   fontFace: 'Aptos',
   color: '202020',
   margin: 0,
 });
 
-// Logo (bottom-left)
+// Logo (bottom-left, small version)
 slide.addImage({
-  path: 'nbg-logo.svg',
-  x: 0.34, y: 5.45,
-  w: 4.01, h: 0.84,
+  path: 'nbg-logo-gr.svg',
+  x: 0.37, y: 7.09,
+  w: 0.82, h: 0.24,
+});
+
+// Page number (bottom-right)
+slide.addText('2', {
+  x: 12.23, y: 7.16,
+  w: 0.75, h: 0.15,
+  fontSize: 10,
+  fontFace: 'Aptos',
+  color: '939793',
+  align: 'right',
+  margin: 0,
 });
 ```
 
@@ -713,7 +918,10 @@ Alert:         #AA0028
 
 ### Essential Fonts
 ```
-Primary:       Aptos (12pt body, 44pt title)
+Primary:       Aptos Regular
+               - 48pt cover title
+               - 24pt content slide title
+               - 12pt body text
 Bullets:       Arial
 Fallback:      Calibri
 ```
@@ -844,14 +1052,24 @@ Logo Size:     4.01" x 0.84"
 ## Content Slide Specifications
 
 ### Standard Content Layout
-| Element | Font | Size | Line Spacing | Space Before |
-|---------|------|------|--------------|--------------|
-| Title | Aptos | 18-24pt | 0.9 | - |
-| Body text | Aptos | 11pt | 1.1 | 9pt |
-| Bullet L1 | Aptos | 24pt | 1.0 | 10pt |
-| Bullet L2 | Aptos | 20pt | 1.0 | 5pt |
-| Bullet L3 | Aptos | 18pt | 1.0 | 5pt |
-| Footnotes | Aptos | 8pt | 1.1 | - |
+| Element | Font | Size | Color | Line Spacing | Space Before |
+|---------|------|------|-------|--------------|--------------|
+| **Action Title** | Aptos Regular | **24pt** | #003841 | 0.9 | - |
+| Body text | Aptos | 11pt | #202020 | 1.1 | 9pt |
+| Bullet L1 | Aptos | 24pt | #202020 | 1.0 | 10pt |
+| Bullet L2 | Aptos | 20pt | #202020 | 1.0 | 5pt |
+| Bullet L3 | Aptos | 18pt | #202020 | 1.0 | 5pt |
+| Footnotes | Aptos | 8pt | #595959 | 1.1 | - |
+
+### Action Title Positioning
+| Element | Position (x, y) | Size (w × h) |
+|---------|-----------------|--------------|
+| Title | 0.37", 0.50" | 12.60" × 0.50" |
+| Content area | 0.37", 1.33" | 11.50" × 5.00" |
+
+**IMPORTANT**: Use **action titles** (complete sentences) not topic labels:
+- ✓ "ATM volumes remained stable at 109M transactions in FY2025"
+- ✗ "ATM Volumes"
 
 ### Page Layout Variants
 | Layout | Description | Image Position |
@@ -1149,13 +1367,23 @@ const NBG = {
   // Font sizes (in points)
   sizes: {
     coverTitle: 48,
+    coverSubtitle: 36,
     dividerNumber: 60,
-    pageTitle: 24,
-    heading: 18,
+    dividerTitle: 48,
+    contentsHeader: 32,
+    pageTitle: 24,        // Content slide action titles
+    tocSectionNumber: 18,
+    tocSectionTitle: 16,
+    metricValue: 18,
+    heading: 14,
+    chartTitle: 12,
     body: 11,
+    tocDescription: 12,
     bullet1: 24,
     bullet2: 20,
     bullet3: 18,
+    pageNumber: 10,
+    metricLabel: 9,
     footnote: 8,
     default: 12,
   },
@@ -1244,15 +1472,15 @@ function addDividerSlide(number, title) {
   return slide;
 }
 
-// Content slide with title and bullets
+// Content slide with action title and bullets
 function addContentSlide(title, bullets) {
   const slide = pptx.addSlide();
   slide.background = { color: NBG.colors.white };
-  
-  // Title
+
+  // Action title (24pt) - should be a complete sentence
   slide.addText(title, {
-    x: 0.36, y: 0.6, w: 11.5, h: 0.5,
-    fontSize: NBG.sizes.pageTitle,
+    x: 0.37, y: 0.50, w: 12.60, h: 0.50,
+    fontSize: 24,  // Content slides use 24pt titles
     fontFace: NBG.fonts.primary,
     color: NBG.colors.darkTeal,
     margin: 0,
@@ -1363,16 +1591,16 @@ module.exports = { pptx, NBG, addCoverSlide, addDividerSlide, addContentSlide, a
 
 | Slide Type | When to Use | Key Elements |
 |------------|-------------|--------------|
-| **Cover** | Opening slide | Title (48pt), Subtitle, Date |
-| **Contents** | Agenda/TOC | Numbered list with tabs |
-| **Divider** | Section break | Large number + title (60pt) |
-| **Content** | Main slides | Title (24pt) + body (11pt) |
-| **Chart** | Data viz | Bar, Line, Pie, Doughnut |
+| **Cover** | Opening slide | Title (48pt), Subtitle (36pt), Date |
+| **Contents** | Agenda/TOC | Header (32pt), numbered sections (18pt) + descriptions (12pt) |
+| **Divider** | Section break | Large number (60pt #007B85) + title (48pt #003841) |
+| **Content** | Main slides | Action title (24pt) + body (11pt) |
+| **Chart** | Data viz | Bar, Line, Doughnut (never pie!) + metric cards |
 | **Infographic** | Process/concepts | Numbers, icons, shapes |
 | **Timeline** | Project schedule | Horizontal bars, milestones |
 | **Table** | Tabular data | Headers, rows, alternating colors |
 | **Contact** | Team info | Names, titles, phone, email |
-| **Thank You** | Closing | Large text, minimal design |
+| **Back Cover** | Closing | Centered oval NBG logo (no "Thank You" text) |
 
 ---
 

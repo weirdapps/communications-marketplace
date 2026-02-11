@@ -4,7 +4,7 @@
 
 ### Primary Font
 - **Name**: Aptos
-- **Weights**: Light, Regular, SemiBold
+- **Weight**: **Regular** (preferred for all elements including titles)
 - **Fallback**: Calibri, Tahoma
 
 ### Bullet Font
@@ -18,36 +18,59 @@
 | Element | Font | Size | Color | Weight |
 |---------|------|------|-------|--------|
 | Title | Aptos | 48pt | #003841 | Regular |
-| Subtitle | Aptos | 48pt | #007B85 | Regular |
+| Subtitle | Aptos | **36pt** | #007B85 | Regular |
 | Location | Aptos | 14pt | #003841 | Regular |
-| Date | Aptos | 14pt | #003841 | Regular |
+| Date | Aptos | 14pt | #939793 | Regular |
 
 ### Divider Slide
 
 | Element | Font | Size | Color | Weight |
 |---------|------|------|-------|--------|
 | Section Number | Aptos | 60pt | #007B85 | Regular |
-| Section Title | Aptos | 60pt | #003841 | Regular |
+| Section Title | Aptos | **48pt** | #003841 | Regular |
+
+### Contents/TOC Slide
+
+| Element | Font | Size | Color | Weight |
+|---------|------|------|-------|--------|
+| "Contents" Header | Aptos | **32pt** | #003841 | Bold |
+| Section Number | Aptos | **18pt** | #007B85 | Bold |
+| Section Title | Aptos | **16pt** | #003841 | Bold |
+| Section Description | Aptos | **12pt** | #595959 | Regular |
 
 ### Content Slide
 
 | Element | Font | Size | Color | Weight |
 |---------|------|------|-------|--------|
-| Page Title | Aptos | 24pt | #003841 | Regular |
+| **Action Title** | Aptos | **24pt** | #003841 | Regular |
 | Body Text | Aptos | 11pt | #202020 | Regular |
 | Bullet L1 | Aptos | 24pt | #202020 | Regular |
 | Bullet L2 | Aptos | 20pt | #202020 | Regular |
 | Bullet L3 | Aptos | 18pt | #202020 | Regular |
 | Footnotes | Aptos | 8pt | #939793 | Regular |
 
+### Metric Cards (KPIs)
+
+| Element | Font | Size | Color | Weight |
+|---------|------|------|-------|--------|
+| Metric Value | Aptos | **18pt** | #007B85 | Bold |
+| Metric Label | Aptos | **9pt** | #202020 | Regular |
+
 ### Charts & Tables
 
 | Element | Font | Size | Color | Weight |
 |---------|------|------|-------|--------|
+| Chart Title | Aptos | **12pt** | #202020 | Bold |
 | Chart Labels | Aptos | 10pt | #202020 | Regular |
 | Chart Values | Aptos | 10pt | #202020 | Bold |
 | Table Header | Aptos | 11pt | #FFFFFF | Bold |
 | Table Cell | Aptos | 10pt | #202020 | Regular |
+
+### Page Number
+
+| Element | Font | Size | Color | Weight |
+|---------|------|------|-------|--------|
+| Page Number | Aptos | **10pt** | #939793 | Regular |
 
 ## Line Spacing
 

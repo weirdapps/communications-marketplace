@@ -97,21 +97,28 @@ Use these colors in order for chart data series:
 
 ## Background Guidelines
 
-### Light Theme (Preferred)
+### IMPORTANT: White Backgrounds Only
+**User preference: ALWAYS use white backgrounds. Never use dark themes.**
+
+### Light Theme (REQUIRED)
 | Element | Color |
 |---------|-------|
-| Slide background | `#FFFFFF` or `#F5F8F6` |
+| Slide background | `#FFFFFF` (white) - **ALWAYS** |
 | Title text | `#003841` |
 | Body text | `#202020` |
 | Accents | `#007B85` or `#00DFF8` |
+| **Metric cards** | `#F5F8F6` (light gray background) |
+| **Info cards** | `#F5F8F6` (light gray background) |
 
-### Dark Theme (Use Sparingly)
-| Element | Color |
-|---------|-------|
-| Slide background | `#252D30` or `#003841` |
-| Title text | `#FFFFFF` |
-| Body text | `#F5F8F6` |
-| Accents | `#00DFF8` |
+### Card Backgrounds
+| Card Type | Background | Border |
+|-----------|------------|--------|
+| Metric card | `#F5F8F6` | 1pt `#333333` |
+| Info card | `#F5F8F6` | None |
+| Highlight card | `#CBFAFF` | None |
+
+### Dark Theme (DO NOT USE)
+Dark backgrounds are not used per user preference. All slides should be white.
 
 ## PptxGenJS Color Configuration
 
@@ -157,6 +164,7 @@ const NBG_CHART_COLORS = [
 
 | Purpose | Recommended Color |
 |---------|------------------|
+| Slide background | `#FFFFFF` (White) - **ALWAYS** |
 | Slide title | `#003841` (Dark Teal) |
 | Body text | `#202020` (Dark Text) |
 | Section numbers | `#007B85` (NBG Teal) |
@@ -164,5 +172,9 @@ const NBG_CHART_COLORS = [
 | Primary accent | `#007B85` (NBG Teal) |
 | Bright accent | `#00DFF8` (Bright Cyan) |
 | Subtle elements | `#939793` (Medium Gray) |
-| Light background | `#F5F8F6` (Off-white) |
+| **Card background** | `#F5F8F6` (Off-white) |
+| **Metric value** | `#007B85` (NBG Teal) |
+| **Metric label** | `#202020` (Dark Text) |
+| TOC description | `#595959` (Gray) |
+| Page number | `#939793` (Medium Gray) |
 | Icons | `#003841` (Dark Teal) |

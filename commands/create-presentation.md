@@ -46,11 +46,15 @@ Use the Storyboard Designer skill for visual layout:
 ### 5. Final Assembly (Graphics Renderer)
 Use Graphics Renderer or document-skills:pptx to create pixel-perfect PPTX:
 - Dimensions: 13.33" x 7.5" (LAYOUT_WIDE) (NBG custom, NOT standard)
-- Background: white (#FFFFFF)
+- Background: white (#FFFFFF) - ALWAYS
 - Font: Aptos (Arial fallback)
-- Logo in bottom-left (0.34", 5.9")
+- Small logo on content slides (0.374", 7.071")
+- Large logo on covers/dividers (0.374", 6.271")
+- Page numbers on content slides only (12.2265", 7.1554")
 - Bullets: Bright Cyan (#00DFF8)
 - All text boxes: margin: 0
+- **NO pie charts** - use doughnut instead
+- **NO "Thank You" slides** - use plain back cover with centered logo
 
 ### 6. McKinsey Quality Check
 - **Read-Through Test**: Read only titles - do they tell the story?
@@ -74,9 +78,10 @@ Use Graphics Renderer or document-skills:pptx to create pixel-perfect PPTX:
 - Bullets: 00DFF8 (Bright Cyan)
 - Background: FFFFFF (White)
 
-### Logo
-- Position: (0.34", 6.6")
-- Size (Greek): 2.14" x 0.62"
+### Logo (from Template)
+- Small (content): 0.374", 7.071" (0.822" x 0.236")
+- Large (covers): 0.374", 6.271" (2.191" x 0.630")
+- Back cover: centered oval (5.44", 2.98"), NO text
 </nbg_essentials>
 
 <success_criteria>
@@ -99,7 +104,10 @@ Use Graphics Renderer or document-skills:pptx to create pixel-perfect PPTX:
 - [ ] NBG dimensions: 13.33" x 7.5" (LAYOUT_WIDE)
 - [ ] Aptos font throughout
 - [ ] NBG color palette only
-- [ ] Logo on every slide (0.34", 5.9")
+- [ ] Logo on every slide (small for content, large for covers)
+- [ ] Page numbers on content slides only
+- [ ] Plain back cover with centered logo (no "Thank You")
+- [ ] Doughnut charts only (NEVER pie)
 - [ ] Adequate white space
 - [ ] Scannable in 5-7 seconds
 

@@ -35,7 +35,9 @@ User request: $ARGUMENTS
    - Section numbers: 60pt, format "01"
 
 5. **Add Brand Elements**
-   - Logo in bottom-left (0.34", 5.9")
+   - Small logo in bottom-left (0.374", 7.071")
+   - Large logo for covers/dividers (0.374", 6.271")
+   - Page numbers bottom-right (12.2265", 7.1554") - content slides only
    - Proper margins (0.37" sides)
 
 6. **Output**
@@ -59,10 +61,10 @@ User request: $ARGUMENTS
 - Primary: Aptos
 - Fallback: Arial, Calibri
 
-### Logo
-- Position: x=0.34", y=6.6"
-- Greek: 2.14" x 0.62"
-- English: 2.94" x 0.62"
+### Logo (from Template)
+- Small (content): x=0.374", y=7.071", 0.822" x 0.236"
+- Large (covers): x=0.374", y=6.271", 2.191" x 0.630"
+- Back cover: centered oval logo (5.44", 2.98"), NO text
 
 ### Text Box Rule
 - margin: 0 (always)

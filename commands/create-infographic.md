@@ -22,7 +22,7 @@ User request: $ARGUMENTS
    Based on content type:
    - **Comparison**: Side-by-side, bar chart
    - **Time series**: Line chart, timeline
-   - **Proportions**: Doughnut, pie chart
+   - **Proportions**: Doughnut (NEVER use pie charts)
    - **Process**: Sequential steps, flow diagram
    - **KPIs**: Dashboard grid (2x3, 3x3)
    - **List**: Numbered grid, vertical list
