@@ -1,0 +1,25 @@
+{
+  "name": "my-plugin",
+  "description": "Brief description of what this plugin does",
+  "version": "1.0.0",
+  "type": "plugin",
+  "author": {
+    "name": "Your Name"
+  },
+  "license": "MIT",
+  "keywords": [
+    "keyword1",
+    "keyword2"
+  ],
+  "commands": "./commands",
+  "agents": {
+    "example-agent": {
+      "path": "./agents/example-agent/SKILL.md",
+      "description": "What this agent does",
+      "triggers": [
+        "trigger phrase 1",
+        "trigger phrase 2"
+      ]
+    }
+  }
+}

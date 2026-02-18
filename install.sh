@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# NBG Communications Marketplace Installer
-# Creates McKinsey-quality presentations with NBG branding
+# Communications Marketplace Installer
+# Install communication and productivity plugins for Claude Code
 #
 # Usage:
 #   curl -sSL https://raw.githubusercontent.com/weirdapps/communications-marketplace/main/install.sh | bash
@@ -31,8 +31,8 @@ CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 print_banner() {
     echo ""
     echo -e "${CYAN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}  ${BOLD}NBG Communications Marketplace Installer${NC}                              ${CYAN}║${NC}"
-    echo -e "${CYAN}║${NC}  Create McKinsey-quality presentations with NBG branding       ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${BOLD}Communications Marketplace Installer${NC}                         ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  Install communication plugins for Claude Code                 ${CYAN}║${NC}"
     echo -e "${CYAN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
@@ -123,8 +123,93 @@ clone_repository() {
     fi
 }
 
-# Generate CLAUDE.md content for NBG
-generate_claude_md_content() {
+# List available plugins
+list_plugins() {
+    print_step "Available plugins:"
+    echo ""
+
+    local plugin_num=1
+    AVAILABLE_PLUGINS=()
+
+    for plugin_dir in "$INSTALL_DIR/plugins"/*/; do
+        if [ -d "$plugin_dir" ] && [ -f "$plugin_dir/plugin.json" ]; then
+            plugin_name=$(basename "$plugin_dir")
+
+            # Skip template
+            if [ "$plugin_name" = "_template" ]; then
+                continue
+            fi
+
+            # Read plugin description from plugin.json
+            if command_exists jq; then
+                description=$(jq -r '.description // "No description"' "$plugin_dir/plugin.json" 2>/dev/null | head -c 60)
+            else
+                description=$(grep -o '"description"[[:space:]]*:[[:space:]]*"[^"]*"' "$plugin_dir/plugin.json" 2>/dev/null | head -1 | sed 's/.*: *"//;s/"$//' | head -c 60)
+            fi
+
+            echo -e "  ${BOLD}[$plugin_num]${NC} ${CYAN}$plugin_name${NC}"
+            echo "      $description..."
+            echo ""
+
+            AVAILABLE_PLUGINS+=("$plugin_name")
+            plugin_num=$((plugin_num + 1))
+        fi
+    done
+}
+
+# Select plugins to install
+select_plugins() {
+    local plugin_count=${#AVAILABLE_PLUGINS[@]}
+
+    if [ $plugin_count -eq 0 ]; then
+        print_warning "No plugins found in marketplace"
+        return
+    fi
+
+    echo -e "  ${BOLD}[A]${NC} Install ALL plugins"
+    echo ""
+
+    read -p "Enter plugin numbers to install (comma-separated) or 'A' for all: " selection
+
+    SELECTED_PLUGINS=()
+
+    if [[ "$selection" =~ ^[Aa]$ ]]; then
+        SELECTED_PLUGINS=("${AVAILABLE_PLUGINS[@]}")
+    else
+        IFS=',' read -ra selections <<< "$selection"
+        for sel in "${selections[@]}"; do
+            sel=$(echo "$sel" | tr -d ' ')
+            if [[ "$sel" =~ ^[0-9]+$ ]] && [ "$sel" -ge 1 ] && [ "$sel" -le $plugin_count ]; then
+                SELECTED_PLUGINS+=("${AVAILABLE_PLUGINS[$((sel-1))]}")
+            fi
+        done
+    fi
+
+    echo ""
+    if [ ${#SELECTED_PLUGINS[@]} -eq 0 ]; then
+        print_warning "No plugins selected"
+    else
+        print_success "Selected: ${SELECTED_PLUGINS[*]}"
+    fi
+}
+
+# Generate CLAUDE.md content for a plugin
+generate_plugin_config() {
+    local plugin_name=$1
+    local plugin_dir="$INSTALL_DIR/plugins/$plugin_name"
+
+    case "$plugin_name" in
+        "nbg-presentations")
+            generate_nbg_config
+            ;;
+        *)
+            generate_generic_config "$plugin_name" "$plugin_dir"
+            ;;
+    esac
+}
+
+# Generate NBG-specific configuration
+generate_nbg_config() {
     cat << 'CLAUDE_CONTENT'
 
 ---
@@ -134,16 +219,16 @@ generate_claude_md_content() {
 **CRITICAL**: When asked to create ANY presentation for NBG or "in NBG format", you MUST follow the communications-marketplace multi-agent workflow. Do NOT skip to html2pptx or other shortcuts.
 
 ### Communications-Marketplace Location
-`~/.claude/plugins/marketplaces/communications-marketplace/` (v3.0)
+`~/.claude/plugins/marketplaces/communications-marketplace/plugins/nbg-presentations/` (v3.0)
 
 ### MANDATORY WORKFLOW (Read These Files First)
 Before creating any NBG presentation, read these files in order:
 
-1. **Brand System**: `shared/nbg-brand-system/README.md` - Single source of truth for all specs
-2. **Orchestrator**: `orchestrator/nbg-presenter/SKILL.md` - Master workflow
-3. **Step 1**: `agents/storyline-architect/SKILL.md` - Create narrative structure
-4. **Step 2**: `agents/storyboard-designer/SKILL.md` - Design visual layouts
-5. **Step 3**: `agents/graphics-renderer/SKILL.md` - Generate PPTX
+1. **Brand System**: `plugins/nbg-presentations/shared/nbg-brand-system/README.md` - Single source of truth for all specs
+2. **Orchestrator**: `plugins/nbg-presentations/orchestrator/nbg-presenter/SKILL.md` - Master workflow
+3. **Step 1**: `plugins/nbg-presentations/agents/storyline-architect/SKILL.md` - Create narrative structure
+4. **Step 2**: `plugins/nbg-presentations/agents/storyboard-designer/SKILL.md` - Design visual layouts
+5. **Step 3**: `plugins/nbg-presentations/agents/graphics-renderer/SKILL.md` - Generate PPTX
 
 ### Agent Pipeline (ALWAYS Follow This Order)
 ```
@@ -184,85 +269,56 @@ fonts:
 logo:
   small: { pos: [0.374", 7.071"], size: [0.822", 0.236"] }
   large: { pos: [0.374", 6.271"], size: [2.191", 0.630"] }
-pageNumber:
-  position: [12.2265", 7.1554"]
-  size: [0.748", 0.152"]
-  alignedWithLogo: true
 chartColors: ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8']
 ```
-
-### Assets & Templates
-- **Logo (Greek)**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-logo-gr.svg`
-- **Logo (English)**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-logo.svg`
-- **Back Cover Logo**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/nbg-back-cover-logo.png`
-- **Template EN**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-EN.pptx`
-- **Template GR**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/templates/NBG-Template-GR.pptx`
-- **Full Spec**: `~/.claude/plugins/marketplaces/communications-marketplace/assets/NBG-PRESENTATION-SPEC.md`
 
 ### Trigger Phrases (Activate NBG Workflow)
 - "Create NBG presentation"
 - "NBG format" / "in NBG format"
 - "Make this board-ready"
 - "Presentation for NBG"
-- "National Bank of Greece"
 - "Format for the board"
-
-### What NOT To Do
-- Skip reading the agent SKILL.md files
-- Jump directly to html2pptx without storyline
-- Use generic PowerPoint dimensions
-- Create generic topic labels as titles
-- Skip the logo on any slide (except back cover uses centered logo)
-- Use non-NBG colors or fonts
-- **Use pie charts** - ALWAYS use doughnut instead
-- **Use "Thank You" slides** - Use plain back cover with centered oval logo
-- **Put page numbers on cover, dividers, or back cover** - content slides only
 
 ---
 CLAUDE_CONTENT
 }
 
-# Update CLAUDE.md
+# Generate generic plugin configuration
+generate_generic_config() {
+    local plugin_name=$1
+    local plugin_dir=$2
+
+    cat << CLAUDE_CONTENT
+
+---
+
+## ${plugin_name^^} Plugin
+
+**Location**: \`~/.claude/plugins/marketplaces/communications-marketplace/plugins/$plugin_name/\`
+
+### Usage
+See \`plugins/$plugin_name/README.md\` for documentation.
+
+---
+CLAUDE_CONTENT
+}
+
+# Update CLAUDE.md with selected plugins
 update_claude_md() {
-    print_step "Checking CLAUDE.md configuration..."
-
-    # Check if NBG section already exists
-    if [ -f "$CLAUDE_MD" ] && grep -q "NBG PRESENTATION FORMAT" "$CLAUDE_MD"; then
-        print_warning "NBG configuration already exists in CLAUDE.md"
-        echo ""
-        read -p "Replace existing NBG configuration? [y/N] " -n 1 -r
-        echo ""
-
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_warning "Skipping CLAUDE.md update"
-            return
-        fi
-
-        # Remove existing NBG section (between --- markers)
-        print_step "Removing old NBG configuration..."
-        # Create backup
-        cp "$CLAUDE_MD" "$CLAUDE_MD.backup"
-
-        # Remove the NBG section using sed
-        sed -i.tmp '/^## NBG PRESENTATION FORMAT/,/^---$/d' "$CLAUDE_MD"
-        rm -f "$CLAUDE_MD.tmp"
-
-        print_success "Old configuration removed (backup: CLAUDE.md.backup)"
+    if [ ${#SELECTED_PLUGINS[@]} -eq 0 ]; then
+        return
     fi
 
+    print_step "Checking CLAUDE.md configuration..."
+
     echo ""
-    read -p "Add NBG workflow configuration to ~/.claude/CLAUDE.md? [Y/n] " -n 1 -r
+    read -p "Add plugin configurations to ~/.claude/CLAUDE.md? [Y/n] " -n 1 -r
     echo ""
 
     if [[ $REPLY =~ ^[Nn]$ ]]; then
         print_warning "Skipping CLAUDE.md update"
-        echo ""
-        echo "You can manually add the configuration later."
-        echo "See: $INSTALL_DIR/docs/CLAUDE-CONFIG.md"
         return
     fi
-
-    print_step "Updating CLAUDE.md..."
 
     # Create CLAUDE.md if it doesn't exist
     if [ ! -f "$CLAUDE_MD" ]; then
@@ -272,10 +328,25 @@ update_claude_md() {
         echo "Add your Claude Code instructions below." >> "$CLAUDE_MD"
     fi
 
-    # Append NBG configuration
-    generate_claude_md_content >> "$CLAUDE_MD"
+    # Create backup
+    cp "$CLAUDE_MD" "$CLAUDE_MD.backup"
 
-    print_success "CLAUDE.md updated"
+    for plugin in "${SELECTED_PLUGINS[@]}"; do
+        print_step "Configuring $plugin..."
+
+        # Check if plugin config already exists
+        local marker="${plugin^^}"
+        if grep -q "$marker" "$CLAUDE_MD" 2>/dev/null; then
+            print_warning "$plugin configuration already exists, skipping"
+            continue
+        fi
+
+        # Append plugin configuration
+        generate_plugin_config "$plugin" >> "$CLAUDE_MD"
+        print_success "$plugin configured"
+    done
+
+    print_success "CLAUDE.md updated (backup: CLAUDE.md.backup)"
 }
 
 # Verify installation
@@ -284,18 +355,18 @@ verify_installation() {
 
     local errors=0
 
-    # Check key files exist
-    for file in "README.md" "orchestrator/nbg-presenter/SKILL.md" "shared/nbg-brand-system/README.md" ".claude-plugin/plugin.json"; do
+    # Check marketplace files exist
+    for file in "README.md" ".claude-plugin/plugin.json"; do
         if [ ! -f "$INSTALL_DIR/$file" ]; then
             print_error "Missing: $file"
             errors=$((errors + 1))
         fi
     done
 
-    # Check assets
-    for asset in "assets/nbg-logo-gr.svg" "assets/nbg-logo.svg" "assets/nbg-back-cover-logo.png"; do
-        if [ ! -f "$INSTALL_DIR/$asset" ]; then
-            print_error "Missing asset: $asset"
+    # Check selected plugins
+    for plugin in "${SELECTED_PLUGINS[@]}"; do
+        if [ ! -f "$INSTALL_DIR/plugins/$plugin/plugin.json" ]; then
+            print_error "Missing plugin manifest: $plugin/plugin.json"
             errors=$((errors + 1))
         fi
     done
@@ -315,19 +386,23 @@ print_completion() {
     echo -e "${GREEN}  Installation complete!${NC}"
     echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
     echo ""
-    echo -e "${BOLD}Commands available in Claude Code:${NC}"
+
+    if [ ${#SELECTED_PLUGINS[@]} -gt 0 ]; then
+        echo -e "${BOLD}Installed plugins:${NC}"
+        echo ""
+        for plugin in "${SELECTED_PLUGINS[@]}"; do
+            echo "  - $plugin"
+        done
+        echo ""
+    fi
+
+    echo -e "${BOLD}Commands available (depending on plugins):${NC}"
     echo ""
-    echo "  /create-presentation  Create a new NBG presentation"
-    echo "  /redesign-deck        Redesign existing deck to NBG standards"
-    echo "  /create-infographic   Create NBG-branded data visualization"
-    echo "  /create-icon          Create NBG-compliant SVG icon"
-    echo "  /polish-slides        Quick formatting to NBG standards"
-    echo ""
-    echo -e "${BOLD}Trigger phrases:${NC}"
-    echo ""
-    echo "  \"Create NBG presentation about...\""
-    echo "  \"Make this board-ready\""
-    echo "  \"Format this for NBG\""
+    echo "  /create-presentation  Create a new presentation"
+    echo "  /redesign-deck        Redesign existing deck"
+    echo "  /create-infographic   Create data visualization"
+    echo "  /create-icon          Create SVG icon"
+    echo "  /polish-slides        Quick formatting"
     echo ""
     echo -e "${BOLD}To update later:${NC}"
     echo ""
@@ -345,6 +420,12 @@ main() {
     check_prerequisites
     create_directories
     clone_repository
+
+    # Change to install directory for plugin discovery
+    cd "$INSTALL_DIR"
+
+    list_plugins
+    select_plugins
     update_claude_md
     verify_installation
     print_completion
