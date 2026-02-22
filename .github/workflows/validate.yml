@@ -25,8 +25,12 @@ jobs:
         run: |
           for dir in plugins/*/; do
             if [ -d "$dir" ] && [ "$(basename "$dir")" != "_template" ]; then
-              plugin_json="${dir}.claude-plugin/plugin.json"
-              if [ ! -f "$plugin_json" ]; then
+              # Check both locations for plugin.json
+              if [ -f "${dir}plugin.json" ]; then
+                plugin_json="${dir}plugin.json"
+              elif [ -f "${dir}.claude-plugin/plugin.json" ]; then
+                plugin_json="${dir}.claude-plugin/plugin.json"
+              else
                 echo "Error: Missing plugin.json in $dir"
                 exit 1
               fi
