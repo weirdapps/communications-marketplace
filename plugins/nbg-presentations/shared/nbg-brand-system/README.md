@@ -92,15 +92,28 @@ Use in order for data series:
 
 | File | Contents |
 |------|----------|
-| [colors.md](colors.md) | Complete color palette |
+| [colors.md](colors.md) | Complete color palette + contrast rules |
 | [typography.md](typography.md) | Font specifications |
-| [layouts.md](layouts.md) | Slide layout catalog |
+| [layouts.md](layouts.md) | Slide layout catalog + divider rules |
 | [dimensions.md](dimensions.md) | Positioning reference |
 | [charts.md](charts.md) | Chart configurations |
 | [icons.md](icons.md) | Icon design rules |
 | [ooxml-charts.md](ooxml-charts.md) | OOXML chart editing |
+| [pillar-ds.md](pillar-ds.md) | **NBG Pillar Design System** - Digital product tokens |
+| [asset-library.md](asset-library.md) | **Asset Library** - Icons, illustrations, screenshots |
 
-## Asset Files
+## Asset Library (NEW)
+
+| Category | Count | Path |
+|----------|-------|------|
+| Icons | 338 | `assets/icons/` (20 categories) |
+| Illustrations | 21 | `assets/illustrations/` |
+| Logos | 10 | `assets/logos/` |
+| Screenshots | 117 | `assets/screenshots/` (5 products) |
+
+See [asset-library.md](asset-library.md) for complete documentation and usage rules.
+
+## Legacy Asset Files
 
 | Asset | Path | Usage |
 |-------|------|-------|

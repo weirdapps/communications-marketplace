@@ -114,6 +114,23 @@ Page numbers appear on **content slides only** (not cover, dividers, back cover)
 - Color: NBG Teal `#007B85`
 - Title Color: Dark Teal `#003841`
 
+### Divider Consistency Rule (Non-Negotiable)
+
+**Use only ONE type of divider across the entire presentation — never mix styles.**
+
+| Rule | Enforcement |
+|------|-------------|
+| Single style | All dividers must use the same layout/style throughout |
+| Default | Use the standard white background divider |
+| Validation | Before completing, verify all dividers match |
+
+### Preventing Text Overlap
+
+If the section title is long (>25 characters) and wraps to multiple lines, the description text may overlap. Fix by:
+1. Shortening the title if possible
+2. Pushing the description element down
+3. Using line breaks intentionally
+
 ## Content Layouts
 
 ### Full Width Content

@@ -486,6 +486,41 @@ function addCallout(slide, { x, y, w, h, text, bgColor, textColor }) {
 
 ---
 
+## Pre-Save Validation Pass (Mandatory)
+
+**Run these checks before saving any presentation:**
+
+### 1. Contrast Validation
+- [ ] Cover text uses explicit colors (never inherited/theme)
+- [ ] Cover title: Dark Teal `003841`
+- [ ] Cover subtitle: NBG Teal `007B85`
+- [ ] No light text on light backgrounds
+- [ ] No dark text on dark backgrounds
+
+### 2. Divider Consistency
+- [ ] All dividers use the SAME style (never mix)
+- [ ] Divider numbers are sequential ("01", "02", etc.)
+- [ ] Long titles don't overlap with descriptions
+
+### 3. Slide Numbers
+- [ ] Present on ALL content slides
+- [ ] NOT present on: Cover, Dividers, Back Cover
+- [ ] Position: bottom-right (12.2265", 7.1554")
+- [ ] Sequential numbering matches slide order
+
+### 4. Asset Integrity
+- [ ] Images preserve aspect ratio (never stretched)
+- [ ] Mobile screenshots never cropped (fit whole)
+- [ ] Icons consistently sized per slide
+- [ ] Illustrations on light backgrounds only
+
+### 5. Empty Placeholder Cleanup
+- [ ] No empty text placeholders visible
+- [ ] No placeholder text ("Click to add...")
+- [ ] Unused shapes removed
+
+---
+
 ## What NOT To Do
 
 - Don't approximate positions

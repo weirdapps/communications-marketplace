@@ -1,5 +1,7 @@
 # NBG Complete Color Palette
 
+> **Note**: For digital product colors (apps, web), see [pillar-ds.md](pillar-ds.md) for the complete Pillar Design System palette.
+
 ## Theme Colors (NBG Colors 2)
 
 ### Core Theme Colors
@@ -95,6 +97,31 @@ Use these colors in order for chart data series:
 5. `#BEC1BE` - Light Gray
 6. `#00DFF8` - Bright Cyan
 
+## PFM Category Colors (from Pillar DS)
+
+For category-based data visualization (e.g., spending categories, segments):
+
+| Category | Dark | Light | Usage |
+|----------|------|-------|-------|
+| Receipts | `#26A567` | `#BFECD0` | Income, deposits |
+| Savings | `#0091A0` | `#ACEDFF` | Savings, investments |
+| Entertainment | `#D456D0` | `#FFD1FD` | Leisure, subscriptions |
+| Holidays | `#007B85` | `#BFEEF6` | Travel, vacations |
+| Dining | `#D08239` | `#FFE0B2` | Restaurants, food |
+| Retail | `#8E6CD0` | `#E1D1FF` | Shopping, stores |
+| Transport | `#5D87DB` | `#C5D7FF` | Travel, commute |
+| Services | `#A36CB4` | `#EDD7F4` | Utilities, fees |
+| Super Market | `#FFC700` | `#FFF4C7` | Groceries |
+| Health | `#BE4B4B` | `#FFC5C6` | Medical, pharmacy |
+
+```javascript
+// PFM Category chart colors (dark variants)
+const PFM_CHART_COLORS = [
+  '26A567', '0091A0', 'D456D0', '007B85', 'D08239',
+  '8E6CD0', '5D87DB', 'A36CB4', 'FFC700', 'BE4B4B'
+];
+```
+
 ## Background Guidelines
 
 ### IMPORTANT: White Backgrounds Only
@@ -178,3 +205,35 @@ const NBG_CHART_COLORS = [
 | TOC description | `#595959` (Gray) |
 | Page number | `#939793` (Medium Gray) |
 | Icons | `#003841` (Dark Teal) |
+
+---
+
+## Color Contrast Rules (Non-Negotiable)
+
+**NEVER place light text on light backgrounds or dark text on dark backgrounds.** Always verify text/background contrast:
+
+| Background Color | Text Color to Use |
+|-----------------|-------------------|
+| Dark Teal `#003841` | White `#FFFFFF` |
+| NBG Teal `#007B85` | White `#FFFFFF` |
+| White `#FFFFFF` | Dark Teal `#003841` |
+| Off-white `#F5F8F6` | Dark Teal `#003841` |
+
+**Rule of thumb:** If the background fill is light (R+G+B > 400), text MUST be dark `#003841`. If background is dark (R+G+B < 400), text MUST be white.
+
+### Cover Slide Contrast — CRITICAL
+
+Cover layouts may have overlapping graphic elements. Rules:
+1. All cover text must have sufficient contrast against BOTH the background AND any decorative graphics
+2. Use **Dark Teal `#003841`** for the main title — readable on light backgrounds
+3. Use **NBG Teal `#007B85`** for the subtitle — ensures visibility
+4. **Never use white or light colors** for cover text on white backgrounds
+5. **Always set explicit colors** — never rely on theme/inherited colors for covers
+
+### Icon Contrast
+
+| Background | Icon Color |
+|------------|------------|
+| Light (white, off-white) | Dark Teal `#003841` |
+| Dark (teal, dark teal) | White `#FFFFFF` |
+| Accent (for callouts) | NBG Teal `#007B85` |
