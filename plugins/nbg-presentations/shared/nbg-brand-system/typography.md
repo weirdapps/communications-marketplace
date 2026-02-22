@@ -2,10 +2,16 @@
 
 ## Font Family
 
-### Primary Font
+### Primary Font (Presentations)
 - **Name**: Aptos
 - **Weight**: **Regular** (preferred for all elements including titles)
 - **Fallback**: Calibri, Tahoma
+
+### Digital Products Font (Pillar DS)
+- **Name**: Aeonik Pro
+- **Weights**: Regular (400), Medium (500), Bold (700)
+- **Fallback**: Aptos, Arial
+- **Usage**: NBG digital products, apps, web interfaces
 
 ### Bullet Font
 - **Name**: Arial
@@ -117,3 +123,30 @@ bullet:
 | Percentages | With symbol | "47%" |
 | Currency | With symbol | "€4.2B" |
 | Large Numbers | With unit | "2.3M" |
+
+---
+
+## Pillar DS Typography (Digital Products)
+
+Reference for digital product consistency. See [pillar-ds.md](pillar-ds.md) for full details.
+
+### Font: Aeonik Pro
+| Weight | Value | Usage |
+|--------|-------|-------|
+| Regular | 400 | Body text |
+| Medium | 500 | Emphasis, labels |
+| Bold | 700 | Headings, titles |
+
+### Mobile Typography
+| Element | Size | Line Height | Weight |
+|---------|------|-------------|--------|
+| Body | 12pt | 16px | Regular |
+| Label | 10pt | 14px | Medium |
+| Heading | 16pt | 20px | Bold |
+
+### Desktop Typography
+| Element | Size | Line Height | Weight |
+|---------|------|-------------|--------|
+| Body | 14pt | 18px | Regular |
+| Label | 12pt | 16px | Medium |
+| Heading | 18pt | 22px | Bold |
