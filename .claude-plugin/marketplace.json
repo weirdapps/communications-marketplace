@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "communications-marketplace",
+  "description": "A marketplace of communication and productivity plugins for Claude Code. Install specialized agents, tools, and workflows for various communication needs.",
+  "owner": {
+    "name": "weirdapps"
+  },
+  "plugins": [
+    {
+      "name": "nbg-presentations",
+      "description": "Multi-agent presentation system for National Bank of Greece. Create McKinsey-quality, board-ready presentations with NBG branding.",
+      "version": "3.0.0",
+      "author": {
+        "name": "weirdapps"
+      },
+      "source": "./plugins/nbg-presentations",
+      "category": "presentations",
+      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/nbg-presentations"
+    }
+  ]
+}
