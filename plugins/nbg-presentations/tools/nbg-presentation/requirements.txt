@@ -1,0 +1,11 @@
+# NBG Presentation Tools - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Required for YAML parsing (nbg_build.py)
+pyyaml>=6.0
+
+# Optional: For enhanced table handling
+# python-pptx>=0.6.21
+
+# Optional: For image processing in presentations
+# Pillow>=9.0.0

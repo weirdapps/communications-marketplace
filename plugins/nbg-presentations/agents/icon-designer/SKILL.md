@@ -45,7 +45,7 @@ For complete color palettes and icon specifications, see the brand system.
 |----------|-----|-----|
 | Standard (white bg) | `#003841` | 0, 56, 65 |
 | Dark background | `#F5F8F6` | 245, 248, 246 |
-| Accent/highlight | `#00DEF8` | 0, 222, 248 |
+| Accent/highlight | `#00DFF8` | 0, 223, 248 |
 | Success/positive | `#73AF3C` | 115, 175, 60 |
 | Alert/warning | `#AA0028` | 170, 0, 40 |
 | Brand highlight | `#007B85` | 0, 123, 133 |
@@ -262,7 +262,7 @@ When generating icons, select fill color based on context:
 |---------|------------|
 | Standard icon (white background) | `#003841` |
 | Icon on dark/teal background | `#F5F8F6` |
-| Accent/feature highlight | `#00DEF8` |
+| Accent/feature highlight | `#00DFF8` |
 | Success/positive indicator | `#73AF3C` |
 | Alert/negative indicator | `#AA0028` |
 | Primary brand emphasis | `#007B85` |

@@ -1,6 +1,6 @@
 # NBG Iconography Library — Index
 
-**Base path:** `/mnt/skills/user/pillar-presenter/assets/icons/`
+**Base path:** `plugins/nbg-presentations/assets/icons/`
 **Total:** 338 icons across 20 categories
 **Format:** PNG with transparent background
 

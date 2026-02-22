@@ -29,7 +29,7 @@ User request: $ARGUMENTS
 |---------|------------|
 | Standard (white bg) | #003841 |
 | Dark background | #F5F8F6 |
-| Accent/highlight | #00DEF8 |
+| Accent/highlight | #00DFF8 |
 | Success | #73AF3C |
 | Alert | #AA0028 |
 

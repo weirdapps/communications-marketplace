@@ -17,7 +17,7 @@ Generate SVG icons that match exactly the visual language of the NBG iconography
 |----------|-----------|-------|
 | Standard icons | `#003841` | Dark Teal - primary icon color |
 | On dark backgrounds | `#F5F8F6` | Off-white - for visibility |
-| Accent/highlight | `#00DEF8` | Bright Cyan - special emphasis |
+| Accent/highlight | `#00DFF8` | Bright Cyan - special emphasis |
 | Success indicators | `#73AF3C` | Green - positive status |
 | Alert indicators | `#AA0028` | Red - negative/warning status |
 
@@ -160,7 +160,7 @@ Before outputting any icon, verify:
 |---------|------------|
 | Standard icon on white | `#003841` |
 | Icon on dark/teal background | `#F5F8F6` |
-| Accent/feature highlight | `#00DEF8` |
+| Accent/feature highlight | `#00DFF8` |
 | Success/positive | `#73AF3C` |
 | Alert/negative | `#AA0028` |
 | Primary brand highlight | `#007B85` |

@@ -57,6 +57,24 @@
     "path": "./shared/nbg-brand-system",
     "description": "Single source of truth for NBG brand specifications."
   },
+  "tools": {
+    "nbg_build": {
+      "path": "./tools/nbg-presentation/nbg_build.py",
+      "description": "Build PPTX from YAML storyline"
+    },
+    "nbg_validate": {
+      "path": "./tools/nbg-presentation/nbg_validate.py",
+      "description": "Validate PPTX against NBG brand guidelines"
+    },
+    "inject_chart_data": {
+      "path": "./tools/nbg-presentation/inject_chart_data.py",
+      "description": "Inject data into chart placeholders"
+    },
+    "inject_table_data": {
+      "path": "./tools/nbg-presentation/inject_table_data.py",
+      "description": "Inject data into table placeholders"
+    }
+  },
   "assets": {
     "logos": {
       "greek": "./assets/nbg-logo-gr.svg",
@@ -68,7 +86,15 @@
       "english": "./assets/templates/NBG-Template-EN.pptx",
       "greek": "./assets/templates/NBG-Template-GR.pptx"
     },
+    "catalog": "./assets/slide-catalog.yaml",
+    "icons": "./assets/icons",
+    "illustrations": "./assets/illustrations",
     "spec": "./assets/NBG-PRESENTATION-SPEC.md"
+  },
+  "examples": {
+    "executiveSummary": "./examples/executive-summary.yaml",
+    "quarterlyReport": "./examples/quarterly-report.yaml",
+    "strategyDeck": "./examples/strategy-deck.yaml"
   },
   "workflow": {
     "pipeline": [
@@ -78,6 +104,7 @@
       "icon-designer",
       "graphics-renderer"
     ],
-    "orchestrator": "nbg-presenter"
+    "orchestrator": "nbg-presenter",
+    "parallel": ["infographic-specialist", "icon-designer"]
   }
 }

@@ -437,6 +437,131 @@ def check_decorative_elements(unpacked_dir: Path) -> ValidationResult:
         )
 
 
+def check_pie_charts(unpacked_dir: Path) -> ValidationResult:
+    """Check that no pie charts are used (should be doughnut instead)."""
+    charts_dir = unpacked_dir / 'ppt' / 'charts'
+
+    if not charts_dir.exists():
+        return ValidationResult('Chart Types', True, 'No charts in presentation')
+
+    pie_charts_found = []
+    doughnut_charts_found = 0
+
+    for chart_file in sorted(charts_dir.glob('chart*.xml')):
+        chart_name = chart_file.stem
+        tree = ET.parse(chart_file)
+        root = tree.getroot()
+
+        # Check for pie charts
+        pie_elems = root.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/chart}pieChart')
+        if pie_elems:
+            pie_charts_found.append(f'{chart_name}: pieChart found (use doughnutChart instead)')
+
+        # Count doughnut charts (good)
+        doughnut_elems = root.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/chart}doughnutChart')
+        doughnut_charts_found += len(doughnut_elems)
+
+    if pie_charts_found:
+        return ValidationResult(
+            'Chart Types',
+            False,
+            f'{len(pie_charts_found)} pie chart(s) found (NBG requires doughnut charts)',
+            pie_charts_found
+        )
+    elif doughnut_charts_found > 0:
+        return ValidationResult('Chart Types', True, f'{doughnut_charts_found} doughnut chart(s) (correct)')
+    else:
+        return ValidationResult('Chart Types', True, 'No pie/doughnut charts')
+
+
+def check_thank_you_slides(unpacked_dir: Path) -> ValidationResult:
+    """Check for any "Thank You" or similar closing text on slides."""
+    slides_dir = unpacked_dir / 'ppt' / 'slides'
+    if not slides_dir.exists():
+        return ValidationResult('Thank You Check', False, 'No slides folder found')
+
+    # Phrases to look for (case-insensitive)
+    forbidden_phrases = [
+        'thank you', 'thanks', 'any questions', 'q&a', 'questions?',
+        'thank-you', 'thankyou', 'grazie', 'merci', 'danke',
+        'ευχαριστώ', 'ευχαριστουμε', 'ερωτησεις'  # Greek
+    ]
+
+    found_issues = []
+
+    for slide_file in sorted(slides_dir.glob('slide*.xml')):
+        slide_num = re.search(r'slide(\d+)', slide_file.name).group(1)
+        tree = ET.parse(slide_file)
+        root = tree.getroot()
+
+        text_elements = root.findall('.//{%s}t' % NAMESPACES['a'])
+        text_content = ' '.join(t.text or '' for t in text_elements).strip().lower()
+
+        for phrase in forbidden_phrases:
+            if phrase in text_content:
+                found_issues.append(f'Slide {slide_num}: contains "{phrase}"')
+                break
+
+    if not found_issues:
+        return ValidationResult('Thank You Check', True, 'No "Thank You" slides found (correct)')
+    else:
+        return ValidationResult(
+            'Thank You Check',
+            False,
+            f'{len(found_issues)} slide(s) with "Thank You" or similar (use plain back cover)',
+            found_issues
+        )
+
+
+def check_text_margins(unpacked_dir: Path) -> ValidationResult:
+    """Check that text boxes use zero margins (NBG requirement)."""
+    slides_dir = unpacked_dir / 'ppt' / 'slides'
+    if not slides_dir.exists():
+        return ValidationResult('Text Margins', False, 'No slides folder found')
+
+    # NBG requirement: all text boxes should have margin: 0
+    # In OOXML: lIns, tIns, rIns, bIns should be 0 or very small
+
+    non_zero_margins = []
+
+    for slide_file in sorted(slides_dir.glob('slide*.xml')):
+        slide_num = re.search(r'slide(\d+)', slide_file.name).group(1)
+        tree = ET.parse(slide_file)
+        root = tree.getroot()
+
+        for bodyPr in root.findall('.//{%s}bodyPr' % NAMESPACES['a']):
+            # Default margins in OOXML are 91440 EMU (0.1 inch)
+            # NBG requires 0
+            lIns = int(bodyPr.get('lIns', '91440'))
+            tIns = int(bodyPr.get('tIns', '45720'))
+            rIns = int(bodyPr.get('rIns', '91440'))
+            bIns = int(bodyPr.get('bIns', '45720'))
+
+            # If any margin is > 50000 EMU (~0.05 inch), flag it
+            if lIns > 50000 or rIns > 50000:
+                non_zero_margins.append(f'Slide {slide_num}: text box has non-zero margins')
+                break
+
+    total_slides = len(list(slides_dir.glob('slide*.xml')))
+
+    if not non_zero_margins:
+        return ValidationResult('Text Margins', True, 'All text boxes use zero margins')
+    elif len(non_zero_margins) < total_slides / 2:
+        return ValidationResult(
+            'Text Margins',
+            True,
+            f'{len(non_zero_margins)} slide(s) have default margins (minor issue)',
+            non_zero_margins[:3]
+        )
+    else:
+        return ValidationResult(
+            'Text Margins',
+            False,
+            f'{len(non_zero_margins)} slide(s) with non-zero margins',
+            non_zero_margins[:5]
+        )
+
+
 def check_back_cover(unpacked_dir: Path) -> ValidationResult:
     """Check if presentation ends with a back cover slide."""
     slides_dir = unpacked_dir / 'ppt' / 'slides'
@@ -507,6 +632,10 @@ def validate_presentation(pptx_path: str) -> list:
         results.append(check_element_boundaries(unpacked_dir))
         results.append(check_color_contrast(unpacked_dir))
         results.append(check_decorative_elements(unpacked_dir))
+        # NBG-specific checks
+        results.append(check_pie_charts(unpacked_dir))
+        results.append(check_thank_you_slides(unpacked_dir))
+        results.append(check_text_margins(unpacked_dir))
 
     return results
 
