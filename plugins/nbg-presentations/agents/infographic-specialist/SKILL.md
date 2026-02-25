@@ -117,6 +117,120 @@ You receive:
 }
 ```
 
+### Doughnut Gauge (Counter/Progress Indicator)
+
+**Best For**: Single metric progress, completion percentage, KPI with visual impact
+
+A doughnut chart configured as a gauge with a large center hole displaying the key metric value.
+
+```javascript
+{
+  type: "doughnut",
+  subtype: "gauge",  // Indicates gauge/counter style
+  data: {
+    // Three segments: filled, secondary (optional), unfilled background
+    categories: ["Completed", "In Progress", "Remaining"],
+    values: [62, 7, 31]  // Must sum to 100 for percentage
+  },
+  config: {
+    chartColors: ["00ADBF", "007B85", "F5F8F6"],  // Primary, secondary, transparent/background
+    holeSize: 75,           // Large hole (75%) for center value
+    firstSliceAng: 270,     // Start at bottom (270°) for gauge effect
+    showLabel: false,       // Hide segment labels
+    showPercent: false,     // No percent labels on segments
+    // Center value is added as overlay text shape
+    centerValue: {
+      text: "62%",
+      font: "Aptos",
+      size: 36,
+      color: "003841",
+      bold: true
+    },
+    centerLabel: {
+      text: "Pass Rate",
+      font: "Aptos",
+      size: 14,
+      color: "939793"
+    }
+  }
+}
+```
+
+**OOXML Implementation Notes:**
+- Third segment uses transparent fill: `<a:srgbClr val="F5F9F6"><a:alpha val="0"/></a:srgbClr>`
+- `<c:firstSliceAng val="270"/>` starts chart at bottom
+- `<c:holeSize val="75"/>` creates large center area
+- Center text requires `<c:userShapes>` overlay or separate text box positioned at chart center
+
+### 100% Stacked Horizontal Bar (Progress Bar)
+
+**Best For**: Status distribution, test results, completion tracking, multi-category progress
+
+A horizontal stacked bar showing percentage distribution across categories.
+
+```javascript
+{
+  type: "bar",
+  subtype: "percentStacked",
+  data: {
+    categories: ["Mobile Banking"],  // Single or multiple rows
+    series: [
+      { name: "Pass", values: [62], color: "097681" },      // Green/Teal
+      { name: "Fail", values: [7], color: "C00000" },       // Red
+      { name: "Blocked", values: [31], color: "FFD966" }    // Yellow/Amber
+    ]
+  },
+  config: {
+    barDir: "bar",              // Horizontal bars
+    grouping: "percentStacked", // 100% stacked
+    chartColors: ["097681", "C00000", "808080", "FFD966"],  // Per series
+    showValue: true,            // Show values on segments
+    valueFontSize: 14,
+    valueFontBold: true,
+    valueFontColor: "FFFFFF",   // White text on colored bars
+    barGapWidthPct: 150,        // Gap between bars if multiple categories
+    catAxisHidden: true,        // Hide category axis for cleaner look
+    valAxisNumFmt: "0%",        // Percentage format on value axis
+    showLegend: true,
+    legendPos: "b"              // Legend at bottom
+  }
+}
+```
+
+**OOXML Structure:**
+```xml
+<c:barChart>
+  <c:barDir val="bar"/>
+  <c:grouping val="percentStacked"/>
+  <c:varyColors val="0"/>
+  <c:ser>
+    <c:idx val="0"/>
+    <c:tx><c:v>Pass</c:v></c:tx>
+    <c:spPr><a:solidFill><a:srgbClr val="097681"/></a:solidFill></c:spPr>
+    <c:dLbls>
+      <c:showVal val="1"/>
+      <c:txPr>
+        <a:p><a:pPr><a:defRPr sz="1400" b="1">
+          <a:solidFill><a:schemeClr val="bg1"/></a:solidFill>
+        </a:defRPr></a:pPr></a:p>
+      </c:txPr>
+    </c:dLbls>
+    <c:val><c:numRef><c:f>Sheet1!$B$2</c:f></c:numRef></c:val>
+  </c:ser>
+  <!-- Additional series for Fail, Blocked, etc. -->
+  <c:gapWidth val="150"/>
+  <c:overlap val="100"/>
+</c:barChart>
+```
+
+**Semantic Colors for Status Bars:**
+| Status | Hex | Usage |
+|--------|-----|-------|
+| Pass/Success | `097681` | Completed successfully |
+| Fail/Error | `C00000` | Failed items |
+| Blocked/Warning | `FFD966` | Blocked/pending items |
+| Not Executed | `808080` | Gray for skipped |
+
 ### CRITICAL: Never Use Pie Charts
 
 **ALWAYS use Doughnut charts instead of Pie charts.**
