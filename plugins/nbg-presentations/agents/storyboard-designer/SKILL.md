@@ -64,12 +64,12 @@ Page numbers positioned with **equal distance from right edge and bottom edge**:
 page_number:
   x: 12.71"    # Positioned for ~0.27" from right edge
   y: 7.1554"
-  w: 0.33"     # Narrow, right-aligned
+  w: 0.33"     # Narrow box
   h: 0.152"
   font: Aptos
   size: 10pt
   color: "939793"
-  align: right
+  align: right   # MUST be right-aligned inside text box
 ```
 
 **Note:** Page number has equal margins (~0.27") from right edge and bottom edge.

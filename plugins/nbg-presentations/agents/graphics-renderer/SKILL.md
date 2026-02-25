@@ -98,7 +98,7 @@ function addPageNumber(slide) {
     fontFace: 'Aptos',
     fontSize: 10,
     color: '939793',
-    align: 'right',
+    align: 'right',    // MUST be right-aligned inside text box
     valign: 'middle',
     margin: 0,
   });
