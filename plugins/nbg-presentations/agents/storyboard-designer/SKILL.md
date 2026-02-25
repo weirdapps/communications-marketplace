@@ -57,11 +57,14 @@ logo_large:
 ```
 
 ### Page Numbers (Content Slides Only)
+
+Page numbers positioned with **equal distance from right edge and bottom edge**:
+
 ```yaml
 page_number:
-  x: 12.2265"
+  x: 12.71"    # Positioned for ~0.27" from right edge
   y: 7.1554"
-  w: 0.748"
+  w: 0.33"     # Narrow, right-aligned
   h: 0.152"
   font: Aptos
   size: 10pt
@@ -69,7 +72,7 @@ page_number:
   align: right
 ```
 
-**Note:** Logo and page number are both 0.19" from bottom edge.
+**Note:** Page number has equal margins (~0.27") from right edge and bottom edge.
 
 ### Standard Margins
 ```yaml
@@ -323,6 +326,151 @@ back_cover:
     h: 1.54"
     path: "assets/nbg-back-cover-logo.png"
 ```
+
+---
+
+## Text Box Standards
+
+### Critical Rules for ALL Text Boxes
+
+Every text element MUST follow these rules:
+
+```yaml
+text_box_rules:
+  margin: 0           # ALWAYS zero - enables precise positioning
+  valign: "top"       # ALWAYS top - never middle or bottom
+  sizing: "tight"     # Size to fit content, not oversized
+```
+
+### Why These Rules Matter
+
+| Rule | Reason |
+|------|--------|
+| `margin: 0` | Default margins cause text to shift unpredictably; zero margin gives pixel-perfect control |
+| `valign: top` | Middle/bottom alignment causes text to jump when content changes; top is predictable |
+| Tight sizing | Oversized boxes create invisible click targets and interfere with element layering |
+
+### Title Box Sizing
+
+```yaml
+title:
+  single_line:
+    h: 0.4"    # Tight fit for 24pt text
+  two_line:
+    h: 0.8"    # Double for wrapped titles
+```
+
+### Body Text Sizing
+
+```yaml
+body:
+  bullets:
+    h: varies  # Calculate: (line_count × line_height) + spacing
+  paragraph:
+    h: auto    # Let content determine, but set max
+```
+
+---
+
+## Action Title Guidelines
+
+### Titles Tell the Story
+
+Every slide title must be an **insight-driven sentence** that communicates the key message. A reader should understand the slide's point from the title alone.
+
+### Title Structure
+
+```yaml
+title_structure:
+  format: "[Subject] + [Action/Result] + [Impact/Context]"
+
+  examples:
+    - "Mobile banking users surpassed 2M, driving 45% of all transactions"
+    - "Card revenue grew €15M YoY through contactless adoption"
+    - "Three strategic initiatives will capture €50M in new revenue"
+```
+
+### Title Checklist
+
+- [ ] Is it a complete sentence (subject + verb)?
+- [ ] Does it state the insight, not just the topic?
+- [ ] Can someone understand the slide's point from title alone?
+- [ ] Does it pass the "So what?" test?
+- [ ] Is it specific (includes numbers/metrics where relevant)?
+
+### Examples by Slide Type
+
+| Slide Type | Bad Title | Good Title |
+|------------|-----------|------------|
+| Results | "Q4 Performance" | "Q4 exceeded targets with 23% revenue growth" |
+| Comparison | "Competitor Analysis" | "NBG leads market in mobile adoption, 15pts ahead" |
+| Strategy | "2024 Priorities" | "Three initiatives will drive €80M incremental revenue" |
+| Problem | "Challenges" | "Legacy systems cause 40% of customer complaints" |
+| Solution | "Proposed Approach" | "API modernization will reduce complaints by 60%" |
+
+---
+
+## Device Mockups
+
+When mobile app screenshots are needed on a slide, specify device mockup requirements:
+
+### When to Use Device Mockups
+- Showcasing mobile banking app features
+- Demonstrating app workflows or user journeys
+- Product demos and launch announcements
+- Digital transformation slides
+
+### Mockup Specification Format
+
+```yaml
+elements:
+  - id: "mobile_mockup"
+    type: device_mockup
+    screenshot_source: "assets/screenshots/retail-mobile/Home.png"
+    device_frame: "16_pro_max_black"  # See available frames below
+    position:
+      x: 8.5
+      y: 1.0
+      w: 3.5   # Width will maintain aspect ratio
+      h: auto  # Height calculated from frame aspect ratio
+```
+
+### Available Device Frames
+
+| Frame Key | Description |
+|-----------|-------------|
+| `16_pro_max_black` | iPhone 16 Pro Max - Black Titanium (default) |
+| `16_pro_max_natural` | iPhone 16 Pro Max - Natural Titanium |
+| `16_pro_max_white` | iPhone 16 Pro Max - White Titanium |
+| `16_pro_max_desert` | iPhone 16 Pro Max - Desert Titanium |
+| `16_pro_black` | iPhone 16 Pro - Black Titanium |
+| `16_pro_natural` | iPhone 16 Pro - Natural Titanium |
+
+### Clean Screenshot Sources
+
+Use screenshots from the assets folder for best results:
+
+```
+assets/screenshots/retail-mobile/
+├── Home.png
+├── accounts/
+├── cards/
+├── iris/
+├── loans/
+├── profile/
+└── ...
+```
+
+**IMPORTANT**: Use ONLY clean screenshots (no device frame artifacts baked in). The Device Mockup Agent handles all framing.
+
+### Layout Recommendations
+
+| Use Case | Layout | Mockup Position |
+|----------|--------|-----------------|
+| Feature highlight | Two-column (60/40) | Right side (x: 8.5") |
+| App comparison | Three-column | Each column center |
+| Journey showcase | Full-width | 3 mockups evenly spaced |
+| Hero slide | Full-width | Center, large (w: 4") |
 
 ---
 

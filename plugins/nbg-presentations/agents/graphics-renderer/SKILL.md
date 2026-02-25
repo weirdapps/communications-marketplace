@@ -23,6 +23,8 @@ See the brand system for complete specifications. This agent implements those sp
 4. **Explicit Colors**: Always specify NBG colors to avoid library defaults
 5. **Top Aligned**: All text boxes use `valign: 'top'`, never middle or bottom
 6. **Tight Boxes**: Size text boxes to fit content, not oversized
+7. **Zero Margins**: All text boxes use `margin: 0` for precise positioning
+8. **Action Titles**: Titles are insight-driven sentences, not labels
 
 ---
 
@@ -72,18 +74,49 @@ const BACK_COVER_LOGO = { x: 5.44, y: 2.98, w: 2.45, h: 1.54 };
 
 ### Page Numbers (Content Slides Only)
 
+Page numbers positioned with **equal distance from right edge and bottom edge**:
+
 ```javascript
+// Page number positioning - equal margins from right and bottom
+const PAGE_NUMBER = {
+  // Position calculated for equal ~0.27" margin from right and bottom edges
+  x: 12.71,      // inches (gives ~0.27" from right edge with narrow width)
+  y: 7.1554,     // inches
+  w: 0.33,       // inches (narrow, right-aligned)
+  h: 0.152,      // inches
+};
+
 let pageNumber = 0;
 
 function addPageNumber(slide) {
   pageNumber++;
   slide.addText(String(pageNumber), {
-    x: 12.2265, y: 7.1554, w: 0.748, h: 0.152,
-    fontFace: 'Aptos', fontSize: 10, color: '939793',
-    align: 'right', valign: 'middle', margin: 0,
+    x: PAGE_NUMBER.x,
+    y: PAGE_NUMBER.y,
+    w: PAGE_NUMBER.w,
+    h: PAGE_NUMBER.h,
+    fontFace: 'Aptos',
+    fontSize: 10,
+    color: '939793',
+    align: 'right',
+    valign: 'middle',
+    margin: 0,
   });
 }
+
+// In EMU (for XML manipulation):
+const PAGE_NUMBER_EMU = {
+  x: 11619019,   // ~12.71"
+  y: 6543654,    // ~7.16"
+  w: 300000,     // ~0.33"
+  h: 138912,     // ~0.15"
+};
 ```
+
+**Positioning Logic:**
+- Bottom margin: `7.5" - 7.1554" - 0.076"` ≈ 0.27" (half of height centered)
+- Right margin: `13.33" - 12.71" - 0.33"` ≈ 0.29" (approximately equal)
+- This creates visually balanced margins from both edges
 
 **Page numbers go on:** Content, Chart, Table, Infographic slides
 **NO page numbers on:** Cover, Divider, Back Cover
@@ -102,13 +135,53 @@ const LAYOUT = {
   logo: { x: 0.374, y: 7.071, w: 0.822, h: 0.236 },
   logoLarge: { x: 0.374, y: 6.271, w: 2.191, h: 0.630 },
   backCoverLogo: { x: 5.44, y: 2.98, w: 2.45, h: 1.54 },
-  pageNumber: { x: 12.2265, y: 7.1554, w: 0.748, h: 0.152 },
+  pageNumber: { x: 12.71, y: 7.1554, w: 0.33, h: 0.152 },  // Equal margins from right & bottom
 
   cover: { titleY: 1.39, subtitleY: 2.90, locationY: 4.58, dateY: 4.97 },
   divider: { numberX: 0.37, titleX: 1.86, centerY: 2.84 },
   content: { titleY: 0.5, titleH: 0.4, bodyY: 1.1 },  // Tight title box
 };
 ```
+
+---
+
+## Title Best Practices
+
+### Action Titles (McKinsey Style)
+
+Titles must be **insight-driven sentences**, not labels. They should communicate the key takeaway.
+
+| ❌ BAD (Label) | ✅ GOOD (Action Title) |
+|----------------|------------------------|
+| Q4 Results | Digital banking revenue grew 23% in Q4, exceeding targets |
+| Mobile App Usage | Mobile app adoption reached 2.1M users, up 45% YoY |
+| Cost Analysis | Operating costs reduced by €12M through automation |
+| Customer Satisfaction | NPS improved to 67, highest in retail banking sector |
+| Market Share | NBG captured 35% of new digital account openings |
+
+### Title Formatting Rules
+
+```javascript
+// Title text box - ALWAYS use these settings
+slide.addText(title, {
+  x: 0.37,
+  y: 0.5,
+  w: 12.59,
+  h: 0.4,           // Tight box height for single line
+  fontFace: 'Aptos',
+  fontSize: 24,
+  color: '003841',  // Dark Teal
+  valign: 'top',    // ALWAYS top, never middle
+  margin: 0,        // ALWAYS zero margin
+});
+```
+
+### The "So What?" Test
+
+Before finalizing any title, ask: "So what?" The title should answer that question.
+
+- "Mobile downloads increased" → So what? → "Mobile downloads hit 500K, making NBG the #1 banking app"
+- "We launched new features" → So what? → "Three new features drove 30% increase in daily active users"
 
 ---
 
@@ -445,6 +518,152 @@ function addCallout(slide, { x, y, w, h, text, bgColor, textColor }) {
     bold: true, align: 'center', valign: 'middle', margin: 0,
   });
 }
+```
+
+---
+
+## PPTX File Manipulation
+
+When editing existing PPTX files (not creating new ones), use direct XML manipulation.
+
+### PPTX File Structure
+
+A PPTX file is a ZIP archive containing XML files:
+
+```
+presentation.pptx (ZIP)
+├── [Content_Types].xml
+├── _rels/
+├── docProps/
+├── ppt/
+│   ├── presentation.xml
+│   ├── slides/
+│   │   ├── slide1.xml
+│   │   ├── slide2.xml
+│   │   └── ...
+│   ├── slideLayouts/
+│   ├── slideMasters/
+│   ├── media/           # Images stored here
+│   │   ├── image1.png
+│   │   ├── image2.png
+│   │   └── ...
+│   └── _rels/
+│       └── slide1.xml.rels  # Image references
+└── ...
+```
+
+### EMU (English Metric Units)
+
+PowerPoint uses EMU for all positioning and sizing:
+
+```javascript
+// Conversion constants
+const EMU_PER_INCH = 914400;
+const EMU_PER_POINT = 12700;
+
+// Convert inches to EMU
+function inchesToEmu(inches) {
+  return Math.round(inches * 914400);
+}
+
+// Convert EMU to inches
+function emuToInches(emu) {
+  return emu / 914400;
+}
+
+// Common measurements in EMU
+const SLIDE_WIDTH_EMU = 12192000;   // 13.33"
+const SLIDE_HEIGHT_EMU = 6858000;   // 7.5"
+```
+
+### Image Replacement Workflow
+
+To replace an image in an existing PPTX:
+
+1. **Extract the PPTX** (it's a ZIP file)
+2. **Replace the image file** in `ppt/media/`
+3. **Re-create the ZIP** with .pptx extension
+
+```bash
+# Extract
+unzip presentation.pptx -d presentation_extracted
+
+# Replace image
+cp new_image.png presentation_extracted/ppt/media/image3.png
+
+# Re-create PPTX
+cd presentation_extracted
+zip -r ../presentation_updated.pptx .
+```
+
+### Updating XML Elements
+
+To modify positioning in slide XML:
+
+```xml
+<!-- Before -->
+<a:off x="11521440" y="6543654"/>
+
+<!-- After (moved right for equal margins) -->
+<a:off x="11619019" y="6543654"/>
+```
+
+---
+
+## Device Mockup Integration
+
+When slides require iPhone device mockups:
+
+### Invoke the Device Mockup Agent
+
+```bash
+python tools/device-mockup/iphone_mockup.py screenshot.png output.png --frame 16_pro_max_black
+```
+
+### Frame Dimensions Reference
+
+| Frame | Output Size | Screen Area |
+|-------|-------------|-------------|
+| 16 Pro Max | 1520 x 3068 px | 1320 x 2868 px |
+| 16 Pro | 1320 x 2794 px | 1170 x 2594 px |
+
+### Mockup Sizing for Slides
+
+When placing mockups in presentations, use these approximate widths:
+
+| Use Case | Width | Notes |
+|----------|-------|-------|
+| Hero/large | 4.0" | Single phone, center stage |
+| Side feature | 2.5-3.0" | Two-column layout |
+| Comparison | 2.0" | Three phones side-by-side |
+| Thumbnail | 1.2" | Small reference |
+
+Maintain aspect ratio (approx 1:2 for Pro Max frames).
+
+### Clean Screenshot Requirements
+
+**CRITICAL**: Only use clean screenshots without device frame artifacts:
+- Use screenshots from `assets/screenshots/retail-mobile/`
+- Do NOT use screenshots that already have bezels/frames baked in
+- The flood-fill masking only works with clean screenshots
+
+### Technical Details
+
+The Device Mockup Agent uses flood-fill masking to:
+1. Find only the INNER transparent region (screen area)
+2. Exclude the OUTER transparent region (corners outside phone)
+3. Place screenshot content precisely within the screen bounds
+
+Frame specifications:
+```yaml
+16_pro_max:
+  frame_size: 1520 x 3068 px
+  screen_bounds:
+    left: 100
+    top: 100
+    right: 1419
+    bottom: 2967
+  screen_size: 1320 x 2868 px
 ```
 
 ---

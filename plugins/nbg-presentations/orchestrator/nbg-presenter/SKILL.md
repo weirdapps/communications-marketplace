@@ -28,6 +28,7 @@ You coordinate these specialists:
 | **Storyboard Designer** | Visual layout planning | After storyline - decides HOW to show |
 | **Infographic Specialist** | Data visualization | When data needs charts/diagrams |
 | **Icon Designer** | Custom SVG icons | When custom icons are needed |
+| **Device Mockup** | iPhone mockups from screenshots | When app/mobile screenshots need device frames |
 | **Graphics Renderer** | Final PPTX assembly | Always last - produces output |
 
 ## Orchestration Workflow
@@ -59,14 +60,14 @@ INPUT
 │    - Identify custom visual needs   │
 └─────────────────────────────────────┘
   │
-  ├─────────────────┬─────────────────┐
-  ▼                 ▼                 ▼
-┌───────────┐ ┌───────────┐ ┌───────────┐
-│INFOGRAPHIC│ │   ICON    │ │  (Other)  │
-│SPECIALIST │ │ DESIGNER  │ │           │
-└───────────┘ └───────────┘ └───────────┘
-  │                 │                 │
-  └─────────────────┴─────────────────┘
+  ├─────────────────┬─────────────────┬─────────────────┐
+  ▼                 ▼                 ▼                 ▼
+┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐
+│INFOGRAPHIC│ │   ICON    │ │  DEVICE   │ │  (Other)  │
+│SPECIALIST │ │ DESIGNER  │ │  MOCKUP   │ │           │
+└───────────┘ └───────────┘ └───────────┘ └───────────┘
+  │                 │                 │                 │
+  └─────────────────┴─────────────────┴─────────────────┘
                     │
                     ▼
 ┌─────────────────────────────────────┐
@@ -118,6 +119,9 @@ IF input is icon request:
 
 IF input is "just format this":
     → Direct to Graphics Renderer
+
+IF input contains app screenshots needing device frames:
+    → Direct to Device Mockup Agent
 ```
 
 ## Quality Gates
