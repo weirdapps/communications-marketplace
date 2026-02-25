@@ -51,6 +51,10 @@
     "icon-designer": {
       "path": "./agents/icon-designer/SKILL.md",
       "description": "Generates NBG-compliant SVG icons with solid fills."
+    },
+    "device-mockup": {
+      "path": "./agents/device-mockup/SKILL.md",
+      "description": "Creates pixel-perfect iPhone device mockups from app screenshots."
     }
   },
   "brand": {
@@ -73,6 +77,10 @@
     "inject_table_data": {
       "path": "./tools/nbg-presentation/inject_table_data.py",
       "description": "Inject data into table placeholders"
+    },
+    "iphone_mockup": {
+      "path": "./tools/device-mockup/iphone_mockup.py",
+      "description": "Create pixel-perfect iPhone mockups from screenshots"
     }
   },
   "assets": {
@@ -89,7 +97,9 @@
     "catalog": "./assets/slide-catalog.yaml",
     "icons": "./assets/icons",
     "illustrations": "./assets/illustrations",
-    "spec": "./assets/NBG-PRESENTATION-SPEC.md"
+    "spec": "./assets/NBG-PRESENTATION-SPEC.md",
+    "deviceFrames": "./assets/device-frames",
+    "screenshots": "./assets/screenshots"
   },
   "examples": {
     "executiveSummary": "./examples/executive-summary.yaml",
