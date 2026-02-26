@@ -149,22 +149,38 @@ Brief description.
 
 ## Step 5: Register in Marketplace
 
-Add your plugin to `.claude-plugin/plugin.json`:
+Add your plugin to `.claude-plugin/marketplace.json`:
 
 ```json
 {
-  "plugins": {
-    "my-plugin": {
-      "path": "./plugins/my-plugin",
-      "name": "My Plugin",
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "communications-marketplace",
+  "description": "Your marketplace description",
+  "owner": {
+    "name": "your-username"
+  },
+  "plugins": [
+    {
+      "name": "my-plugin",
       "description": "What it does",
       "version": "1.0.0",
+      "author": {
+        "name": "Your Name"
+      },
+      "source": "./plugins/my-plugin",
       "category": "category-id",
-      "tags": ["tag1", "tag2"]
+      "homepage": "https://github.com/username/repo/tree/main/plugins/my-plugin"
     }
-  }
+  ]
 }
 ```
+
+**Note:** The `plugins` field is an **array**, not an object. Each plugin entry includes:
+- `name`: Unique identifier
+- `description`: Brief description (shown in marketplace)
+- `version`: Semantic version
+- `source`: Path to plugin directory
+- `category`: Plugin category ID
 
 ### Available Categories
 

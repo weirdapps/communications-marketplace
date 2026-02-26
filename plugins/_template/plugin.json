@@ -1,25 +1,45 @@
 {
   "name": "my-plugin",
-  "description": "Brief description of what this plugin does",
+  "description": "Brief description of what this plugin does (shown in marketplace)",
   "version": "1.0.0",
   "type": "plugin",
   "author": {
-    "name": "Your Name"
+    "name": "Your Name",
+    "email": "your.email@example.com"
   },
   "license": "MIT",
   "keywords": [
+    "communication",
+    "productivity",
     "keyword1",
     "keyword2"
   ],
   "commands": "./commands",
   "agents": {
-    "example-agent": {
-      "path": "./agents/example-agent/SKILL.md",
-      "description": "What this agent does",
+    "main-agent": {
+      "path": "./agents/main-agent/SKILL.md",
+      "description": "Primary agent that orchestrates plugin functionality",
       "triggers": [
-        "trigger phrase 1",
-        "trigger phrase 2"
+        "use my-plugin",
+        "run my-plugin",
+        "activate my-plugin"
       ]
+    },
+    "helper-agent": {
+      "path": "./agents/helper-agent/SKILL.md",
+      "description": "Specialized agent for specific sub-tasks"
     }
+  },
+  "shared": {
+    "path": "./shared",
+    "description": "Common configurations and specifications"
+  },
+  "assets": {
+    "path": "./assets",
+    "description": "Static assets (images, templates, etc.)"
+  },
+  "workflow": {
+    "pipeline": ["main-agent", "helper-agent"],
+    "orchestrator": "main-agent"
   }
 }

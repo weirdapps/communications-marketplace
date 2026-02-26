@@ -75,6 +75,34 @@ Comprehensive library of NBG brand assets for presentations.
 
 See `assets/icons/INDEX.md` for complete icon reference.
 
+### Icon Workflow Decision Guide
+
+**When to use EXISTING icons (338 available):**
+- Standard banking concepts (cards, payments, accounts)
+- Common UI elements (arrows, settings, notifications)
+- Status indicators (success, error, warning)
+- Business categories (devices, documents, people)
+
+**When to use Icon Designer agent:**
+- Highly specific concept not in library (e.g., "AI-powered mortgage analyzer")
+- Custom metaphor combining multiple concepts
+- Brand-new product or feature without existing icon
+- Unique illustration style requirement
+
+**Decision Flowchart:**
+```
+Need an icon?
+    │
+    ├─> Check assets/icons/ folders first
+    │       │
+    │       ├─> Found suitable icon? → USE IT (apply NBG tint)
+    │       │
+    │       └─> No match? → Use Icon Designer agent
+    │
+    └─> Always prefer existing icons when possible
+        (consistency > novelty)
+```
+
 ---
 
 ## Illustrations

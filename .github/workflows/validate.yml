@@ -18,8 +18,9 @@ jobs:
             echo "Error: marketplace.json not found"
             exit 1
           fi
-          echo "marketplace.json found"
+          echo "✓ marketplace.json found"
           cat .claude-plugin/marketplace.json | python3 -m json.tool
+          echo "✓ marketplace.json is valid JSON"
 
       - name: Validate plugin manifests
         run: |
@@ -31,11 +32,124 @@ jobs:
               elif [ -f "${dir}.claude-plugin/plugin.json" ]; then
                 plugin_json="${dir}.claude-plugin/plugin.json"
               else
-                echo "Error: Missing plugin.json in $dir"
+                echo "✗ Error: Missing plugin.json in $dir"
                 exit 1
               fi
-              echo "Validating $plugin_json"
-              cat "$plugin_json" | python3 -m json.tool
+              echo "✓ Validating $plugin_json"
+              cat "$plugin_json" | python3 -m json.tool > /dev/null
             fi
           done
-          echo "All plugin manifests valid"
+          echo "✓ All plugin manifests valid"
+
+      - name: Validate README files exist
+        run: |
+          errors=0
+
+          # Check marketplace README
+          if [ ! -f "README.md" ]; then
+            echo "✗ Missing: README.md"
+            errors=$((errors + 1))
+          else
+            echo "✓ README.md exists"
+          fi
+
+          # Check plugin READMEs
+          for dir in plugins/*/; do
+            if [ -d "$dir" ] && [ "$(basename "$dir")" != "_template" ]; then
+              if [ ! -f "${dir}README.md" ]; then
+                echo "✗ Missing: ${dir}README.md"
+                errors=$((errors + 1))
+              else
+                echo "✓ ${dir}README.md exists"
+              fi
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+
+      - name: Validate agent SKILL.md files
+        run: |
+          errors=0
+
+          for plugin_dir in plugins/*/; do
+            if [ -d "$plugin_dir" ] && [ "$(basename "$plugin_dir")" != "_template" ]; then
+              # Check agents directory
+              if [ -d "${plugin_dir}agents" ]; then
+                for agent_dir in ${plugin_dir}agents/*/; do
+                  if [ -d "$agent_dir" ]; then
+                    if [ ! -f "${agent_dir}SKILL.md" ]; then
+                      echo "✗ Missing: ${agent_dir}SKILL.md"
+                      errors=$((errors + 1))
+                    else
+                      echo "✓ ${agent_dir}SKILL.md exists"
+                    fi
+                  fi
+                done
+              fi
+
+              # Check orchestrator directory
+              if [ -d "${plugin_dir}orchestrator" ]; then
+                for orch_dir in ${plugin_dir}orchestrator/*/; do
+                  if [ -d "$orch_dir" ]; then
+                    if [ ! -f "${orch_dir}SKILL.md" ]; then
+                      echo "✗ Missing: ${orch_dir}SKILL.md"
+                      errors=$((errors + 1))
+                    else
+                      echo "✓ ${orch_dir}SKILL.md exists"
+                    fi
+                  fi
+                done
+              fi
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "✓ All agent SKILL.md files present"
+
+      - name: Validate command files
+        run: |
+          errors=0
+
+          for plugin_dir in plugins/*/; do
+            if [ -d "$plugin_dir" ] && [ "$(basename "$plugin_dir")" != "_template" ]; then
+              if [ -d "${plugin_dir}commands" ]; then
+                cmd_count=$(find "${plugin_dir}commands" -name "*.md" | wc -l)
+                if [ "$cmd_count" -eq 0 ]; then
+                  echo "⚠ Warning: No command files in ${plugin_dir}commands"
+                else
+                  echo "✓ Found $cmd_count command(s) in ${plugin_dir}commands"
+                fi
+              fi
+            fi
+          done
+
+      - name: Validate brand system (NBG plugin)
+        run: |
+          brand_system="plugins/nbg-presentations/shared/nbg-brand-system"
+
+          if [ -d "$brand_system" ]; then
+            required_files=("README.md" "colors.md" "typography.md" "layouts.md" "dimensions.md" "charts.md" "icons.md")
+
+            for file in "${required_files[@]}"; do
+              if [ ! -f "$brand_system/$file" ]; then
+                echo "✗ Missing brand system file: $file"
+                exit 1
+              else
+                echo "✓ $brand_system/$file exists"
+              fi
+            done
+            echo "✓ Brand system complete"
+          fi
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "════════════════════════════════════════════"
+          echo "  Validation Complete"
+          echo "════════════════════════════════════════════"
+          echo ""
+          echo "All checks passed!"

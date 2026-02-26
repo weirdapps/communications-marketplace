@@ -305,9 +305,35 @@ const PILLAR_DS = {
 | Red Medium `#BE4B4B` | Alert | Different from `#AA0028` |
 
 ### Recommended Approach
-- **Digital products**: Use Pillar DS colors exactly
-- **Presentations**: Continue using existing NBG brand colors for consistency with printed/projected materials
-- **Charts**: Can adopt PFM category colors for data visualization
+
+**IMPORTANT**: Choose your color palette based on the output medium:
+
+| Output Medium | Color Source | Rationale |
+|---------------|--------------|-----------|
+| **Digital products** (apps, web) | Pillar DS exactly | Matches design system |
+| **Presentations** (PowerPoint) | NBG brand colors | Optimized for projection |
+| **Charts in presentations** | NBG chart colors | Consistent with slides |
+| **Charts in digital products** | PFM category colors | Matches app palette |
+
+**Do NOT mix color systems within a single deliverable.**
+
+### Quick Color Reference by Use Case
+
+| Use Case | Primary | Secondary | Accent |
+|----------|---------|-----------|--------|
+| PowerPoint slides | `#003841` | `#007B85` | `#00DFF8` |
+| Mobile app | `#003841` (Teal 08) | `#007B85` (Teal 05) | `#13A4AD` (Teal 03) |
+| Web dashboard | `#162020` (Black) | `#007B85` (Teal 05) | `#1299A2` (Teal 04) |
+
+### Text Color Mapping
+
+| Context | Pillar DS | Presentation | Note |
+|---------|-----------|--------------|------|
+| Primary text | `#162020` | `#202020` | Slight difference |
+| Secondary text | `#6A6C6A` | `#595959` | Gray variants |
+| Disabled/muted | `#A2A6A6` | `#939793` | Gray variants |
+
+**Recommendation**: For presentations, always use the presentation system colors (`colors.md`) for consistency with existing NBG decks
 
 ---
 

@@ -47,7 +47,7 @@ cd ~/.claude/plugins/marketplaces/communications-marketplace && git pull
 ```
 communications-marketplace/
 ├── .claude-plugin/
-│   └── plugin.json              # Marketplace manifest
+│   └── marketplace.json         # Marketplace manifest
 │
 ├── plugins/                     # Available plugins
 │   ├── nbg-presentations/       # NBG presentation system
@@ -104,17 +104,15 @@ cp -r plugins/_template plugins/my-plugin
 
 3. Add your agents and commands
 
-4. Register in marketplace `.claude-plugin/plugin.json`:
+4. Register in marketplace `.claude-plugin/marketplace.json` by adding to the `plugins` array:
 ```json
 {
-  "plugins": {
-    "my-plugin": {
-      "path": "./plugins/my-plugin",
-      "name": "My Plugin",
-      "description": "What it does",
-      "category": "category-id"
-    }
-  }
+  "name": "my-plugin",
+  "description": "What it does",
+  "version": "1.0.0",
+  "author": { "name": "Your Name" },
+  "source": "./plugins/my-plugin",
+  "category": "category-id"
 }
 ```
 

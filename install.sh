@@ -356,7 +356,7 @@ verify_installation() {
     local errors=0
 
     # Check marketplace files exist
-    for file in "README.md" ".claude-plugin/plugin.json"; do
+    for file in "README.md" ".claude-plugin/marketplace.json"; do
         if [ ! -f "$INSTALL_DIR/$file" ]; then
             print_error "Missing: $file"
             errors=$((errors + 1))

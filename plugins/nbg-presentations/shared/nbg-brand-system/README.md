@@ -18,12 +18,12 @@ aspect_ratio: 16:9
 | Name | Hex | Usage |
 |------|-----|-------|
 | Dark Teal | `003841` | Titles, icons, headings |
-| NBG Teal | `007B85` | Brand accent, section numbers |
+| NBG Teal | `007B85` | Brand accent, section numbers, callout boxes |
 | Cyan | `00ADBF` | Primary chart color |
-| Bright Cyan | `00DFF8` | Accents, bullets |
+| Bright Cyan | `00DFF8` | Bullets ONLY - **TOO BRIGHT for backgrounds** |
 | Dark Text | `202020` | Body text |
-| White | `FFFFFF` | **ALWAYS** for backgrounds |
-| Off-white | `F5F8F6` | Light backgrounds for cards |
+| White | `FFFFFF` | **ALWAYS** for slide backgrounds |
+| Off-white | `F5F8F6` | Light backgrounds for cards, metric boxes |
 
 ### Fonts
 | Type | Font |
@@ -50,6 +50,8 @@ aspect_ratio: 16:9
 | Rule | Enforcement |
 |------|-------------|
 | **White backgrounds ONLY** | Never use dark themes |
+| **ALWAYS use Greek logo** | Use `nbg-logo-gr.svg` for ALL presentations - NEVER use the English logo |
+| **NO Bright Cyan backgrounds** | `00DFF8` is TOO BRIGHT for box/card backgrounds - use `F5F8F6` (off-white) instead |
 | **NO pie charts** | Always use doughnut instead |
 | **NO "Thank You" slides** | Use plain back cover with centered logo |
 | **Title weight** | Aptos Regular (NOT SemiBold) |
@@ -101,6 +103,7 @@ Use in order for data series:
 | [ooxml-charts.md](ooxml-charts.md) | OOXML chart editing |
 | [pillar-ds.md](pillar-ds.md) | **NBG Pillar Design System** - Digital product tokens |
 | [asset-library.md](asset-library.md) | **Asset Library** - Icons, illustrations, screenshots |
+| [generation-methods.md](generation-methods.md) | **Generation Methods** - PptxGenJS vs OOXML decision guide |
 
 ## Asset Library (NEW)
 
@@ -113,12 +116,15 @@ Use in order for data series:
 
 See [asset-library.md](asset-library.md) for complete documentation and usage rules.
 
-## Legacy Asset Files
+## Logo Assets
+
+**IMPORTANT: ALWAYS use the Greek logo (`nbg-logo-gr.svg`) for ALL presentations, regardless of language.**
 
 | Asset | Path | Usage |
 |-------|------|-------|
-| Greek Logo | `assets/nbg-logo-gr.svg` | Greek presentations |
-| English Logo | `assets/nbg-logo.svg` | English presentations |
+| **Greek Logo (DEFAULT)** | `assets/nbg-logo-gr.svg` | **ALL presentations** - this is the standard logo |
+| English Logo | `assets/nbg-logo.svg` | DO NOT USE - kept for legacy only |
+| PNG Fallback | `assets/nbg-logo-fallback.png` | Use when SVG rendering fails |
 | Back Cover Logo | `assets/nbg-back-cover-logo.png` | Centered on back cover |
 | Full Spec | `assets/NBG-PRESENTATION-SPEC.md` | Complete specification |
 
@@ -162,5 +168,5 @@ const NBG = {
 
 ---
 
-**Version**: 2.3.0
-**Last Updated**: 2025
+**Version**: 3.0.0
+**Last Updated**: February 2026

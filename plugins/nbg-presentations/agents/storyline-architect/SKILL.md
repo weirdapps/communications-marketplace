@@ -235,7 +235,7 @@ Key Points:
 5. Key Achievement 2
 6. Challenges/Risks
 7. Next Quarter Focus
-8. Thank You
+8. Back Cover (plain logo only - NO text)
 
 ### Strategic Review (10-15 slides)
 1. Cover
@@ -252,7 +252,7 @@ Key Points:
 12. Financial Impact
 13. Divider: Forward Look
 14. Roadmap
-15. Thank You
+15. Back Cover (plain logo only - NO text)
 
 ### Data Presentation (8-12 slides)
 1. Cover
@@ -265,7 +265,7 @@ Key Points:
 8. Key Trends
 9. Implications
 10. Recommendations
-11. Thank You
+11. Back Cover (plain logo only - NO text)
 
 ## MECE Principle
 
