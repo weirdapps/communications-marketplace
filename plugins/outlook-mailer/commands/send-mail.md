@@ -22,7 +22,7 @@ Extract the following from the user's request:
 - **Subject**: Email subject line (REQUIRED)
 - **Body**: Email body content - convert to HTML for proper formatting
 - **Attachments**: File paths to attach (optional). Use Glob to find files if paths are approximate.
-- **Draft mode**: If the user says "draft" or "save as draft", do NOT send - just create and open. Otherwise, send immediately.
+- **Draft mode**: ALWAYS open as draft (never send directly). Direct send via AppleScript skips the Outlook signature. Opening as draft lets Outlook insert the signature, and the user sends manually.
 
 If the user hasn't provided required fields (To, Subject), ask before proceeding.
 
@@ -53,7 +53,7 @@ Use the Bash tool to run an AppleScript that:
 1. Creates an outgoing message with subject and HTML content
 2. Adds To, CC, BCC recipients
 3. Adds file attachments
-4. Either opens (draft) or sends the message
+4. Opens the message as draft (so Outlook adds the signature)
 
 ### AppleScript template
 
@@ -77,9 +77,8 @@ tell application "Microsoft Outlook"
     set posixFile to POSIX file "/absolute/path/to/file.xlsx"
     make new attachment at newMsg with properties {file:posixFile}
 
-    -- Either send or open as draft
-    send newMsg
-    -- OR for draft: open newMsg
+    -- Always open as draft to preserve Outlook signature
+    open newMsg
 end tell
 ```
 
@@ -92,8 +91,7 @@ end tell
 ## 5. Confirm result
 
 After execution:
-- If sent: confirm "Email sent to [recipients] with subject [subject]"
-- If draft: confirm "Draft created and opened in Outlook"
+- Confirm "Draft created and opened in Outlook for [recipients] with subject [subject] — please review and send"
 - If error: report the error and suggest fixes
 
 </instructions>
