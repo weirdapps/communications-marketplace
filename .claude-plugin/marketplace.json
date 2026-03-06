@@ -16,6 +16,17 @@
       "source": "./plugins/nbg-presentations",
       "category": "presentations",
       "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/nbg-presentations"
+    },
+    {
+      "name": "outlook-mailer",
+      "description": "Send emails via Microsoft Outlook on macOS using AppleScript. Supports recipients, CC/BCC, HTML body, and file attachments.",
+      "version": "1.0.0",
+      "author": {
+        "name": "weirdapps"
+      },
+      "source": "./plugins/outlook-mailer",
+      "category": "email",
+      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/outlook-mailer"
     }
   ]
 }
