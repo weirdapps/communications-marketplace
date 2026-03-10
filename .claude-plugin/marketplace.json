@@ -29,26 +29,15 @@
       "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/creative-toolkit"
     },
     {
-      "name": "outlook-mailer",
-      "description": "Send emails via Microsoft Outlook on macOS using AppleScript. Supports recipients, CC/BCC, HTML body, and file attachments.",
-      "version": "1.0.0",
+      "name": "email-handler",
+      "description": "Email command center. Reviews inbox with briefings, insights, and action flags. Drafts replies matching your communication style. Sends via Outlook. Self-improves by comparing drafts to actual responses.",
+      "version": "2.0.0",
       "author": {
         "name": "weirdapps"
       },
-      "source": "./plugins/outlook-mailer",
+      "source": "./plugins/email-handler",
       "category": "communications",
-      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/outlook-mailer"
-    },
-    {
-      "name": "email-drafter",
-      "description": "AI email drafter that reads Outlook emails and drafts replies matching your communication style. Self-improving via feedback loop.",
-      "version": "1.0.0",
-      "author": {
-        "name": "weirdapps"
-      },
-      "source": "./plugins/email-drafter",
-      "category": "communications",
-      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/email-drafter"
+      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/email-handler"
     }
   ]
 }

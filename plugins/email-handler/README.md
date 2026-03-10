@@ -1,6 +1,6 @@
-# Email Drafter
+# Email Handler
 
-Email command center — inbox briefings, action recommendations, style-matched draft replies, and self-learning.
+Email command center — inbox briefings, action recommendations, style-matched draft replies, Outlook sending, and self-learning.
 
 ## What It Does
 
@@ -8,7 +8,8 @@ Email command center — inbox briefings, action recommendations, style-matched 
 2. **Briefs** you on your inbox — gists, insights, new vs previously seen
 3. **Recommends** actions — reply, delegate, forward, monitor, skip, urgent, follow-up
 4. **Drafts** replies matching your communication style per recipient
-5. **Tracks** inbox state across runs to highlight what's changed
+5. **Sends** via Microsoft Outlook on macOS (AppleScript, always as draft)
+6. **Tracks** inbox state across runs to highlight what's changed
 
 ## Commands
 
@@ -17,6 +18,7 @@ Email command center — inbox briefings, action recommendations, style-matched 
 | `/mail-review` | Full inbox briefing + action flags + draft replies |
 | `/mail-review --briefing-only` | Quick scan — briefing and insights only, no drafting |
 | `/draft-review` | Deep learning pass — compare drafts to actual responses |
+| `/send-mail` | Send an email via Outlook (HTML, attachments, auto-CC self) |
 
 ## How It Works
 
@@ -51,9 +53,9 @@ No manual `/draft-review` needed — learning runs automatically at the start of
 ## Setup
 
 Requires:
+- macOS with Microsoft Outlook installed and configured
 - Outlook Web access (logged into https://outlook.office.com)
 - Playwright MCP server (for browser automation)
-- `outlook-mailer` plugin (for sending drafts to Outlook)
 
 ## Style Guide
 

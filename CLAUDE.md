@@ -15,13 +15,10 @@ plugins/
 ├── creative-toolkit/        # Reusable creative agents (v1.0)
 │   ├── agents/              # Icon Designer, Infographic Specialist, Device Mockup
 │   └── commands/            # /create-icon, /create-infographic
-├── email-drafter/           # AI email drafter with style-matching (v1.0)
-│   ├── agents/email-drafter/  # 5-phase workflow agent
-│   ├── commands/            # /draft, /draft-review
-│   ├── shared/              # Style guide, recipient profiles
-│   └── depends on: outlook-mailer
-├── outlook-mailer/          # Send emails via macOS Outlook (v1.0)
-│   └── commands/            # /send-mail
+├── email-handler/           # Email command center with self-learning (v2.0)
+│   ├── agents/email-drafter/  # 10-phase workflow agent
+│   ├── commands/            # /mail-review, /draft-review, /send-mail
+│   └── shared/              # Style guide, recipient profiles
 └── _template/               # Template for new plugins
 ```
 
@@ -37,14 +34,10 @@ Reusable creative agents for icon design, data visualization, and device mockups
 - Entry points: `/create-icon`, `/create-infographic`
 - Used by: `presentation-maker`
 
-### Email Drafter
-Reads Outlook emails via Playwright, drafts replies matching your communication style, and learns from comparing drafts to actual responses.
-- Entry point: `/draft` command
-- Depends on: `outlook-mailer` (for sending drafts to Outlook)
-
-### Outlook Mailer
-Send emails via Microsoft Outlook on macOS using AppleScript.
-- Entry point: `/send-mail` command
+### Email Handler
+Email command center. Reviews inbox with briefings and insights, recommends actions, drafts replies matching your style, sends via Outlook, and self-improves by comparing drafts to actual responses.
+- Entry points: `/mail-review`, `/draft-review`, `/send-mail`
+- Persistent state: `~/.claude/drafts/` (pending drafts, reviewed drafts, inbox state, learnings)
 
 ## Install / Test
 

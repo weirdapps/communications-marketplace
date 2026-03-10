@@ -25,7 +25,7 @@ If pending drafts exist:
    - Note specific differences (words, tone, length, structure)
 3. Also scan the last 10 sent items for organic emails not matching any draft
 4. If any learnings found:
-   - Update `shared/style-guide.md` in the email-drafter plugin directory
+   - Update `shared/style-guide.md` in the email-handler plugin directory
    - Append a dated entry to `~/.claude/drafts/learnings.md`
    - Move processed drafts from `pending/` to `reviewed/` with added fields
 5. Show a brief learning summary:
@@ -157,7 +157,7 @@ Ask which to send, modify, or discard.
 ```
 
 ### 10. Send Approved Drafts
-Use the outlook-mailer plugin (send-mail command) to create drafts in Outlook.
+Use the `/send-mail` command to create drafts in Outlook via AppleScript.
 Always open as draft (`open newMsg`) — never send directly.
 Always CC dimitrios.plessas@nbg.gr.
 </process>

@@ -1,6 +1,6 @@
 ---
-name: email-drafter
-description: Reads Outlook emails, provides inbox briefings with insights and action recommendations, and drafts replies mimicking Dimitris Plessas's communication style
+name: email-handler
+description: Email command center — inbox briefings with insights, action recommendations, style-matched draft replies, Outlook sending, and self-learning
 ---
 
 # Email Drafter Agent
@@ -160,7 +160,7 @@ Present drafts for user review. Ask which to send, modify, or discard.
 
 ### Phase 10: SEND
 
-Use outlook-mailer plugin to create drafts in Outlook.
+Use the `/send-mail` command to create drafts in Outlook via AppleScript.
 Always open as draft (`open newMsg`) — never send directly.
 Always CC dimitrios.plessas@nbg.gr.
 
