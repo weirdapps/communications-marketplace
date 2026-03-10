@@ -1,35 +1,52 @@
 # Email Drafter
 
-AI-powered email reply drafting that mimics your exact communication style.
+Email command center — inbox briefings, action recommendations, style-matched draft replies, and self-learning.
 
 ## What It Does
 
-1. **Reads** your Outlook 365 inbox/archive via browser automation
-2. **Triages** emails — identifies which ones need a reply
-3. **Drafts** replies matching your communication style per recipient
-4. **Learns** by comparing drafts to your actual responses
+1. **Learns** from previous drafts vs your actual responses (automatic, every run)
+2. **Briefs** you on your inbox — gists, insights, new vs previously seen
+3. **Recommends** actions — reply, delegate, forward, monitor, skip, urgent, follow-up
+4. **Drafts** replies matching your communication style per recipient
+5. **Tracks** inbox state across runs to highlight what's changed
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/draft` | Read emails and draft replies |
-| `/draft-review` | Compare drafts to actual responses and improve |
+| `/mail-review` | Full inbox briefing + action flags + draft replies |
+| `/mail-review --briefing-only` | Quick scan — briefing and insights only, no drafting |
+| `/draft-review` | Deep learning pass — compare drafts to actual responses |
 
 ## How It Works
 
-The plugin maintains a **style guide** (`shared/style-guide.md`) that captures:
-- Your reply patterns (brevity, tone, language)
-- Per-recipient tone profiles
-- Anti-patterns (things you never do)
-- Decision flow for triaging emails
+### Inbox Briefing
+Every run separates emails into **NEW** (since last run) and **PREVIOUSLY SEEN**, with:
+- 1-2 sentence gist of each email
+- Recommended action (reply, delegate, forward, monitor, skip, urgent, follow-up)
+- Insights: who's waiting, cross-thread patterns, urgency flags, delegation opportunities
 
-The `/draft-review` command creates a feedback loop:
-1. You run `/draft` → agent creates draft replies
-2. You send your actual replies (modified or original)
-3. You run `/draft-review` → agent compares drafts to actual responses
-4. Agent updates the style guide with learned patterns
-5. Next `/draft` run is more accurate
+### Self-Learning Loop
+```
+/mail-review → drafts saved to ~/.claude/drafts/pending/
+    ↓
+You edit and send → CC'd copies land in your inbox
+    ↓
+Next /mail-review → auto-compares drafts vs actual responses
+    ↓
+Style guide updated → next drafts are more accurate
+```
+
+No manual `/draft-review` needed — learning runs automatically at the start of every `/mail-review`. Use `/draft-review` only for deep analysis or focused recipient review.
+
+### Persistent State
+| File | Purpose |
+|------|---------|
+| `~/.claude/drafts/pending/` | Saved drafts awaiting comparison |
+| `~/.claude/drafts/reviewed/` | Processed drafts with actual vs draft diffs |
+| `~/.claude/drafts/inbox-state.json` | Last-seen emails for new vs seen tracking |
+| `~/.claude/drafts/learnings.md` | Historical log of accuracy improvements |
+| `shared/style-guide.md` | Communication style guide (updated by learning) |
 
 ## Setup
 
@@ -40,10 +57,11 @@ Requires:
 
 ## Style Guide
 
-The style guide was built by analyzing 150+ emails (sent items, inbox CC'd copies, and archived emails). Key characteristics:
+Built by analyzing 150+ actual emails. Key characteristics:
 
 - **Ultra-brief**: 60%+ of replies are 1-10 words
-- **No greetings/closings**: Straight to the point
+- **No greetings/closings**: Straight to the point (BRIEF format)
 - **Lowercase**: Almost always starts lowercase in Greek
-- **Recipient-aware**: Different tone for boss vs. direct reports vs. PA
+- **Recipient-aware**: Different tone for boss vs direct reports vs PA
 - **Greek internal**: Always Greek for NBG, English only for internationals
+- **Self-improving**: Automatically updated based on draft-vs-actual comparisons

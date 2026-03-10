@@ -1,7 +1,7 @@
 ---
 description: "Compare drafted replies with actual responses to improve the style guide"
 argument-hint: "[--days N]"
-allowed-tools: Agent, Read, Write, Edit, Bash, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_run_code, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_evaluate
+allowed-tools: Agent, Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_run_code, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_evaluate
 ---
 
 <objective>
@@ -13,13 +13,15 @@ User request: $ARGUMENTS
 <process>
 ## Workflow
 
-### 1. Read Actual Responses
-Navigate Outlook Web to read emails FROM Dimitris (CC'd copies in inbox/archive).
-Since he CC's himself, his replies appear in inbox/archive with him as sender.
+### 1. Load Pending Drafts
+Read all JSON files from `~/.claude/drafts/pending/`.
+Also optionally read `~/.claude/drafts/reviewed/` for historical reference.
 
-### 2. Match Against Previous Drafts
-For each actual response, check if the agent previously drafted a reply for the same thread.
-If draft-log.json exists in the shared directory, use it for matching.
+### 2. Find Matching Sent Emails
+Navigate Outlook Web to find emails FROM Dimitris (CC'd copies in inbox/archive):
+- Search by subject keywords from each pending draft
+- Match by subject + approximate timestamp (within 72h)
+- Read the actual email body
 
 ### 3. Analyze Deltas
 For each matched pair (draft vs actual), analyze:
@@ -33,41 +35,69 @@ For each matched pair (draft vs actual), analyze:
 | **Decision** | Did he approve/reject differently than drafted? |
 | **Skip/Reply** | Did he reply to something we skipped, or skip what we drafted? |
 
-### 4. Generate Delta Report
-Present findings as a table:
+Classify each:
+- **SENT_AS_IS**: Draft sent unchanged (score: perfect)
+- **MODIFIED**: Altered tone/length/words (score: partial — learn from diff)
+- **REWRITTEN**: Substantially different (score: miss — analyze why)
+- **NOT_SENT**: No matching email found (score: triage error — should have been SKIP)
 
+### 4. Scan Organic Emails
+Also scan last 20 sent items for emails NOT matching any draft.
+These reveal patterns the style guide may be missing:
+- New recipients not yet profiled
+- New reply patterns
+- Evolving vocabulary
+
+### 5. Generate Delta Report
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-STYLE DELTA REPORT
+STYLE DELTA REPORT — [date]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ACCURACY SCORE: X/10
 
+DRAFTS PROCESSED: N
+  SENT_AS_IS:  X (perfect matches)
+  MODIFIED:    X (partial matches — learnings extracted)
+  REWRITTEN:   X (misses — significant learnings)
+  NOT_SENT:    X (triage errors)
+
 PATTERNS LEARNED:
-• [New pattern discovered]
-• [Correction to existing pattern]
+  [New pattern discovered]
+  [Correction to existing pattern]
 
 RECIPIENT UPDATES:
-• [Recipient]: [Style adjustment needed]
+  [Recipient]: [Style adjustment needed]
 
 TRIAGE ACCURACY:
-• Correctly skipped: X
-• Correctly drafted: X
-• False positives (drafted but he skipped): X
-• False negatives (skipped but he replied): X
+  Correctly skipped: X
+  Correctly drafted: X
+  False positives: X (drafted but he skipped)
+  False negatives: X (skipped but he replied)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### 5. Update Style Guide
-With user approval, update `shared/style-guide.md` with:
+### 6. Update Style Guide
+Update `shared/style-guide.md` with:
 - New patterns discovered
 - Corrections to existing patterns
 - New recipient profiles
 - Updated per-recipient tone adjustments
-- New example phrases
+- New example phrases (anonymize sensitive content)
 
-### 6. Save Learning Log
-Append findings to `shared/learning-log.md` for historical tracking.
+### 7. Archive Processed Drafts
+Move processed drafts from `pending/` to `reviewed/` with added fields:
+```json
+{
+  "actual_text": "what the user actually sent",
+  "delta_type": "SENT_AS_IS | MODIFIED | REWRITTEN | NOT_SENT",
+  "learnings": ["specific observation 1", "specific observation 2"],
+  "reviewed_date": "ISO-8601 timestamp"
+}
+```
+
+### 8. Append to Learning Log
+Append the delta report to `~/.claude/drafts/learnings.md` with date header.
+This builds a historical record of how drafting accuracy improves over time.
 </process>
 
 <specifications>
@@ -75,25 +105,25 @@ Append findings to `shared/learning-log.md` for historical tracking.
 
 | Argument | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `--days` | No | `1` | How many days back to compare |
+| `--days` | No | `3` | How many days back to search for sent emails |
 | `--recipient` | No | all | Focus on a specific recipient |
-| `--update` | No | `false` | Auto-update style guide without asking |
+| `--update` | No | `true` | Auto-update style guide (set false for dry run) |
 
 ## Output
 - Delta report with accuracy score
 - Specific style corrections
-- Updated style guide (with approval)
+- Updated style guide
 </specifications>
 
 <examples>
 ## Usage Examples
 
-### Review today's emails
+### Review pending drafts (default)
 ```
 /draft-review
 ```
 
-### Review last week
+### Review with wider search window
 ```
 /draft-review --days 7
 ```
@@ -101,5 +131,10 @@ Append findings to `shared/learning-log.md` for historical tracking.
 ### Focus on boss communication
 ```
 /draft-review --recipient ΘΕΟΦΙΛΙΔΗ
+```
+
+### Dry run — see report without updating style guide
+```
+/draft-review --update false
 ```
 </examples>

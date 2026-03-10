@@ -1,7 +1,7 @@
 {
   "name": "email-drafter",
-  "description": "AI email drafter that mimics Dimitris Plessas's communication style. Reads Outlook emails via Playwright, drafts replies matching his tone per recipient, and learns from comparing drafts to actual responses.",
-  "version": "1.0.0",
+  "description": "Email command center for Dimitris Plessas. Reviews inbox with briefings, insights, and action flags. Drafts replies matching his communication style. Self-improves by comparing drafts to actual responses.",
+  "version": "2.0.0",
   "type": "plugin",
   "author": {
     "name": "weirdapps"
@@ -10,9 +10,12 @@
   "keywords": [
     "email",
     "outlook",
+    "inbox-review",
+    "briefing",
     "drafting",
     "communication",
-    "style-matching"
+    "style-matching",
+    "self-learning"
   ],
   "dependencies": [
     "outlook-mailer"
@@ -21,17 +24,20 @@
   "agents": {
     "email-drafter": {
       "path": "./agents/email-drafter/SKILL.md",
-      "description": "Reads Outlook inbox/archive emails and drafts replies in Dimitris Plessas's style",
+      "description": "Reviews Outlook inbox with briefings, action recommendations, and drafts replies in Dimitris Plessas's style",
       "triggers": [
+        "review mail",
+        "review inbox",
         "draft emails",
         "draft replies",
-        "email drafter"
+        "email briefing",
+        "mail review"
       ]
     }
   },
   "shared": {
     "path": "./shared",
-    "description": "Communication style guide and recipient profiles"
+    "description": "Communication style guide, recipient profiles, and learning data"
   },
   "workflow": {
     "pipeline": ["email-drafter"],
