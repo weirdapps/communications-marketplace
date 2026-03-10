@@ -5,7 +5,7 @@ allowed-tools: Agent, Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_playwrigh
 ---
 
 <objective>
-Read Outlook emails, provide a comprehensive briefing with insights, recommend actions, and draft replies matching Dimitris Plessas's communication style.
+Read Outlook emails, provide a comprehensive briefing with insights, recommend actions, and draft replies matching the user's communication style (defined in `shared/style-guide.md`).
 
 User request: $ARGUMENTS
 </objective>
@@ -99,8 +99,8 @@ PREVIOUSLY SEEN ([count] emails)
 INSIGHTS
 ───────────────────────────────────────────────
 - [X] emails need your decision/reply
-- [Pattern/theme observed, e.g., "Boss escalated BIB issue twice this week"]
-- [Urgency note, e.g., "ΥΦΑΝΤΙΔΗΣ waiting since 20:57 — no response yet"]
+- [Pattern/theme observed, e.g., "Boss escalated same issue twice this week"]
+- [Urgency note, e.g., "Sender X waiting since 20:57 — no response yet"]
 - [Delegation opportunity, e.g., "3 emails could be handled by your team"]
 - [Any thread connections between emails]
 ═══════════════════════════════════════════════
@@ -156,10 +156,63 @@ Ask which to send, modify, or discard.
 }
 ```
 
-### 10. Send Approved Drafts
-Use the `/send-mail` command to create drafts in Outlook via AppleScript.
-Always open as draft (`open newMsg`) — never send directly.
-Always CC dimitrios.plessas@nbg.gr.
+### 10. Create Drafts via Mac Outlook Reply All
+
+For each approved draft, create a Reply All draft using the Mac Outlook client. This produces proper formatting: reply text, signature, HR separator, and full quoted thread — all natively handled by Outlook.
+
+**Method**: Use AppleScript UI scripting with clipboard paste (NOT keystroke typing, which loses focus).
+
+```bash
+# Step 1: Set clipboard with reply text
+echo -n "reply text here" | pbcopy
+
+# Step 2: AppleScript to select email, Reply All, paste, save
+osascript <<'SCRIPT'
+tell application "Microsoft Outlook" to activate
+delay 0.5
+tell application "System Events"
+  tell process "Microsoft Outlook"
+    perform action "AXRaise" of window "Inbox • All Accounts"
+    delay 0.5
+    set w to window "Inbox • All Accounts"
+    set sg to UI element 2 of w
+    set spg to splitter group 1 of sg
+    set spg2 to splitter group 1 of spg
+    set msgList to group 1 of spg2
+    set sa to scroll area 1 of msgList
+    set tbl to table 1 of sa
+
+    -- Click on the target email row
+    perform action "AXPress" of UI element 1 of row ROW_NUMBER of tbl
+    delay 1
+
+    -- Reply All
+    click menu item "Reply All" of menu "Message" of menu bar 1
+    delay 2
+
+    -- Paste reply text from clipboard
+    keystroke "v" using command down
+    delay 1
+
+    -- Save as draft
+    keystroke "s" using command down
+    delay 1
+
+    -- Close compose to go back to reading pane
+    key code 53
+    delay 0.5
+  end tell
+end tell
+SCRIPT
+```
+
+**Finding the right row**: Before creating drafts, scan the message list to find each email's row number by matching sender name in `description of UI element 1 of row N of tbl`.
+
+**For multi-line reply text**: Use `printf '%s' "line1\n\nline2" | pbcopy` to preserve newlines.
+
+**Important**: Always return to the Inbox folder after all drafts are created.
+
+**Fallback**: If Mac client is unavailable, use `/send-mail` to create new emails via AppleScript (does not include original thread).
 </process>
 
 <specifications>

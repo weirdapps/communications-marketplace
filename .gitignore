@@ -26,3 +26,6 @@ venv/
 # Temp
 *.tmp
 *.bak
+
+# User-specific configuration (personal style, recipient profiles)
+plugins/email-handler/shared/style-guide.md

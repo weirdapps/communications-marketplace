@@ -5,7 +5,7 @@ allowed-tools: Agent, Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_playwrigh
 ---
 
 <objective>
-Compare past email drafts with actual responses sent by Dimitris Plessas, identify style deltas, and update the style guide.
+Compare past email drafts with actual responses sent by the user, identify style deltas, and update the style guide.
 
 User request: $ARGUMENTS
 </objective>
@@ -18,7 +18,7 @@ Read all JSON files from `~/.claude/drafts/pending/`.
 Also optionally read `~/.claude/drafts/reviewed/` for historical reference.
 
 ### 2. Find Matching Sent Emails
-Navigate Outlook Web to find emails FROM Dimitris (CC'd copies in inbox/archive):
+Navigate Outlook Web to find emails FROM the user (CC'd copies in inbox/archive):
 - Search by subject keywords from each pending draft
 - Match by subject + approximate timestamp (within 72h)
 - Read the actual email body
@@ -30,10 +30,10 @@ For each matched pair (draft vs actual), analyze:
 |-----------|-------|
 | **Length** | Was draft longer/shorter than actual? |
 | **Tone** | Did tone match? Was draft too formal/informal? |
-| **Content** | Did he say the same thing differently? |
-| **Words** | Did he use specific words/phrases the draft missed? |
-| **Decision** | Did he approve/reject differently than drafted? |
-| **Skip/Reply** | Did he reply to something we skipped, or skip what we drafted? |
+| **Content** | Did they say the same thing differently? |
+| **Words** | Did they use specific words/phrases the draft missed? |
+| **Decision** | Did they approve/reject differently than drafted? |
+| **Skip/Reply** | Did they reply to something we skipped, or skip what we drafted? |
 
 Classify each:
 - **SENT_AS_IS**: Draft sent unchanged (score: perfect)
@@ -71,8 +71,8 @@ RECIPIENT UPDATES:
 TRIAGE ACCURACY:
   Correctly skipped: X
   Correctly drafted: X
-  False positives: X (drafted but he skipped)
-  False negatives: X (skipped but he replied)
+  False positives: X (drafted but user skipped)
+  False negatives: X (skipped but user replied)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -128,9 +128,9 @@ This builds a historical record of how drafting accuracy improves over time.
 /draft-review --days 7
 ```
 
-### Focus on boss communication
+### Focus on specific recipient
 ```
-/draft-review --recipient ΘΕΟΦΙΛΙΔΗ
+/draft-review --recipient LASTNAME
 ```
 
 ### Dry run — see report without updating style guide

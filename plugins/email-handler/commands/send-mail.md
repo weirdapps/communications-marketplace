@@ -6,7 +6,7 @@ allowed-tools: Bash, Read, Glob
 
 <objective>
 Send an email using Microsoft Outlook via AppleScript on macOS.
-The default sender account is dimitrios.plessas@nbg.gr.
+The sender account is configured in `shared/style-guide.md` (see Identity section).
 
 User request: $ARGUMENTS
 </objective>
@@ -17,7 +17,7 @@ User request: $ARGUMENTS
 
 Extract the following from the user's request:
 - **To**: One or more recipient email addresses (REQUIRED)
-- **CC**: Optional CC recipients (dimitrios.plessas@nbg.gr is ALWAYS added as CC automatically)
+- **CC**: Optional CC recipients (the user's own email from `shared/style-guide.md` is ALWAYS added as CC automatically)
 - **BCC**: Optional BCC recipients
 - **Subject**: Email subject line (REQUIRED)
 - **Body**: Email body content - convert to HTML for proper formatting
@@ -64,8 +64,8 @@ tell application "Microsoft Outlook"
     -- Add recipients (repeat for each)
     make new to recipient at newMsg with properties {email address:{address:"recipient@email.com"}}
 
-    -- ALWAYS add self as CC
-    make new cc recipient at newMsg with properties {email address:{address:"dimitrios.plessas@nbg.gr"}}
+    -- ALWAYS add self as CC (use email from shared/style-guide.md)
+    make new cc recipient at newMsg with properties {email address:{address:"USER_EMAIL"}}
 
     -- Add additional CC (if any)
     make new cc recipient at newMsg with properties {email address:{address:"cc@email.com"}}
@@ -87,6 +87,14 @@ end tell
 - Use `&` for `&` in HTML within AppleScript strings
 - For multi-line content, concatenate with `& return &`
 - Use inline CSS (style attributes) rather than `<style>` blocks
+
+### New Outlook for Mac AppleScript limitations (v16.106)
+- `make new outgoing message` works for **new emails only**
+- Exchange/O365 mailbox messages are NOT accessible via AppleScript — `messages of inbox` returns 0, `selected objects` returns empty, all account types return 0
+- The `reply to msg reply to all true` command exists in the SDEF but is unusable because message objects from the Exchange account cannot be obtained
+- Only local "On My Computer" folders are visible (IDs 1-12); the synced Exchange mailbox is not exposed
+- **For reply/reply-all drafts**: Use the UI scripting workflow in `mail-review.md` Step 10 (Reply All via Message menu + clipboard paste)
+- This command (`/send-mail`) is for **new emails only**, not replies
 
 ## 5. Confirm result
 
