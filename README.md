@@ -1,17 +1,46 @@
 # Communications Marketplace
 
-A marketplace of communication and productivity plugins for Claude Code. Install specialized agents, tools, and workflows for various communication needs.
+A marketplace of communication and productivity plugins for Claude Code. Install specialized agents, tools, and workflows for presentations, creative assets, and email management.
+
+## Available Plugins
+
+| Plugin | Version | Category | Description |
+|--------|---------|----------|-------------|
+| [presentation-maker](./plugins/presentation-maker/) | v3.1 | Presentations | Multi-agent system for McKinsey-quality, board-ready NBG presentations |
+| [creative-toolkit](./plugins/creative-toolkit/) | v1.0 | Creative | Reusable agents for icon design, data visualization, and device mockups |
+| [email-handler](./plugins/email-handler/) | v2.0 | Communications | Email command center with inbox briefings, style-matched drafts, and self-learning |
+
+### Plugin Dependencies
+
+```
+presentation-maker ──depends on──> creative-toolkit
+```
+
+The `presentation-maker` calls `creative-toolkit` agents (icon designer, infographic specialist, device mockup) during the presentation pipeline. The `email-handler` is standalone.
+
+## Commands
+
+| Command | Plugin | Description |
+|---------|--------|-------------|
+| `/create-presentation` | presentation-maker | Create a new NBG presentation from content or brief |
+| `/redesign-deck` | presentation-maker | Redesign an existing deck to NBG brand standards |
+| `/polish-slides` | presentation-maker | Quick formatting fix on existing slides |
+| `/create-icon` | creative-toolkit | Generate an SVG icon (NBG brand defaults) |
+| `/create-infographic` | creative-toolkit | Create a data visualization or infographic |
+| `/mail-review` | email-handler | Review inbox with briefing, insights, and action recommendations |
+| `/draft-review` | email-handler | Compare drafted replies with actual responses to improve style guide |
+| `/send-mail` | email-handler | Send an email via Microsoft Outlook on macOS |
 
 ## Installation
 
-### Quick Install (Recommended)
+### Quick Install
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/weirdapps/communications-marketplace/main/install.sh | bash
 ```
 
 This will:
-1. Create `~/.claude/plugins/marketplaces/communications-marketplace/` directory
+1. Create `~/.claude/plugins/marketplaces/communications-marketplace/`
 2. Clone the marketplace repository
 3. Present available plugins for installation
 4. Configure selected plugins in your `~/.claude/CLAUDE.md`
@@ -19,13 +48,8 @@ This will:
 ### Manual Install
 
 ```bash
-# Create directory
 mkdir -p ~/.claude/plugins/marketplaces
-
-# Clone repository
 git clone git@github.com:weirdapps/communications-marketplace.git ~/.claude/plugins/marketplaces/communications-marketplace
-
-# Run installer
 cd ~/.claude/plugins/marketplaces/communications-marketplace
 ./install.sh
 ```
@@ -36,47 +60,91 @@ cd ~/.claude/plugins/marketplaces/communications-marketplace
 cd ~/.claude/plugins/marketplaces/communications-marketplace && git pull
 ```
 
-## Available Plugins
+### Uninstall
 
-| Plugin | Category | Description |
-|--------|----------|-------------|
-| [nbg-presentations](./plugins/nbg-presentations/) | Presentations | Multi-agent presentation system for NBG. Create McKinsey-quality, board-ready presentations. |
+```bash
+cd ~/.claude/plugins/marketplaces/communications-marketplace
+./uninstall.sh
+```
 
 ## Directory Structure
 
 ```
 communications-marketplace/
 ├── .claude-plugin/
-│   └── marketplace.json         # Marketplace manifest
-│
-├── plugins/                     # Available plugins
-│   ├── nbg-presentations/       # NBG presentation system
+│   └── marketplace.json         # Marketplace manifest (lists all plugins)
+├── plugins/
+│   ├── presentation-maker/      # NBG presentation system (v3.1)
 │   │   ├── plugin.json          # Plugin manifest
-│   │   ├── README.md            # Plugin documentation
-│   │   ├── orchestrator/        # Master orchestrator
-│   │   ├── agents/              # Specialist agents
-│   │   ├── shared/              # Brand specifications
-│   │   ├── commands/            # Slash commands
-│   │   ├── assets/              # Brand assets
-│   │   └── tools/               # Build tools
+│   │   ├── orchestrator/        # Master orchestrator (nbg-presenter)
+│   │   ├── agents/              # Storyline Architect, Storyboard Designer, Graphics Renderer
+│   │   ├── shared/              # NBG brand system (colors, typography, dimensions, charts)
+│   │   ├── commands/            # /create-presentation, /redesign-deck, /polish-slides
+│   │   ├── assets/              # Logos, templates, icons, illustrations, screenshots
+│   │   ├── tools/               # Python build tools (nbg_build, chart/table injection)
+│   │   └── examples/            # Sample storyline YAML files
+│   │
+│   ├── creative-toolkit/        # Reusable creative agents (v1.0)
+│   │   ├── plugin.json
+│   │   ├── agents/              # Icon Designer, Infographic Specialist, Device Mockup
+│   │   ├── commands/            # /create-icon, /create-infographic
+│   │   ├── assets/              # Device frames
+│   │   └── tools/               # Python tools (iphone_mockup)
+│   │
+│   ├── email-handler/           # Email command center (v2.0)
+│   │   ├── plugin.json
+│   │   ├── agents/              # Email handler agent (10-phase workflow)
+│   │   ├── commands/            # /mail-review, /draft-review, /send-mail
+│   │   └── shared/              # Style guide, recipient profiles
 │   │
 │   └── _template/               # Template for new plugins
-│       ├── plugin.json
-│       ├── README.md
-│       ├── agents/
-│       └── commands/
 │
-├── docs/                        # Marketplace documentation
-│   └── creating-plugins.md
+├── docs/
+│   └── creating-plugins.md      # Guide for creating new plugins
 │
-├── install.sh                   # Marketplace installer
-├── uninstall.sh                 # Marketplace uninstaller
-└── README.md                    # This file
+├── install.sh                   # Interactive installer
+├── uninstall.sh                 # Uninstaller
+├── CONTRIBUTING.md
+├── CHANGELOG.md
+└── SECURITY.md
 ```
+
+## Agent Architecture
+
+### Presentation Maker Pipeline
+
+```
+INPUT → Storyline Architect → Storyboard Designer → Graphics Renderer → PPTX OUTPUT
+                                     ↓
+                     Icon Designer (creative-toolkit)
+                     Infographic Specialist (creative-toolkit)
+                     Device Mockup (creative-toolkit)
+```
+
+| Agent | Role |
+|-------|------|
+| **NBG Presenter** | Master orchestrator — coordinates the full pipeline |
+| **Storyline Architect** | Narrative structure using Pyramid Principle and SCQA framework |
+| **Storyboard Designer** | Visual layouts with exact positioning for each slide |
+| **Graphics Renderer** | Pixel-perfect PPTX assembly using PptxGenJS |
+
+### Creative Toolkit Agents
+
+| Agent | Role |
+|-------|------|
+| **Icon Designer** | SVG icon generation — solid fill, monochrome, geometric |
+| **Infographic Specialist** | Charts, diagrams, KPI dashboards, data visualizations |
+| **Device Mockup** | Pixel-perfect iPhone mockups from app screenshots |
+
+### Email Handler Agent
+
+| Agent | Role |
+|-------|------|
+| **Email Handler** | 10-phase workflow: inbox review, triage, briefing, draft replies, send via Outlook, self-learning |
 
 ## Creating a New Plugin
 
-See [docs/creating-plugins.md](./docs/creating-plugins.md) for a complete guide.
+See [docs/creating-plugins.md](./docs/creating-plugins.md) for the complete guide.
 
 ### Quick Start
 
@@ -85,90 +153,26 @@ See [docs/creating-plugins.md](./docs/creating-plugins.md) for a complete guide.
 cp -r plugins/_template plugins/my-plugin
 ```
 
-2. Edit `plugins/my-plugin/plugin.json`:
-```json
-{
-  "name": "my-plugin",
-  "description": "What your plugin does",
-  "version": "1.0.0",
-  "type": "plugin",
-  "commands": "./commands",
-  "agents": {
-    "my-agent": {
-      "path": "./agents/my-agent/SKILL.md",
-      "description": "What this agent does"
-    }
-  }
-}
-```
+2. Edit `plugins/my-plugin/plugin.json` with your plugin manifest
 
-3. Add your agents and commands
+3. Add your agents (`agents/*/SKILL.md`) and commands (`commands/*.md`)
 
-4. Register in marketplace `.claude-plugin/marketplace.json` by adding to the `plugins` array:
-```json
-{
-  "name": "my-plugin",
-  "description": "What it does",
-  "version": "1.0.0",
-  "author": { "name": "Your Name" },
-  "source": "./plugins/my-plugin",
-  "category": "category-id"
-}
-```
+4. Register in `.claude-plugin/marketplace.json`
 
 ## Plugin Categories
 
 | Category | Description |
 |----------|-------------|
-| `presentations` | Tools for creating professional presentations |
-| `documents` | Document generation and formatting tools |
+| `presentations` | Presentation creation and formatting tools |
+| `creative` | Icons, infographics, mockups, and visual assets |
 | `communications` | Email, messaging, and communication tools |
+| `documents` | Document generation and formatting tools |
 | `data-viz` | Charts, graphs, and data visualization tools |
-
-## Commands by Plugin
-
-### NBG Presentations
-
-| Command | Description |
-|---------|-------------|
-| `/create-presentation` | Create new NBG presentation |
-| `/redesign-deck` | Redesign existing deck |
-| `/create-infographic` | Generate data visualization |
-| `/create-icon` | Create SVG icon |
-| `/polish-slides` | Quick formatting fix |
-
-## How Plugins Work
-
-Each plugin in this marketplace can contain:
-
-- **Agents**: Specialized AI agents with specific skills (defined in `SKILL.md` files)
-- **Commands**: Slash commands that trigger workflows (defined in markdown files)
-- **Assets**: Logos, templates, and other resources
-- **Tools**: Build scripts and utilities
-- **Shared**: Common configurations and specifications
-
-When installed, plugins are registered with Claude Code and their commands become available in your sessions.
 
 ## Contributing
 
-1. Fork this repository
-2. Create your plugin in `plugins/your-plugin/`
-3. Follow the plugin template structure
-4. Submit a pull request
-
-## Version History
-
-### v1.0.0 (Marketplace Launch)
-- Restructured as a marketplace for multiple plugins
-- NBG Presentations plugin moved to `plugins/nbg-presentations/`
-- Added plugin template and documentation
-- Added plugin categories and discovery
-
-### Previous (as NBG-only)
-- v3.0.0: Clean, deduplicated NBG architecture
-- v2.0.0: Multi-agent architecture
-- v1.0.0: Monolithic plugin
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT - See individual plugins for their specific licenses.
+MIT — See individual plugins for their specific licenses.
