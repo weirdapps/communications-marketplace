@@ -1,0 +1,40 @@
+{
+  "name": "email-drafter",
+  "description": "AI email drafter that mimics Dimitris Plessas's communication style. Reads Outlook emails via Playwright, drafts replies matching his tone per recipient, and learns from comparing drafts to actual responses.",
+  "version": "1.0.0",
+  "type": "plugin",
+  "author": {
+    "name": "weirdapps"
+  },
+  "license": "MIT",
+  "keywords": [
+    "email",
+    "outlook",
+    "drafting",
+    "communication",
+    "style-matching"
+  ],
+  "dependencies": [
+    "outlook-mailer"
+  ],
+  "commands": "./commands",
+  "agents": {
+    "email-drafter": {
+      "path": "./agents/email-drafter/SKILL.md",
+      "description": "Reads Outlook inbox/archive emails and drafts replies in Dimitris Plessas's style",
+      "triggers": [
+        "draft emails",
+        "draft replies",
+        "email drafter"
+      ]
+    }
+  },
+  "shared": {
+    "path": "./shared",
+    "description": "Communication style guide and recipient profiles"
+  },
+  "workflow": {
+    "pipeline": ["email-drafter"],
+    "orchestrator": "email-drafter"
+  }
+}

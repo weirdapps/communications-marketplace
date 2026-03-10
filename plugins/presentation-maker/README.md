@@ -1,6 +1,8 @@
-# NBG Presentations Plugin v3.0
+# Presentation Maker v3.1
 
 Multi-agent presentation system for National Bank of Greece (NBG) corporate communications. Create McKinsey-quality, board-ready presentations using a coordinated agent pipeline.
+
+**Depends on**: `creative-toolkit` (icon-designer, infographic-specialist, device-mockup)
 
 ## Overview
 
@@ -29,8 +31,8 @@ This plugin provides a complete workflow for creating professional presentations
 |---------|-------------|
 | `/create-presentation` | Create new NBG presentation from content |
 | `/redesign-deck` | Redesign existing presentation to NBG standards |
-| `/create-infographic` | Generate NBG-branded data visualization |
-| `/create-icon` | Create NBG-compliant SVG icon |
+| `/create-infographic` | Generate data visualization *(via creative-toolkit)* |
+| `/create-icon` | Create SVG icon *(via creative-toolkit)* |
 | `/polish-slides` | Quick formatting to NBG standards |
 
 ## Quick Start
@@ -53,20 +55,19 @@ This plugin provides a complete workflow for creating professional presentations
 ## Directory Structure
 
 ```
-nbg-presentations/
-├── plugin.json              # Plugin manifest
+presentation-maker/
+├── plugin.json              # Plugin manifest (depends on creative-toolkit)
 ├── README.md                # This file
 │
 ├── orchestrator/
 │   └── nbg-presenter/       # Master orchestrator
 │       └── SKILL.md
 │
-├── agents/                  # Specialist agents
-│   ├── storyline-architect/
-│   ├── storyboard-designer/
-│   ├── graphics-renderer/
-│   ├── infographic-specialist/
-│   └── icon-designer/
+├── agents/                  # Core presentation agents
+│   ├── storyline-architect/ # Narrative structure
+│   ├── storyboard-designer/ # Visual layout
+│   └── graphics-renderer/   # PPTX assembly
+│   # icon-designer, infographic-specialist, device-mockup → creative-toolkit
 │
 ├── shared/nbg-brand-system/ # Brand specifications
 │   ├── README.md            # Brand quick reference
@@ -81,9 +82,8 @@ nbg-presentations/
 ├── commands/                # Slash commands
 │   ├── create-presentation.md
 │   ├── redesign-deck.md
-│   ├── create-infographic.md
-│   ├── create-icon.md
 │   └── polish-slides.md
+│   # create-icon, create-infographic → creative-toolkit
 │
 ├── assets/                  # Brand assets
 │   ├── nbg-logo-gr.svg
@@ -94,6 +94,7 @@ nbg-presentations/
 │   ├── icons/               # Icon library (338 icons)
 │   ├── illustrations/       # Illustration library
 │   ├── bank-logos/
+│   ├── screenshots/         # App screenshots for mockups
 │   └── templates/
 │
 ├── examples/                # Sample storylines

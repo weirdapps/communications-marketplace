@@ -1,11 +1,11 @@
 ---
-description: "Create an NBG-branded infographic or data visualization"
+description: "Create an infographic or data visualization (NBG brand defaults)"
 argument-hint: "[data or description of infographic]"
 allowed-tools: Task, Skill(manage-nano-banana), Bash
 ---
 
 <objective>
-Create a professional infographic or data visualization following NBG brand guidelines.
+Create a professional infographic or data visualization. Uses NBG brand defaults unless a different brand is specified.
 
 User request: $ARGUMENTS
 </objective>
@@ -45,7 +45,7 @@ User request: $ARGUMENTS
 </process>
 
 <nbg_colors>
-## NBG Infographic Colors
+## Infographic Colors (NBG Defaults)
 
 ### Chart Color Sequence (in order)
 1. #00ADBF - Cyan (primary)
@@ -64,7 +64,7 @@ User request: $ARGUMENTS
 
 <success_criteria>
 - [ ] Infographic generated successfully
-- [ ] Colors match NBG brand palette
+- [ ] Colors match target brand palette (NBG default)
 - [ ] Clean, professional appearance
 - [ ] Content is clear and informative
 - [ ] Correct orientation and aspect ratio

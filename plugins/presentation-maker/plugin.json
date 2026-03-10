@@ -1,7 +1,7 @@
 {
-  "name": "nbg-presentations",
+  "name": "presentation-maker",
   "description": "Multi-agent presentation system for NBG corporate communications. Create McKinsey-quality, board-ready presentations following NBG brand guidelines using a coordinated agent pipeline.",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "type": "plugin",
   "author": {
     "name": "weirdapps"
@@ -18,13 +18,17 @@
     "storyline",
     "storyboard"
   ],
+  "dependencies": [
+    "creative-toolkit"
+  ],
   "commands": "./commands",
   "agents": {
     "nbg-presenter": {
       "path": "./orchestrator/nbg-presenter/SKILL.md",
-      "description": "Master orchestrator for NBG presentations. Coordinates all specialist agents.",
+      "description": "Master orchestrator for presentations. Coordinates all specialist agents.",
       "triggers": [
         "create NBG presentation",
+        "create presentation",
         "NBG format",
         "board-ready",
         "make this board-ready",
@@ -43,18 +47,6 @@
     "graphics-renderer": {
       "path": "./agents/graphics-renderer/SKILL.md",
       "description": "Assembles pixel-perfect PPTX files using PptxGenJS."
-    },
-    "infographic-specialist": {
-      "path": "./agents/infographic-specialist/SKILL.md",
-      "description": "Creates charts, diagrams, KPI dashboards, and data visualizations."
-    },
-    "icon-designer": {
-      "path": "./agents/icon-designer/SKILL.md",
-      "description": "Generates NBG-compliant SVG icons with solid fills."
-    },
-    "device-mockup": {
-      "path": "./agents/device-mockup/SKILL.md",
-      "description": "Creates pixel-perfect iPhone device mockups from app screenshots."
     }
   },
   "brand": {
@@ -77,10 +69,6 @@
     "inject_table_data": {
       "path": "./tools/nbg-presentation/inject_table_data.py",
       "description": "Inject data into table placeholders"
-    },
-    "iphone_mockup": {
-      "path": "./tools/device-mockup/iphone_mockup.py",
-      "description": "Create pixel-perfect iPhone mockups from screenshots"
     }
   },
   "assets": {
@@ -98,7 +86,6 @@
     "icons": "./assets/icons",
     "illustrations": "./assets/illustrations",
     "spec": "./assets/NBG-PRESENTATION-SPEC.md",
-    "deviceFrames": "./assets/device-frames",
     "screenshots": "./assets/screenshots"
   },
   "examples": {
@@ -110,11 +97,11 @@
     "pipeline": [
       "storyline-architect",
       "storyboard-designer",
-      "infographic-specialist",
-      "icon-designer",
+      "creative-toolkit:infographic-specialist",
+      "creative-toolkit:icon-designer",
       "graphics-renderer"
     ],
     "orchestrator": "nbg-presenter",
-    "parallel": ["infographic-specialist", "icon-designer"]
+    "parallel": ["creative-toolkit:infographic-specialist", "creative-toolkit:icon-designer"]
   }
 }

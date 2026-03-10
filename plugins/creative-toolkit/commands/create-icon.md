@@ -1,17 +1,17 @@
 ---
-description: "Generate an NBG-compliant SVG icon"
+description: "Generate an SVG icon (NBG brand defaults)"
 argument-hint: "[icon concept or description]"
 allowed-tools: Write
 ---
 
 <objective>
-Create a custom SVG icon that matches NBG iconography exactly.
+Create a custom SVG icon. Uses NBG brand defaults unless a different brand is specified.
 
 User request: $ARGUMENTS
 </objective>
 
 <icon_rules>
-## NBG Icon Specifications
+## Icon Specifications (NBG Defaults)
 
 ### Canvas
 - Size: 64 x 64 px
@@ -46,20 +46,20 @@ User request: $ARGUMENTS
 - Transparency/opacity
 - Inline styles
 - Complex details
-- Colors outside NBG palette
+- Colors outside the target brand palette
 </icon_rules>
 
 <process>
 1. Analyze the icon concept
 2. Design using simple geometric shapes
-3. Apply NBG fill color based on context
+3. Apply brand fill color based on context (NBG default)
 4. Output clean SVG code only
 </process>
 
 <success_criteria>
 - [ ] Canvas is 64x64, viewBox="0 0 64 64"
 - [ ] Uses solid fill (no strokes)
-- [ ] Color is from NBG palette
+- [ ] Color is from target brand palette (NBG default)
 - [ ] Optically centered with padding
 - [ ] Simple, geometric design
 - [ ] Recognizable at 24x24px

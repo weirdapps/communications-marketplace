@@ -7,15 +7,26 @@
   },
   "plugins": [
     {
-      "name": "nbg-presentations",
-      "description": "Multi-agent presentation system for National Bank of Greece. Create McKinsey-quality, board-ready presentations with NBG branding.",
-      "version": "3.0.0",
+      "name": "presentation-maker",
+      "description": "Multi-agent presentation system. Create McKinsey-quality, board-ready presentations with NBG branding.",
+      "version": "3.1.0",
       "author": {
         "name": "weirdapps"
       },
-      "source": "./plugins/nbg-presentations",
+      "source": "./plugins/presentation-maker",
       "category": "presentations",
-      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/nbg-presentations"
+      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/presentation-maker"
+    },
+    {
+      "name": "creative-toolkit",
+      "description": "Reusable creative agents for icon design, data visualization, and device mockups. Brand-configurable with NBG defaults.",
+      "version": "1.0.0",
+      "author": {
+        "name": "weirdapps"
+      },
+      "source": "./plugins/creative-toolkit",
+      "category": "creative",
+      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/creative-toolkit"
     },
     {
       "name": "outlook-mailer",
@@ -25,8 +36,19 @@
         "name": "weirdapps"
       },
       "source": "./plugins/outlook-mailer",
-      "category": "email",
+      "category": "communications",
       "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/outlook-mailer"
+    },
+    {
+      "name": "email-drafter",
+      "description": "AI email drafter that reads Outlook emails and drafts replies matching your communication style. Self-improving via feedback loop.",
+      "version": "1.0.0",
+      "author": {
+        "name": "weirdapps"
+      },
+      "source": "./plugins/email-drafter",
+      "category": "communications",
+      "homepage": "https://github.com/weirdapps/communications-marketplace/tree/main/plugins/email-drafter"
     }
   ]
 }

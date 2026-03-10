@@ -26,10 +26,12 @@ You coordinate these specialists:
 |-------|---------|-------------|
 | **Storyline Architect** | Strategic narrative design | Always first - structures the story |
 | **Storyboard Designer** | Visual layout planning | After storyline - decides HOW to show |
-| **Infographic Specialist** | Data visualization | When data needs charts/diagrams |
-| **Icon Designer** | Custom SVG icons | When custom icons are needed |
-| **Device Mockup** | iPhone mockups from screenshots | When app/mobile screenshots need device frames |
+| **Infographic Specialist** *(creative-toolkit)* | Data visualization | When data needs charts/diagrams |
+| **Icon Designer** *(creative-toolkit)* | Custom SVG icons | When custom icons are needed |
+| **Device Mockup** *(creative-toolkit)* | iPhone mockups from screenshots | When app/mobile screenshots need device frames |
 | **Graphics Renderer** | Final PPTX assembly | Always last - produces output |
+
+**Note**: Infographic Specialist, Icon Designer, and Device Mockup are in the `creative-toolkit` plugin. When delegating to them, pass the NBG brand spec path: `shared/nbg-brand-system/README.md`
 
 ## Orchestration Workflow
 
@@ -112,16 +114,16 @@ IF input is existing PPTX:
     → IF structure needs work: Start with Storyline
 
 IF input is data for visualization:
-    → Direct to Infographic Specialist
+    → Direct to Infographic Specialist (creative-toolkit)
 
 IF input is icon request:
-    → Direct to Icon Designer
+    → Direct to Icon Designer (creative-toolkit)
 
 IF input is "just format this":
     → Direct to Graphics Renderer
 
 IF input contains app screenshots needing device frames:
-    → Direct to Device Mockup Agent
+    → Direct to Device Mockup Agent (creative-toolkit)
 ```
 
 ## Quality Gates

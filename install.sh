@@ -199,8 +199,14 @@ generate_plugin_config() {
     local plugin_dir="$INSTALL_DIR/plugins/$plugin_name"
 
     case "$plugin_name" in
-        "nbg-presentations")
-            generate_nbg_config
+        "presentation-maker")
+            generate_presentation_maker_config
+            ;;
+        "creative-toolkit")
+            generate_creative_toolkit_config
+            ;;
+        "email-drafter")
+            generate_email_drafter_config
             ;;
         *)
             generate_generic_config "$plugin_name" "$plugin_dir"
@@ -208,51 +214,49 @@ generate_plugin_config() {
     esac
 }
 
-# Generate NBG-specific configuration
-generate_nbg_config() {
+# Generate presentation-maker configuration
+generate_presentation_maker_config() {
     cat << 'CLAUDE_CONTENT'
 
 ---
 
-## NBG PRESENTATION FORMAT (MANDATORY WORKFLOW)
+## PRESENTATION-MAKER Plugin (MANDATORY WORKFLOW)
 
 **CRITICAL**: When asked to create ANY presentation for NBG or "in NBG format", you MUST follow the communications-marketplace multi-agent workflow. Do NOT skip to html2pptx or other shortcuts.
 
-### Communications-Marketplace Location
-`~/.claude/plugins/marketplaces/communications-marketplace/plugins/nbg-presentations/` (v3.0)
+### Location
+`~/.claude/plugins/marketplaces/communications-marketplace/plugins/presentation-maker/` (v3.1)
+
+### Dependencies
+Requires the `creative-toolkit` plugin for icons, infographics, and device mockups.
 
 ### MANDATORY WORKFLOW (Read These Files First)
-Before creating any NBG presentation, read these files in order:
+Before creating any presentation, read these files in order:
 
-1. **Brand System**: `plugins/nbg-presentations/shared/nbg-brand-system/README.md` - Single source of truth for all specs
-2. **Orchestrator**: `plugins/nbg-presentations/orchestrator/nbg-presenter/SKILL.md` - Master workflow
-3. **Step 1**: `plugins/nbg-presentations/agents/storyline-architect/SKILL.md` - Create narrative structure
-4. **Step 2**: `plugins/nbg-presentations/agents/storyboard-designer/SKILL.md` - Design visual layouts
-5. **Step 3**: `plugins/nbg-presentations/agents/graphics-renderer/SKILL.md` - Generate PPTX
+1. **Brand System**: `plugins/presentation-maker/shared/nbg-brand-system/README.md` - Single source of truth
+2. **Orchestrator**: `plugins/presentation-maker/orchestrator/nbg-presenter/SKILL.md` - Master workflow
+3. **Step 1**: `plugins/presentation-maker/agents/storyline-architect/SKILL.md` - Narrative structure
+4. **Step 2**: `plugins/presentation-maker/agents/storyboard-designer/SKILL.md` - Visual layouts
+5. **Step 3**: `plugins/presentation-maker/agents/graphics-renderer/SKILL.md` - Generate PPTX
+6. **Utilities**: `plugins/creative-toolkit/agents/` - Icons, infographics, mockups (as needed)
 
 ### Agent Pipeline (ALWAYS Follow This Order)
 ```
 INPUT → Storyline Architect → Storyboard Designer → Graphics Renderer → OUTPUT
                                     ↓
-                    Infographic Specialist (if data viz needed)
-                    Icon Designer (if custom icons needed)
+                    Infographic Specialist (creative-toolkit, if data viz needed)
+                    Icon Designer (creative-toolkit, if custom icons needed)
+                    Device Mockup (creative-toolkit, if app screenshots needed)
 ```
 
-### Quality Standards (McKinsey-Level)
-- **Pyramid Principle**: Lead with the answer, support with arguments
-- **One Message Per Slide**: No exceptions
-- **Action Titles**: Full sentences that tell the story (NOT labels)
-- **5-7 Second Rule**: Every slide scannable at a glance
-- **"So What?" Test**: Every slide must matter
-
 ### Commands Available
-| Command | When to Use |
-|---------|-------------|
-| `/create-presentation` | New presentation from content |
-| `/redesign-deck` | Redesign existing deck to NBG |
-| `/create-infographic` | Data visualization only |
-| `/create-icon` | Custom NBG-compliant icon |
-| `/polish-slides` | Quick formatting fix |
+| Command | Plugin | When to Use |
+|---------|--------|-------------|
+| `/create-presentation` | presentation-maker | New presentation from content |
+| `/redesign-deck` | presentation-maker | Redesign existing deck to NBG |
+| `/polish-slides` | presentation-maker | Quick formatting fix |
+| `/create-infographic` | creative-toolkit | Data visualization only |
+| `/create-icon` | creative-toolkit | Custom SVG icon |
 
 ### NBG Brand Essentials (Quick Reference)
 ```yaml
@@ -266,18 +270,73 @@ colors:
 fonts:
   primary: "Aptos"
   fallback: "Arial"
-logo:
-  small: { pos: [0.374", 7.071"], size: [0.822", 0.236"] }
-  large: { pos: [0.374", 6.271"], size: [2.191", 0.630"] }
 chartColors: ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8']
 ```
 
-### Trigger Phrases (Activate NBG Workflow)
-- "Create NBG presentation"
-- "NBG format" / "in NBG format"
-- "Make this board-ready"
-- "Presentation for NBG"
-- "Format for the board"
+---
+CLAUDE_CONTENT
+}
+
+# Generate creative-toolkit configuration
+generate_creative_toolkit_config() {
+    cat << 'CLAUDE_CONTENT'
+
+---
+
+## CREATIVE-TOOLKIT Plugin
+
+**Location**: `~/.claude/plugins/marketplaces/communications-marketplace/plugins/creative-toolkit/`
+
+### What It Does
+Reusable creative agents for icon design, data visualization, and device mockups. Brand-configurable with NBG defaults.
+
+### Agents
+- **Icon Designer**: SVG icon generation — solid fill, monochrome, geometric
+- **Infographic Specialist**: Charts, diagrams, KPI dashboards, data visualizations
+- **Device Mockup**: Pixel-perfect iPhone mockups from app screenshots
+
+### Commands Available
+| Command | When to Use |
+|---------|-------------|
+| `/create-icon` | Generate an SVG icon |
+| `/create-infographic` | Create a data visualization |
+
+### Used By
+- `presentation-maker` — calls these agents during the presentation pipeline
+
+---
+CLAUDE_CONTENT
+}
+
+# Generate email-drafter configuration
+generate_email_drafter_config() {
+    cat << 'CLAUDE_CONTENT'
+
+---
+
+## EMAIL-DRAFTER Plugin
+
+**Location**: `~/.claude/plugins/marketplaces/communications-marketplace/plugins/email-drafter/`
+
+### What It Does
+Reads Outlook 365 emails via Playwright browser automation, triages them, and drafts replies matching your communication style. Learns from comparing drafts to actual responses.
+
+### Dependencies
+Requires the `outlook-mailer` plugin for creating draft emails in Outlook.
+
+### Commands Available
+| Command | When to Use |
+|---------|-------------|
+| `/draft` | Read inbox emails, triage, draft replies |
+| `/draft-review` | Compare drafts to actual responses, update style guide |
+
+### Key Files
+- **Style Guide**: `plugins/email-drafter/shared/style-guide.md` — your communication patterns
+- **Agent**: `plugins/email-drafter/agents/email-drafter/SKILL.md` — 5-phase workflow
+
+### Prerequisites
+- Outlook Web access (logged into https://outlook.office.com)
+- Playwright MCP server (for browser automation)
 
 ---
 CLAUDE_CONTENT
@@ -396,13 +455,23 @@ print_completion() {
         echo ""
     fi
 
-    echo -e "${BOLD}Commands available (depending on plugins):${NC}"
+    echo -e "${BOLD}Commands available:${NC}"
     echo ""
-    echo "  /create-presentation  Create a new presentation"
-    echo "  /redesign-deck        Redesign existing deck"
-    echo "  /create-infographic   Create data visualization"
-    echo "  /create-icon          Create SVG icon"
-    echo "  /polish-slides        Quick formatting"
+    for plugin in "${SELECTED_PLUGINS[@]}"; do
+        local cmd_dir="$INSTALL_DIR/plugins/$plugin/commands"
+        if [ -d "$cmd_dir" ]; then
+            for cmd_file in "$cmd_dir"/*.md; do
+                if [ -f "$cmd_file" ]; then
+                    local cmd_name=$(basename "$cmd_file" .md)
+                    local cmd_desc=""
+                    if command_exists grep; then
+                        cmd_desc=$(grep -m1 '^description:' "$cmd_file" 2>/dev/null | sed 's/^description: *"*//;s/"*$//' | head -c 50)
+                    fi
+                    printf "  %-24s %s\n" "/$cmd_name" "$cmd_desc"
+                fi
+            done
+        fi
+    done
     echo ""
     echo -e "${BOLD}To update later:${NC}"
     echo ""

@@ -1,0 +1,61 @@
+{
+  "name": "creative-toolkit",
+  "description": "Reusable creative agents for icon design, data visualization, and device mockups. Brand-configurable with NBG defaults.",
+  "version": "1.0.0",
+  "type": "plugin",
+  "author": {
+    "name": "weirdapps"
+  },
+  "license": "MIT",
+  "keywords": [
+    "icons",
+    "infographic",
+    "data-visualization",
+    "device-mockup",
+    "svg",
+    "creative"
+  ],
+  "commands": "./commands",
+  "agents": {
+    "icon-designer": {
+      "path": "./agents/icon-designer/SKILL.md",
+      "description": "Generates SVG icons — solid fill, monochrome, geometric. Default brand: NBG.",
+      "triggers": [
+        "create icon",
+        "design icon",
+        "svg icon"
+      ]
+    },
+    "infographic-specialist": {
+      "path": "./agents/infographic-specialist/SKILL.md",
+      "description": "Creates charts, diagrams, KPI dashboards, and data visualizations. Default brand: NBG.",
+      "triggers": [
+        "create infographic",
+        "data visualization",
+        "create chart"
+      ]
+    },
+    "device-mockup": {
+      "path": "./agents/device-mockup/SKILL.md",
+      "description": "Creates pixel-perfect iPhone device mockups from app screenshots.",
+      "triggers": [
+        "device mockup",
+        "iphone mockup",
+        "phone screenshot"
+      ]
+    }
+  },
+  "tools": {
+    "iphone_mockup": {
+      "path": "./tools/device-mockup/iphone_mockup.py",
+      "description": "Create pixel-perfect iPhone mockups from screenshots"
+    }
+  },
+  "assets": {
+    "deviceFrames": "./assets/device-frames"
+  },
+  "workflow": {
+    "pipeline": ["icon-designer", "infographic-specialist", "device-mockup"],
+    "orchestrator": null
+  }
+}
