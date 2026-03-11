@@ -15,8 +15,8 @@ Email command center — inbox briefings, action recommendations, style-matched 
 
 | Command | Description |
 |---------|-------------|
+| `/inbox-briefing` | Quick inbox scan — summaries, action flags, insights (read-only, no drafting) |
 | `/mail-review` | Full inbox briefing + action flags + draft replies |
-| `/mail-review --briefing-only` | Quick scan — briefing and insights only, no drafting |
 | `/draft-review` | Deep learning pass — compare drafts to actual responses |
 | `/send-mail` | Send an email via Outlook (HTML, attachments, auto-CC self) |
 

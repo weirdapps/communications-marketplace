@@ -27,7 +27,8 @@ The `presentation-maker` calls `creative-toolkit` agents (icon designer, infogra
 | `/polish-slides` | presentation-maker | Quick formatting fix on existing slides |
 | `/create-icon` | creative-toolkit | Generate an SVG icon (NBG brand defaults) |
 | `/create-infographic` | creative-toolkit | Create a data visualization or infographic |
-| `/mail-review` | email-handler | Review inbox with briefing, insights, and action recommendations |
+| `/inbox-briefing` | email-handler | Quick inbox scan — summaries, action flags, insights (read-only) |
+| `/mail-review` | email-handler | Full inbox briefing + draft replies + self-learning |
 | `/draft-review` | email-handler | Compare drafted replies with actual responses to improve style guide |
 | `/send-mail` | email-handler | Send an email via Microsoft Outlook on macOS |
 
@@ -94,7 +95,7 @@ communications-marketplace/
 │   ├── email-handler/           # Email command center (v2.0)
 │   │   ├── plugin.json
 │   │   ├── agents/              # Email handler agent (10-phase workflow)
-│   │   ├── commands/            # /mail-review, /draft-review, /send-mail
+│   │   ├── commands/            # /inbox-briefing, /mail-review, /draft-review, /send-mail
 │   │   └── shared/              # Style guide, recipient profiles
 │   │
 │   └── _template/               # Template for new plugins
