@@ -1,11 +1,13 @@
 ---
 description: "Read inbox and present a briefing with summaries, action recommendations, and insights — no drafting or replying"
 argument-hint: "[inbox|archive|both] [--count N] [--unread]"
-allowed-tools: Read, Write, Edit, Glob, Grep, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_evaluate
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 <objective>
-Read Outlook emails via Outlook Web and present a concise inbox briefing with summaries, action recommendations, and strategic insights. This command is read-only — it never drafts, replies, or modifies any email.
+Read emails via Apple Mail AppleScript and present a concise inbox briefing with summaries, action recommendations, and strategic insights. This command is read-only — it never drafts, replies, or modifies any email.
+
+**Architecture**: This plugin uses a hybrid approach — Apple Mail for reading (full AppleScript access to Exchange mailboxes), Outlook for sending/replying (proper signatures, threading, draft handling).
 
 User request: $ARGUMENTS
 </objective>
@@ -16,25 +18,61 @@ User request: $ARGUMENTS
 ### 1. Load Previous State
 - Read `~/.claude/drafts/inbox-state.json` (if exists) to know which emails were seen before
 
-### 2. Navigate to Outlook Web
-Open https://outlook.office.com/mail/inbox in the browser.
+### 2. Read Emails via Apple Mail AppleScript
 
-### 3. Read Emails
-Scan the inbox by taking snapshots of the message list:
-- **Inbox**: Read ALL visible emails — the inbox is a to-do list of unprocessed items
-- **Archive** (if requested): Navigate to archive, read last N emails (default 20)
-- Scroll down and take additional snapshots if needed to capture all emails
-- For important/complex emails, click to open and read the full body
+Use the Bash tool to run AppleScript against Apple Mail. The NBG Exchange account is available as `account "Exchange"`.
 
-For each email, extract: From, To/Cc, Subject, Preview/Body, Timestamp
+**Reading the inbox:**
+```applescript
+tell application "Mail"
+    set msgs to messages of inbox
+    -- Or for a specific count:
+    set msgs to messages 1 thru N of inbox
+    repeat with m in msgs
+        set output to output & "---" & linefeed
+        set output to output & "FROM: " & sender of m & linefeed
+        set output to output & "SUBJECT: " & subject of m & linefeed
+        set output to output & "DATE: " & (date received of m as string) & linefeed
+        set output to output & "READ: " & read status of m & linefeed
+        set output to output & "TO: " & (address of every to recipient of m) & linefeed
+        set output to output & "CC: " & (address of every cc recipient of m) & linefeed
+        set output to output & "BODY: " & text 1 thru 500 of (content of m) & linefeed
+    end repeat
+    return output
+end tell
+```
 
-### 4. Classify New vs Previously Seen
+**Reading archive:**
+```applescript
+tell application "Mail"
+    set archiveBox to mailbox "Archive" of account "Exchange"
+    set msgs to messages 1 thru N of archiveBox
+    -- same loop as above
+end tell
+```
+
+**Reading full message body** (for important/complex emails):
+```applescript
+tell application "Mail"
+    set msg to message N of inbox
+    return content of msg
+end tell
+```
+
+**Key points:**
+- Process messages in batches (e.g., 5-10 at a time) to avoid AppleScript timeouts on large inboxes
+- Use `content of msg` for plain text body (reliable, fast)
+- `source of msg` gives raw MIME source (may timeout on large messages — avoid unless needed)
+- `read status` returns true/false for read/unread
+- For `--unread` flag: filter by `read status of m is false`
+
+### 3. Classify New vs Previously Seen
 Compare current inbox against `inbox-state.json`:
 - **NEW**: Emails not in the previous state
 - **PREVIOUSLY SEEN**: Emails present in a prior run
   - Note if user appears to have acted (email moved to archive, reply sent, etc.)
 
-### 5. Analyze & Recommend Actions
+### 4. Analyze & Recommend Actions
 For each email, determine one or more actions:
 
 | Action | When | Symbol |
@@ -47,13 +85,13 @@ For each email, determine one or more actions:
 | **SKIP** | No action needed (newsletter, notification, auto-email) | ⏭️ |
 | **FOLLOW-UP** | You already replied but thread needs follow-up check | 🔄 |
 
-### 6. Generate Gist
+### 5. Generate Gist
 For each email, write a 1-2 sentence gist:
 - What is this about? (substance, not just subject line)
 - What does the sender want from you specifically?
 - Any context that matters (deadline, escalation, repeat request)
 
-### 7. Present Briefing
+### 6. Present Briefing
 
 ```
 ═══════════════════════════════════════════════
@@ -88,7 +126,7 @@ INSIGHTS
 ═══════════════════════════════════════════════
 ```
 
-### 8. Save Inbox State
+### 7. Save Inbox State
 Write `~/.claude/drafts/inbox-state.json`:
 ```json
 {
@@ -122,7 +160,7 @@ Write `~/.claude/drafts/inbox-state.json`:
 - 1-2 sentence gist per email
 - Action recommendations with symbols
 - Strategic insights and patterns
-- NO drafting, NO replying, NO Outlook interaction beyond reading
+- NO drafting, NO replying, NO email modification
 </specifications>
 
 <examples>

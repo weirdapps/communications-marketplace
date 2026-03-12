@@ -1,6 +1,6 @@
 ---
 name: email-handler
-description: Email command center — inbox briefings with insights, action recommendations, style-matched draft replies, Outlook sending, and self-learning
+description: Email command center — inbox briefings via Apple Mail, reply drafts via Outlook, style-matched drafting, and self-learning
 ---
 
 # Email Drafter Agent
@@ -35,7 +35,7 @@ You MUST read and internalize the style guide at `shared/style-guide.md` before 
 
 Check `~/.claude/drafts/pending/` for unprocessed drafts from previous runs.
 If found:
-1. Search Outlook for matching sent emails (CC'd copies) by subject keywords + date
+1. Search Sent Items via Apple Mail AppleScript for matching sent emails by subject keywords + date
 2. Extract actual reply text (strip signature/quoted text)
 3. Compare draft vs actual — classify: SENT_AS_IS | MODIFIED | REWRITTEN | NOT_SENT
 4. Scan last 10 sent items for organic emails (user wrote without our help)
@@ -47,17 +47,38 @@ This creates a self-improving loop: draft → user edits → learn → better dr
 
 ### Phase 2: READ EMAILS
 
-Use Playwright MCP tools to navigate Outlook Web (https://outlook.office.com/mail/inbox):
+Use Apple Mail AppleScript to read emails from the Exchange account:
 
-1. Navigate to the inbox/archive
-2. Read each email
-3. For each email, extract:
-   - **From**: Sender name and email
-   - **To/Cc**: Recipients (important for understanding if user is TO or CC)
-   - **Subject**: Email subject
-   - **Body**: Full message content
-   - **Context**: Thread history — what came before?
-   - **Timestamp**: When it was sent
+```applescript
+tell application "Mail"
+    set msgs to messages 1 thru N of inbox
+    repeat with m in msgs
+        -- Extract: sender, subject, date received, read status,
+        -- to recipients, cc recipients, content (body text)
+    end repeat
+end tell
+```
+
+For each email, extract:
+- **From**: Sender name and email (`sender of m`)
+- **To/Cc**: Recipients (`address of every to recipient of m`, `address of every cc recipient of m`)
+- **Subject**: Email subject (`subject of m`)
+- **Body**: Message content (`content of m` — plain text, reliable)
+- **Context**: Thread history — look at the body for quoted text
+- **Timestamp**: When it was sent (`date received of m`)
+- **Read status**: Whether already read (`read status of m`)
+
+**Available mailboxes** (Exchange account):
+- `inbox` — unprocessed emails
+- `mailbox "Archive" of account "Exchange"` — archived emails
+- `mailbox "Sent Items" of account "Exchange"` — sent emails (for learning)
+- `mailbox "Drafts" of account "Exchange"` — draft emails
+
+**Key points:**
+- Process in batches (5-10 messages) to avoid AppleScript timeouts
+- Use `content of m` for body text (fast, reliable)
+- `message id of m` provides unique message identifiers
+- For unread only: `messages of inbox whose read status is false`
 
 ### Phase 3: CLASSIFY NEW vs SEEN
 
@@ -160,29 +181,94 @@ Present drafts for user review. Ask which to send, modify, or discard.
 }
 ```
 
-### Phase 10: SEND
+### Phase 10: CREATE REPLY DRAFTS VIA OUTLOOK
 
-Use the `/send-mail` command to create drafts in Outlook via AppleScript.
-Always open as draft (`open newMsg`) — never send directly.
-Always CC the user's own email (from style guide).
+Use Outlook UI scripting to create Reply All drafts. This produces proper formatting: reply text, Outlook signature, HR separator, quoted thread, and correct conversation threading.
 
-## Email Access Method
+**Method**: Clipboard paste + UI scripting (NOT keystroke typing, which loses focus).
 
-Use Playwright MCP browser tools to interact with Outlook Web:
+**Step 1**: Scan Outlook's message list to find the target email row by matching sender/subject in `description of UI element 1 of row N of tbl`.
 
+**Step 2**: For each approved draft:
+```bash
+# Set clipboard with reply text
+printf '%s' "reply text here" | pbcopy
+
+# UI script: select email, Reply All, paste, save, close
+osascript <<'SCRIPT'
+tell application "Microsoft Outlook" to activate
+delay 0.5
+tell application "System Events"
+  tell process "Microsoft Outlook"
+    perform action "AXRaise" of window "Inbox • All Accounts"
+    delay 0.5
+    set w to window "Inbox • All Accounts"
+    set sg to UI element 2 of w
+    set spg to splitter group 1 of sg
+    set spg2 to splitter group 1 of spg
+    set msgList to group 1 of spg2
+    set sa to scroll area 1 of msgList
+    set tbl to table 1 of sa
+
+    perform action "AXPress" of UI element 1 of row ROW_NUMBER of tbl
+    delay 1
+    click menu item "Reply All" of menu "Message" of menu bar 1
+    delay 2
+    keystroke "v" using command down
+    delay 1
+    keystroke "s" using command down
+    delay 1
+    key code 53
+    delay 0.5
+  end tell
+end tell
+SCRIPT
 ```
-1. browser_navigate → https://outlook.office.com/mail/inbox
-2. browser_snapshot → read the message list
-3. browser_click → click on emails to read them
-4. browser_snapshot → read the full email in the reading pane
-5. Use ArrowDown key to navigate between emails
+
+**For forwarding**: Use `"Forward"` menu item instead of `"Reply All"`, add recipient in To field.
+
+**For multi-line reply text**: `printf '%s' "line1\n\nline2" | pbcopy`
+
+**Key points:**
+- Outlook handles: signature, HR separator, quoted thread, conversation threading
+- `keystroke` for typing does NOT work (focus escapes) — always use clipboard + paste
+- Date header rows (e.g., "Today, Expanded") occupy row positions — account for offset
+- Message order in Outlook matches Apple Mail inbox order
+- Always return to Inbox after all drafts are created
+
+## Email Access Method — Hybrid Architecture
+
+This plugin uses a **hybrid approach** for best results:
+
+### Reading: Apple Mail AppleScript
+```bash
+osascript <<'SCRIPT'
+tell application "Mail"
+    -- All Exchange mailboxes accessible: inbox, Sent Items, Archive, Drafts
+    set msgs to messages 1 thru 10 of inbox
+    -- Extract: sender, subject, date received, read status, content, recipients
+end tell
+SCRIPT
+```
+- Full AppleScript access to all Exchange mailboxes
+- Read messages: subject, sender, recipients, date, body, read status
+- Process in batches of 5-10 to avoid timeouts on large messages
+
+### Sending new emails: Outlook AppleScript
+```bash
+osascript <<'SCRIPT'
+tell application "Microsoft Outlook"
+    set newMsg to make new outgoing message with properties {subject:"...", content:"HTML_BODY"}
+    make new to recipient at newMsg with properties {email address:{address:"..."}}
+    open newMsg  -- opens as draft
+end tell
+SCRIPT
 ```
 
-**Key selectors:**
-- Message list: `[role="listbox"][aria-label="Message list"]`
-- Individual emails: `[role="option"]` within the listbox
-- Reading pane body: `[aria-label="Message body"]`
-- From field: `h3` containing "From:" in the reading pane `main` area
+### Replying/Forwarding: Outlook UI Scripting
+- Select email in Outlook message list → Reply All via menu → paste from clipboard → save → close
+- Produces proper signature, HR separator, quoted thread, conversation threading
+- See Phase 10 for full implementation
 
 ## Quality Checklist
 

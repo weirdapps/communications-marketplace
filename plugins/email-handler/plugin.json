@@ -1,6 +1,6 @@
 {
   "name": "email-handler",
-  "description": "Email command center for Dimitris Plessas. Reviews inbox with briefings, insights, and action flags. Drafts replies matching his communication style. Sends via Outlook AppleScript. Self-improves by comparing drafts to actual responses.",
+  "description": "Email command center for Dimitris Plessas. Reviews inbox via Apple Mail, drafts replies via Outlook. Briefings, insights, action flags, style-matched replies. Self-improves by comparing drafts to actual responses.",
   "version": "2.0.0",
   "type": "plugin",
   "author": {
@@ -9,7 +9,7 @@
   "license": "MIT",
   "keywords": [
     "email",
-    "outlook",
+    "apple-mail",
     "inbox-review",
     "briefing",
     "drafting",
@@ -22,7 +22,7 @@
   "agents": {
     "email-handler": {
       "path": "./agents/email-handler/SKILL.md",
-      "description": "Reviews Outlook inbox with briefings, action recommendations, drafts and sends replies in Dimitris Plessas's style",
+      "description": "Reviews inbox via Apple Mail, creates reply drafts via Outlook, with briefings, action recommendations in Dimitris Plessas's style",
       "triggers": [
         "review mail",
         "review inbox",

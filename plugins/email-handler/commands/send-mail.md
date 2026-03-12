@@ -22,7 +22,7 @@ Extract the following from the user's request:
 - **Subject**: Email subject line (REQUIRED)
 - **Body**: Email body content - convert to HTML for proper formatting
 - **Attachments**: File paths to attach (optional). Use Glob to find files if paths are approximate.
-- **Draft mode**: ALWAYS open as draft (never send directly). Direct send via AppleScript skips the Outlook signature. Opening as draft lets Outlook insert the signature, and the user sends manually.
+- **Draft mode**: ALWAYS open as draft (`open newMsg`). Direct send via AppleScript skips the Outlook signature. Opening as draft lets Outlook insert the signature, and the user sends manually.
 
 If the user hasn't provided required fields (To, Subject), ask before proceeding.
 
@@ -88,12 +88,11 @@ end tell
 - For multi-line content, concatenate with `& return &`
 - Use inline CSS (style attributes) rather than `<style>` blocks
 
-### New Outlook for Mac AppleScript limitations (v16.106)
+### Outlook AppleScript capabilities and limitations
 - `make new outgoing message` works for **new emails only**
-- Exchange/O365 mailbox messages are NOT accessible via AppleScript — `messages of inbox` returns 0, `selected objects` returns empty, all account types return 0
-- The `reply to msg reply to all true` command exists in the SDEF but is unusable because message objects from the Exchange account cannot be obtained
-- Only local "On My Computer" folders are visible (IDs 1-12); the synced Exchange mailbox is not exposed
-- **For reply/reply-all drafts**: Use the UI scripting workflow in `mail-review.md` Step 10 (Reply All via Message menu + clipboard paste)
+- Exchange/O365 mailbox messages are NOT accessible via Outlook AppleScript — `messages of inbox` returns 0
+- For **reading emails**: use Apple Mail AppleScript instead (see `inbox-briefing.md`)
+- For **reply/reply-all drafts**: use Outlook UI scripting (see `mail-review.md` Step 10)
 - This command (`/send-mail`) is for **new emails only**, not replies
 
 ## 5. Confirm result

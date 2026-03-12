@@ -1,7 +1,7 @@
 ---
 description: "Compare drafted replies with actual responses to improve the style guide"
 argument-hint: "[--days N]"
-allowed-tools: Agent, Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_run_code, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_evaluate
+allowed-tools: Agent, Read, Write, Edit, Bash, Glob, Grep
 ---
 
 <objective>
@@ -17,11 +17,29 @@ User request: $ARGUMENTS
 Read all JSON files from `~/.claude/drafts/pending/`.
 Also optionally read `~/.claude/drafts/reviewed/` for historical reference.
 
-### 2. Find Matching Sent Emails
-Navigate Outlook Web to find emails FROM the user (CC'd copies in inbox/archive):
-- Search by subject keywords from each pending draft
-- Match by subject + approximate timestamp (within 72h)
-- Read the actual email body
+### 2. Find Matching Sent Emails via Apple Mail
+
+Use AppleScript to search the Exchange Sent Items mailbox for emails matching each pending draft:
+
+```applescript
+tell application "Mail"
+    set sentBox to mailbox "Sent Items" of account "Exchange"
+    set msgs to messages 1 thru 50 of sentBox
+    set output to ""
+    repeat with m in msgs
+        set output to output & "---" & linefeed
+        set output to output & "SUBJECT: " & subject of m & linefeed
+        set output to output & "DATE: " & (date sent of m as string) & linefeed
+        set output to output & "TO: " & (address of every to recipient of m) & linefeed
+        set output to output & "BODY: " & content of m & linefeed
+    end repeat
+    return output
+end tell
+```
+
+- Match by subject keywords from each pending draft
+- Match by approximate timestamp (within 72h of draft creation)
+- Read the actual email body via `content of msg`
 
 ### 3. Analyze Deltas
 For each matched pair (draft vs actual), analyze:

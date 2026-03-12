@@ -1,11 +1,13 @@
 ---
 description: "Review inbox with briefing, insights, action recommendations, and draft replies"
 argument-hint: "[inbox|archive|both] [--count N] [--briefing-only]"
-allowed-tools: Agent, Read, Write, Edit, Bash, Glob, Grep, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_run_code, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_evaluate
+allowed-tools: Agent, Read, Write, Edit, Bash, Glob, Grep
 ---
 
 <objective>
-Read Outlook emails, provide a comprehensive briefing with insights, recommend actions, and draft replies matching the user's communication style (defined in `shared/style-guide.md`).
+Read emails via Apple Mail, provide a comprehensive briefing with insights, recommend actions, and draft replies matching the user's communication style (defined in `shared/style-guide.md`).
+
+**Architecture**: Hybrid approach — Apple Mail for reading (full AppleScript access), Outlook for reply/forward drafts (UI scripting for proper signatures, threading, formatting).
 
 User request: $ARGUMENTS
 </objective>
@@ -16,7 +18,14 @@ User request: $ARGUMENTS
 ### 0. Learn from Previous Drafts (AUTOMATIC — runs silently every time)
 Check `~/.claude/drafts/pending/` for unprocessed draft files.
 If pending drafts exist:
-1. Navigate to Outlook Web and search for matching sent emails (CC'd copies in inbox/archive)
+1. Read Sent Items via Apple Mail AppleScript to find matching sent emails:
+   ```applescript
+   tell application "Mail"
+       set sentBox to mailbox "Sent Items" of account "Exchange"
+       set msgs to messages 1 thru 30 of sentBox
+       -- search by subject keywords and date
+   end tell
+   ```
    - Match by subject keywords and approximate date (within 72h of draft creation)
 2. For each matched draft:
    - Extract the ACTUAL reply text the user sent (strip signature and quoted text)
@@ -38,11 +47,61 @@ If pending drafts exist:
 - Read the communication style guide from `shared/style-guide.md`
 - Read `~/.claude/drafts/inbox-state.json` to know which emails were seen in the previous run
 
-### 2. Read Emails
-Navigate to Outlook Web (https://outlook.office.com/mail/inbox or /mail/archive):
-- **Inbox**: Read ALL emails — the inbox is a to-do list of unprocessed items
-- **Archive**: Read last N emails (default 20) — for reference only
-For each email, extract: From, To/Cc, Subject, Body, Thread context, Timestamp
+### 2. Read Emails via Apple Mail AppleScript
+
+Use the Bash tool to run AppleScript against Apple Mail. The NBG Exchange account is available as `account "Exchange"`.
+
+**Reading inbox messages:**
+```applescript
+tell application "Mail"
+    set msgCount to count messages of inbox
+    -- Read all inbox messages (or cap at a reasonable number)
+    set maxMsgs to msgCount
+    if maxMsgs > 50 then set maxMsgs to 50
+    set msgs to messages 1 thru maxMsgs of inbox
+
+    set output to ""
+    repeat with m in msgs
+        set output to output & "===" & linefeed
+        set output to output & "FROM: " & sender of m & linefeed
+        set output to output & "SUBJECT: " & subject of m & linefeed
+        set output to output & "DATE: " & (date received of m as string) & linefeed
+        set output to output & "READ: " & read status of m & linefeed
+        set output to output & "TO: " & (address of every to recipient of m) & linefeed
+        set output to output & "CC: " & (address of every cc recipient of m) & linefeed
+        -- Read first 500 chars of body
+        set bodyText to content of m
+        if length of bodyText > 500 then
+            set bodyText to text 1 thru 500 of bodyText
+        end if
+        set output to output & "BODY: " & bodyText & linefeed
+    end repeat
+    return output
+end tell
+```
+
+**Reading archive:**
+```applescript
+tell application "Mail"
+    set archiveBox to mailbox "Archive" of account "Exchange"
+    set msgs to messages 1 thru N of archiveBox
+    -- same extraction loop
+end tell
+```
+
+**Reading full message body** (for important/complex emails that need deeper analysis):
+```applescript
+tell application "Mail"
+    set msg to message N of inbox
+    return content of msg
+end tell
+```
+
+**Key points:**
+- Process messages in batches (5-10 at a time) to avoid AppleScript timeouts
+- Use `content of m` for plain text body (reliable, fast)
+- For `--unread` flag: filter with `whose read status is false`
+- `message id of m` provides a unique identifier for each message
 
 ### 3. Classify New vs Previously Seen
 Compare current inbox against `inbox-state.json`:
@@ -156,17 +215,51 @@ Ask which to send, modify, or discard.
 }
 ```
 
-### 10. Create Drafts via Mac Outlook Reply All
+### 10. Create Reply Drafts via Outlook UI Scripting
 
 For each approved draft, create a Reply All draft using the Mac Outlook client. This produces proper formatting: reply text, signature, HR separator, and full quoted thread — all natively handled by Outlook.
 
 **Method**: Use AppleScript UI scripting with clipboard paste (NOT keystroke typing, which loses focus).
 
-```bash
-# Step 1: Set clipboard with reply text
-echo -n "reply text here" | pbcopy
+**Step 1: Find the target email row in Outlook's message list.**
 
-# Step 2: AppleScript to select email, Reply All, paste, save
+Before creating drafts, scan the message list to find each email's row number by matching sender/subject in `description of UI element 1 of row N of tbl`. The row numbers in Outlook match the order seen during the Apple Mail reading phase, but offset by +1 because row 1 is a date header (e.g., "Today, Expanded").
+
+```bash
+# Read Outlook message list to find target row
+osascript <<'SCRIPT'
+tell application "Microsoft Outlook" to activate
+delay 0.5
+tell application "System Events"
+  tell process "Microsoft Outlook"
+    set w to window "Inbox • All Accounts"
+    set sg to UI element 2 of w
+    set spg to splitter group 1 of sg
+    set spg2 to splitter group 1 of spg
+    set msgList to group 1 of spg2
+    set sa to scroll area 1 of msgList
+    set tbl to table 1 of sa
+
+    set output to ""
+    repeat with i from 1 to 10
+      try
+        set desc to description of UI element 1 of row i of tbl
+        set output to output & "ROW " & i & ": " & desc & linefeed
+      end try
+    end repeat
+    return output
+  end tell
+end tell
+SCRIPT
+```
+
+**Step 2: For each approved draft, set clipboard and create the reply.**
+
+```bash
+# Set clipboard with reply text
+printf '%s' "reply text here" | pbcopy
+
+# AppleScript to select email, Reply All, paste, save
 osascript <<'SCRIPT'
 tell application "Microsoft Outlook" to activate
 delay 0.5
@@ -206,13 +299,17 @@ end tell
 SCRIPT
 ```
 
-**Finding the right row**: Before creating drafts, scan the message list to find each email's row number by matching sender name in `description of UI element 1 of row N of tbl`.
+**For forwarding**: Use `click menu item "Forward" of menu "Message" of menu bar 1` instead of Reply All, then add the recipient in the To field before pasting.
 
 **For multi-line reply text**: Use `printf '%s' "line1\n\nline2" | pbcopy` to preserve newlines.
 
-**Important**: Always return to the Inbox folder after all drafts are created.
+**Key points:**
+- Outlook UI scripting produces proper: signature, HR separator, quoted thread, conversation threading
+- `keystroke` for typing text does NOT work (focus escapes to other apps) — always use clipboard + paste
+- Date header rows (e.g., "Today, Expanded") occupy row positions — account for them when targeting
+- Always return to the Inbox folder after all drafts are created
 
-**Fallback**: If Mac client is unavailable, use `/send-mail` to create new emails via AppleScript (does not include original thread).
+**Fallback**: If Mac Outlook client is unavailable, use `/send-mail` to create new emails via AppleScript (does not include original thread).
 </process>
 
 <specifications>
@@ -232,7 +329,7 @@ SCRIPT
 - Action recommendations with gists
 - Insights and patterns
 - Draft replies for actionable emails
-- Option to send via Outlook
+- Option to create reply drafts via Apple Mail
 </specifications>
 
 <examples>
@@ -240,26 +337,26 @@ SCRIPT
 
 ### Full workflow — briefing + drafts (auto-learns first)
 ```
-/draft
+/mail-review
 ```
 
 ### Just the briefing, no drafts
 ```
-/draft --briefing-only
+/mail-review --briefing-only
 ```
 
 ### Read last 50 from archive
 ```
-/draft archive --count 50
+/mail-review archive --count 50
 ```
 
 ### Only unread emails
 ```
-/draft --unread
+/mail-review --unread
 ```
 
 ### Learning mode only — process pending drafts
 ```
-/draft --learn
+/mail-review --learn
 ```
 </examples>
