@@ -39,25 +39,295 @@ SCRIPT_DIR = Path(__file__).parent
 ASSETS_DIR = SCRIPT_DIR.parent.parent / 'assets'
 CATALOG_PATH = ASSETS_DIR / 'slide-catalog.yaml'
 TEMPLATES_DIR = ASSETS_DIR / 'templates'
-def _find_pptx_scripts():
-    """Discover PPTX scripts directory dynamically."""
-    # Environment variable override
-    env_path = os.environ.get('PPTX_SCRIPTS_DIR')
-    if env_path:
-        p = Path(env_path)
-        if p.exists():
-            return p
+def rearrange_slides(template_path, output_path, indices):
+    """Extract specific slides from template PPTX by index (1-based).
 
-    # Dynamic discovery via glob
-    base = Path.home() / '.claude/plugins/cache/anthropic-agent-skills/document-skills'
-    candidates = sorted(base.glob('*/document-skills/pptx/scripts'), key=lambda p: p.stat().st_mtime, reverse=True)
-    if candidates:
-        return candidates[0]
+    Creates a new PPTX containing only the slides at the given indices,
+    preserving layouts, masters, and relationships.
+    """
+    ns_map = {
+        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+        'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+        'rel': 'http://schemas.openxmlformats.org/package/2006/relationships',
+        'ct': 'http://schemas.openxmlformats.org/package/2006/content-types',
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        src = tmp / 'src'
+        with zipfile.ZipFile(template_path, 'r') as zf:
+            zf.extractall(src)
 
-    return None
+        slides_dir = src / 'ppt' / 'slides'
+        rels_dir = slides_dir / '_rels'
+
+        # Parse presentation.xml to get slide order
+        pres_path = src / 'ppt' / 'presentation.xml'
+        pres_tree = ET.parse(pres_path)
+        pres_root = pres_tree.getroot()
+        sld_id_lst = pres_root.find('.//{http://schemas.openxmlformats.org/presentationml/2006/main}sldIdLst')
+        if sld_id_lst is None:
+            raise RuntimeError("No sldIdLst found in presentation.xml")
+
+        sld_ids = list(sld_id_lst)
+
+        # Parse presentation.xml.rels to map rIds to slide files
+        pres_rels_path = src / 'ppt' / '_rels' / 'presentation.xml.rels'
+        pres_rels_tree = ET.parse(pres_rels_path)
+        rid_to_target = {}
+        for rel in pres_rels_tree.getroot():
+            rid = rel.get('Id')
+            target = rel.get('Target')
+            if target and 'slides/slide' in target:
+                rid_to_target[rid] = target
+
+        # Build ordered list of slide files from presentation
+        ordered_slides = []
+        for sld_id in sld_ids:
+            rid = sld_id.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
+            if rid and rid in rid_to_target:
+                ordered_slides.append(rid_to_target[rid])
+
+        # Select slides by 1-based index
+        keep_targets = set()
+        for idx in indices:
+            if 1 <= idx <= len(ordered_slides):
+                keep_targets.add(ordered_slides[idx - 1])
+
+        # Remove slides not in keep list
+        remove_targets = set()
+        for sld_id in list(sld_id_lst):
+            rid = sld_id.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
+            if rid and rid in rid_to_target:
+                target = rid_to_target[rid]
+                if target not in keep_targets:
+                    remove_targets.add(target)
+                    sld_id_lst.remove(sld_id)
+
+        # Reorder kept slides to match requested order
+        remaining = list(sld_id_lst)
+        for item in remaining:
+            sld_id_lst.remove(item)
+        for idx in indices:
+            target = ordered_slides[idx - 1] if 1 <= idx <= len(ordered_slides) else None
+            if target:
+                for item in remaining:
+                    rid = item.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
+                    if rid and rid_to_target.get(rid) == target:
+                        sld_id_lst.append(item)
+                        break
+
+        pres_tree.write(pres_path, xml_declaration=True, encoding='UTF-8')
+
+        # Delete removed slide files and their rels
+        for target in remove_targets:
+            slide_file = src / 'ppt' / target
+            if slide_file.exists():
+                slide_file.unlink()
+            rels_file = slides_dir / '_rels' / (Path(target).name + '.rels')
+            if rels_file.exists():
+                rels_file.unlink()
+
+        # Repack
+        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for fp in src.rglob('*'):
+                if fp.is_file():
+                    zf.write(fp, fp.relative_to(src))
 
 
-PPTX_SCRIPTS = _find_pptx_scripts()
+def extract_inventory(pptx_path):
+    """Extract text shape inventory from PPTX.
+
+    Returns dict: {"slide-0": {"Shape Name": {top, left, width, height, ...}}, ...}
+    """
+    ns = {
+        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+        'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+    }
+    EMU_TO_INCHES = 914400
+
+    inventory = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        with zipfile.ZipFile(pptx_path, 'r') as zf:
+            zf.extractall(tmp)
+
+        slides_dir = tmp / 'ppt' / 'slides'
+        slide_files = sorted(slides_dir.glob('slide*.xml'),
+                             key=lambda f: int(re.search(r'(\d+)', f.name).group()))
+
+        for slide_idx, slide_file in enumerate(slide_files):
+            slide_key = f"slide-{slide_idx}"
+            inventory[slide_key] = {}
+
+            tree = ET.parse(slide_file)
+            root = tree.getroot()
+
+            for sp in root.findall('.//p:sp', ns):
+                # Get shape name
+                nvSpPr = sp.find('.//p:nvSpPr/p:cNvPr', ns)
+                if nvSpPr is None:
+                    continue
+                name = nvSpPr.get('name', '')
+
+                # Get position/size
+                xfrm = sp.find('.//p:spPr/a:xfrm', ns)
+                if xfrm is None:
+                    xfrm = sp.find('.//a:xfrm', ns)
+
+                top = left = width = height = 0
+                if xfrm is not None:
+                    off = xfrm.find('a:off', ns)
+                    ext = xfrm.find('a:ext', ns)
+                    if off is not None:
+                        left = int(off.get('x', 0)) / EMU_TO_INCHES
+                        top = int(off.get('y', 0)) / EMU_TO_INCHES
+                    if ext is not None:
+                        width = int(ext.get('cx', 0)) / EMU_TO_INCHES
+                        height = int(ext.get('cy', 0)) / EMU_TO_INCHES
+
+                # Get placeholder type
+                nvPr = sp.find('.//p:nvSpPr/p:nvPr', ns)
+                ph_type = ''
+                if nvPr is not None:
+                    ph = nvPr.find('p:ph', ns)
+                    if ph is not None:
+                        ph_type = ph.get('type', '')
+
+                # Check for text body
+                txBody = sp.find('.//p:txBody', ns)
+                if txBody is None:
+                    txBody = sp.find('.//a:txBody', ns)
+                if txBody is None:
+                    continue
+
+                # Extract paragraphs info
+                paras = []
+                default_font_size = 11
+                for para in txBody.findall('a:p', ns):
+                    text_parts = []
+                    for r_elem in para.findall('a:r', ns):
+                        t = r_elem.find('a:t', ns)
+                        if t is not None and t.text:
+                            text_parts.append(t.text)
+                        rPr = r_elem.find('a:rPr', ns)
+                        if rPr is not None:
+                            sz = rPr.get('sz')
+                            if sz:
+                                default_font_size = int(sz) / 100
+                    paras.append({'text': ''.join(text_parts)})
+
+                inventory[slide_key][name] = {
+                    'top': round(top, 2),
+                    'left': round(left, 2),
+                    'width': round(width, 2),
+                    'height': round(height, 2),
+                    'placeholder_type': ph_type,
+                    'default_font_size': default_font_size,
+                    'paragraphs': paras,
+                }
+
+    return inventory
+
+
+def apply_replacements(pptx_path, replacements, output_path):
+    """Apply text replacements to PPTX shapes.
+
+    replacements: {"slide-0": {"Shape Name": {"paragraphs": [{"text": "...", ...}]}}}
+    """
+    ns = {
+        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+    }
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        with zipfile.ZipFile(pptx_path, 'r') as zf:
+            zf.extractall(tmp)
+
+        slides_dir = tmp / 'ppt' / 'slides'
+        slide_files = sorted(slides_dir.glob('slide*.xml'),
+                             key=lambda f: int(re.search(r'(\d+)', f.name).group()))
+
+        for slide_idx, slide_file in enumerate(slide_files):
+            slide_key = f"slide-{slide_idx}"
+            if slide_key not in replacements:
+                continue
+
+            tree = ET.parse(slide_file)
+            root = tree.getroot()
+            modified = False
+
+            for sp in root.findall('.//p:sp', ns):
+                nvSpPr = sp.find('.//p:nvSpPr/p:cNvPr', ns)
+                if nvSpPr is None:
+                    continue
+                name = nvSpPr.get('name', '')
+
+                if name not in replacements[slide_key]:
+                    continue
+
+                repl = replacements[slide_key][name]
+                new_paras = repl.get('paragraphs', [])
+
+                txBody = sp.find('.//p:txBody', ns)
+                if txBody is None:
+                    txBody = sp.find('.//a:txBody', ns)
+                if txBody is None:
+                    continue
+
+                # Remove existing paragraphs
+                for p_elem in txBody.findall('a:p', ns):
+                    txBody.remove(p_elem)
+
+                # Add new paragraphs
+                if not new_paras:
+                    # Empty paragraph to keep valid XML
+                    p_elem = ET.SubElement(txBody, '{http://schemas.openxmlformats.org/drawingml/2006/main}p')
+                    ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}endParaRPr')
+                else:
+                    for para_spec in new_paras:
+                        p_elem = ET.SubElement(txBody, '{http://schemas.openxmlformats.org/drawingml/2006/main}p')
+
+                        # Paragraph properties (bullets)
+                        if para_spec.get('bullet'):
+                            pPr = ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}pPr')
+                            level = para_spec.get('level', 0)
+                            pPr.set('lvl', str(level))
+                            buChar = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buChar')
+                            buChar.set('char', '\u2022')
+
+                        # Run with text
+                        r_elem = ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}r')
+
+                        # Run properties
+                        rPr = ET.SubElement(r_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}rPr')
+                        rPr.set('lang', 'el-GR')
+                        rPr.set('dirty', '0')
+                        if para_spec.get('bold'):
+                            rPr.set('b', '1')
+                        if para_spec.get('font_name'):
+                            latin = ET.SubElement(rPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}latin')
+                            latin.set('typeface', para_spec['font_name'])
+                        if para_spec.get('color'):
+                            solidFill = ET.SubElement(rPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}solidFill')
+                            srgbClr = ET.SubElement(solidFill, '{http://schemas.openxmlformats.org/drawingml/2006/main}srgbClr')
+                            srgbClr.set('val', para_spec['color'])
+
+                        # Text
+                        t = ET.SubElement(r_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}t')
+                        t.text = para_spec.get('text', '')
+
+                modified = True
+
+            if modified:
+                tree.write(slide_file, xml_declaration=True, encoding='UTF-8')
+
+        # Repack
+        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for fp in tmp.rglob('*'):
+                if fp.is_file():
+                    zf.write(fp, fp.relative_to(tmp))
 
 
 def load_catalog():
@@ -141,16 +411,6 @@ def normalize_slide_type(slide_type, recommended_visual=None):
     return type_mapping.get(slide_type, 'content/text_with_bullets')
 
 
-def run_command(cmd, description):
-    """Run a command and handle errors."""
-    print(f"  {description}...")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"    Warning: {result.stderr.split(chr(10))[0]}")
-        return False
-    return True
-
-
 def clear_slide_numbers(pptx_path):
     """Clear static slide number text from all slides.
 
@@ -231,12 +491,6 @@ def build_presentation(outline_path, output_path):
         template = outline.get('template', 'GR')
         slides = outline.get('slides', [])
 
-    if PPTX_SCRIPTS is None:
-        raise RuntimeError(
-            "PPTX scripts not found. Install the document-skills plugin or set PPTX_SCRIPTS_DIR environment variable.\n"
-            f"Expected location: {Path.home() / '.claude/plugins/cache/anthropic-agent-skills/document-skills/*/document-skills/pptx/scripts'}"
-        )
-
     if not slides:
         raise ValueError("No slides defined in outline")
 
@@ -277,43 +531,22 @@ def build_presentation(outline_path, output_path):
 
         # Step 1: Rearrange slides
         print(f"\n[1/4] Extracting slides from template...")
-        cmd = [
-            'python', str(PPTX_SCRIPTS / 'rearrange.py'),
-            str(template_path), str(working),
-            ','.join(str(i) for i in indices)
-        ]
-        if not run_command(cmd, "Rearranging"):
-            raise RuntimeError("Failed to rearrange slides")
+        rearrange_slides(template_path, working, indices)
+        print(f"  Extracted {len(indices)} slides")
 
         # Step 2: Extract inventory
         print(f"\n[2/4] Analyzing slide structure...")
-        inventory_file = temp / 'inventory.json'
-        cmd = [
-            'python', str(PPTX_SCRIPTS / 'inventory.py'),
-            str(working), str(inventory_file)
-        ]
-        run_command(cmd, "Extracting inventory")
-
-        with open(inventory_file, 'r') as f:
-            inventory = json.load(f)
+        inventory = extract_inventory(working)
+        print(f"  Found shapes in {len(inventory)} slides")
 
         # Step 3: Build smart replacements
         print(f"\n[3/4] Preparing content...")
         replacements = build_smart_replacements(slides, inventory, resolved_types)
 
-        replacements_file = temp / 'replacements.json'
-        with open(replacements_file, 'w') as f:
-            json.dump(replacements, f, indent=2)
-
         # Step 4: Apply replacements
         print(f"\n[4/4] Applying content...")
         final = temp / 'final.pptx'
-        cmd = [
-            'python', str(PPTX_SCRIPTS / 'replace.py'),
-            str(working), str(replacements_file), str(final)
-        ]
-
-        success = run_command(cmd, "Replacing text")
+        apply_replacements(working, replacements, final)
 
         # Use the best available output
         if final.exists():
