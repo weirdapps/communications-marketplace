@@ -127,6 +127,30 @@ def rearrange_slides(template_path, output_path, indices):
             if rels_file.exists():
                 rels_file.unlink()
 
+        # Clean up [Content_Types].xml — remove overrides for deleted slides
+        ct_path = src / '[Content_Types].xml'
+        if ct_path.exists():
+            ct_tree = ET.parse(ct_path)
+            ct_root = ct_tree.getroot()
+            ct_ns = 'http://schemas.openxmlformats.org/package/2006/content-types'
+            keep_slide_names = set()
+            for target in keep_targets:
+                keep_slide_names.add(Path(target).name)
+            for override in list(ct_root):
+                part = override.get('PartName', '')
+                if '/ppt/slides/slide' in part:
+                    slide_name = part.split('/')[-1]
+                    if slide_name not in keep_slide_names:
+                        ct_root.remove(override)
+            ct_tree.write(ct_path, xml_declaration=True, encoding='UTF-8')
+
+        # Remove presentation.xml.rels entries for deleted slides
+        for rel in list(pres_rels_tree.getroot()):
+            target = rel.get('Target', '')
+            if target in remove_targets:
+                pres_rels_tree.getroot().remove(rel)
+        pres_rels_tree.write(pres_rels_path, xml_declaration=True, encoding='UTF-8')
+
         # Repack
         with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
             for fp in src.rglob('*'):
@@ -289,13 +313,24 @@ def apply_replacements(pptx_path, replacements, output_path):
                     for para_spec in new_paras:
                         p_elem = ET.SubElement(txBody, '{http://schemas.openxmlformats.org/drawingml/2006/main}p')
 
-                        # Paragraph properties (bullets)
-                        if para_spec.get('bullet'):
+                        # Paragraph properties (bullets, spacing)
+                        if para_spec.get('bullet') or para_spec.get('space_before'):
                             pPr = ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}pPr')
-                            level = para_spec.get('level', 0)
-                            pPr.set('lvl', str(level))
-                            buChar = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buChar')
-                            buChar.set('char', '\u2022')
+                            if para_spec.get('bullet'):
+                                level = para_spec.get('level', 0)
+                                pPr.set('lvl', str(level))
+                                # NBG bullet: • in Arial, Bright Cyan #00DFF8
+                                buFont = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buFont')
+                                buFont.set('typeface', para_spec.get('bullet_font', 'Arial'))
+                                buClr = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buClr')
+                                buSrgb = ET.SubElement(buClr, '{http://schemas.openxmlformats.org/drawingml/2006/main}srgbClr')
+                                buSrgb.set('val', para_spec.get('bullet_color', '00DFF8'))
+                                buChar = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buChar')
+                                buChar.set('char', '\u2022')
+                            if para_spec.get('space_before'):
+                                spcBef = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}spcBef')
+                                spcPts = ET.SubElement(spcBef, '{http://schemas.openxmlformats.org/drawingml/2006/main}spcPts')
+                                spcPts.set('val', str(int(para_spec['space_before'] * 100)))
 
                         # Run with text
                         r_elem = ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}r')
@@ -306,6 +341,8 @@ def apply_replacements(pptx_path, replacements, output_path):
                         rPr.set('dirty', '0')
                         if para_spec.get('bold'):
                             rPr.set('b', '1')
+                        if para_spec.get('font_size'):
+                            rPr.set('sz', str(int(para_spec['font_size'] * 100)))
                         if para_spec.get('font_name'):
                             latin = ET.SubElement(rPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}latin')
                             latin.set('typeface', para_spec['font_name'])
@@ -379,15 +416,15 @@ def normalize_slide_type(slide_type, recommended_visual=None):
         'line_chart': 'charts/line_single',
         'waterfall_chart': 'charts/bar_single',  # Use bar_single to avoid decorative triangles
         'comparison_chart': 'charts/bar_dual',
-        'kpi_dashboard': 'content/text_with_bullets',      # Simpler than infographic
-        'numbered_infographic': 'content/text_with_bullets', # Simpler than infographic
-        'timeline': 'content/text_with_bullets',            # Simpler than infographic
-        'process': 'content/text_with_bullets',             # Simpler than infographic
-        'funnel': 'content/text_with_bullets',              # Simpler than infographic
+        'kpi_dashboard': 'content/text_only',                 # Clean layout, no decorative elements
+        'numbered_infographic': 'content/text_only',         # Clean layout, no decorative elements
+        'timeline': 'content/text_only',                     # Clean layout, no decorative elements
+        'process': 'content/text_only',                      # Clean layout, no decorative elements
+        'funnel': 'content/text_only',                       # Clean layout, no decorative elements
         'table': 'tables/half_page',
         'comparison_table': 'tables/comparison',
-        'icons': 'content/text_with_bullets',               # Simpler than infographic
-        'none': 'content/text_with_bullets',
+        'icons': 'content/text_only',                         # Clean layout, no decorative elements
+        'none': 'content/text_only',
     }
 
     # If recommended_visual is provided and matches, use it
@@ -399,7 +436,7 @@ def normalize_slide_type(slide_type, recommended_visual=None):
     type_mapping = {
         'cover': 'covers/quiet',              # Minimal cover (slide 21)
         'divider': 'dividers/quiet_white',    # Clean divider with simple rect (slide 72)
-        'content': 'content/text_with_bullets',
+        'content': 'content/text_only',
         'chart': 'charts/bar_dual',
         'infographic': 'infographics/numbered_6',
         'table': 'tables/half_page',
@@ -408,7 +445,118 @@ def normalize_slide_type(slide_type, recommended_visual=None):
         'summary': 'content/text_with_bullets',
     }
 
-    return type_mapping.get(slide_type, 'content/text_with_bullets')
+    return type_mapping.get(slide_type, 'content/text_only')
+
+
+def clean_template_artifacts(pptx_path):
+    """Remove template artifacts that violate NBG guidelines.
+
+    1. Strip decorative shapes (triangles, ellipses) that aren't content
+    2. Remove orphaned chart files not referenced by kept slides
+    3. Set text box margins to 0 (NBG requirement)
+    """
+    ns = {
+        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+    }
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        with zipfile.ZipFile(pptx_path, 'r') as zf:
+            zf.extractall(tmp)
+
+        slides_dir = tmp / 'ppt' / 'slides'
+        rels_dir = slides_dir / '_rels'
+
+        # Collect all chart/media references from kept slides
+        referenced_charts = set()
+        for slide_file in slides_dir.glob('slide*.xml'):
+            rels_file = rels_dir / (slide_file.name + '.rels')
+            if rels_file.exists():
+                rels_tree = ET.parse(rels_file)
+                for rel in rels_tree.getroot():
+                    target = rel.get('Target', '')
+                    if 'chart' in target:
+                        referenced_charts.add(target.split('/')[-1])
+
+        # Remove orphaned chart files
+        charts_dir = tmp / 'ppt' / 'charts'
+        if charts_dir.exists():
+            for chart_file in charts_dir.glob('chart*.xml'):
+                if chart_file.name not in referenced_charts:
+                    chart_file.unlink()
+                    # Also remove chart rels
+                    chart_rels = charts_dir / '_rels' / (chart_file.name + '.rels')
+                    if chart_rels.exists():
+                        chart_rels.unlink()
+
+        # Process each slide
+        for slide_file in slides_dir.glob('slide*.xml'):
+            tree = ET.parse(slide_file)
+            root = tree.getroot()
+            modified = False
+
+            sp_tree = root.find('.//{http://schemas.openxmlformats.org/presentationml/2006/main}spTree')
+            if sp_tree is None:
+                continue
+
+            # Remove decorative shapes (triangles, rounded rects with no text)
+            # Check both direct sp children AND group shapes (grpSp)
+            decorative_geoms = ('triangle', 'rtTriangle', 'ellipse', 'roundRect')
+            for child in list(sp_tree):
+                tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+
+                if tag == 'grpSp':
+                    # Group shape — check if it contains only decorative elements
+                    geoms = [g.get('prst', '') for g in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}prstGeom')]
+                    texts = [t.text for t in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}t') if t.text and t.text.strip()]
+                    if geoms and all(g in decorative_geoms for g in geoms) and not texts:
+                        sp_tree.remove(child)
+                        modified = True
+                        continue
+
+                if tag != 'sp':
+                    continue
+
+                # Check if shape is a decorative element
+                prstGeom = child.find('.//{http://schemas.openxmlformats.org/drawingml/2006/main}prstGeom')
+                if prstGeom is not None:
+                    prst = prstGeom.get('prst', '')
+                    if prst in decorative_geoms:
+                        texts = [t.text for t in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}t') if t.text and t.text.strip()]
+                        if not texts:
+                            sp_tree.remove(child)
+                            modified = True
+                            continue
+
+                # Set text box margins to 0 (NBG requirement: margin: 0 always)
+                # Must explicitly set all four — OOXML defaults are non-zero
+                for bodyPr in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}bodyPr'):
+                    for attr in ('lIns', 'tIns', 'rIns', 'bIns'):
+                        bodyPr.set(attr, '0')
+                    modified = True
+
+            if modified:
+                tree.write(slide_file, xml_declaration=True, encoding='UTF-8')
+
+        # Clean up content types for orphaned charts
+        ct_path = tmp / '[Content_Types].xml'
+        if ct_path.exists():
+            ct_tree = ET.parse(ct_path)
+            ct_root = ct_tree.getroot()
+            for override in list(ct_root):
+                part = override.get('PartName', '')
+                if '/ppt/charts/chart' in part:
+                    chart_name = part.split('/')[-1]
+                    if chart_name not in referenced_charts:
+                        ct_root.remove(override)
+            ct_tree.write(ct_path, xml_declaration=True, encoding='UTF-8')
+
+        # Repack
+        with zipfile.ZipFile(pptx_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for fp in tmp.rglob('*'):
+                if fp.is_file():
+                    zf.write(fp, fp.relative_to(tmp))
 
 
 def clear_slide_numbers(pptx_path):
@@ -555,8 +703,16 @@ def build_presentation(outline_path, output_path):
             shutil.copy(working, output_path)
             print("  Using template (text replacement skipped)")
 
+    # Clean template artifacts (decorative shapes, orphaned charts, margins)
+    print("\n[5/6] Cleaning template artifacts...")
+    try:
+        clean_template_artifacts(output_path)
+        print("  Removed decorative shapes, orphaned charts, fixed margins")
+    except Exception as e:
+        print(f"  Warning: Could not clean artifacts: {e}")
+
     # Clear static slide numbers from template
-    print("\n[5/5] Cleaning up slide numbers...")
+    print("\n[6/6] Cleaning up slide numbers...")
     try:
         clear_slide_numbers(output_path)
         print("  Cleared static slide numbers")
@@ -670,11 +826,11 @@ def build_smart_replacements(slides, inventory, resolved_types=None):
             for shape_name, shape_info in sorted_shapes:
                 if shape_name == number_shape and 'number' in content:
                     replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['number'], "font_name": NBG_FONT, "bold": True, "color": colors['number']}]
+                        "paragraphs": [{"text": content['number'], "font_name": NBG_FONT, "font_size": 60, "color": colors['number']}]
                     }
                 elif shape_name == title_shape and 'title' in content:
                     replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "bold": True, "color": colors['title']}]
+                        "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "font_size": 48, "color": colors['title']}]
                     }
                 else:
                     replacements[slide_key][shape_name] = {"paragraphs": []}
@@ -709,17 +865,20 @@ def build_smart_replacements(slides, inventory, resolved_types=None):
             continue
 
         if is_cover:
-            # Cover slides: map title, subtitle, location, date to shapes in order
-            # Use accessible colors based on background
+            # Cover slides: NBG typography hierarchy
+            # Title: 48pt, Dark Teal #003841, Regular weight
+            # Subtitle: 36pt, NBG Teal #007B85
+            # Location: 14pt, Dark Teal #003841
+            # Date: 14pt, Medium Gray #939793
             content_items = []
             if 'title' in content:
-                content_items.append({'text': content['title'], 'font_name': NBG_FONT, 'bold': True, 'color': colors['title']})
+                content_items.append({'text': content['title'], 'font_name': NBG_FONT, 'font_size': 48, 'color': colors['title']})
             if 'subtitle' in content:
-                content_items.append({'text': content['subtitle'], 'font_name': NBG_FONT, 'color': colors['body']})
+                content_items.append({'text': content['subtitle'], 'font_name': NBG_FONT, 'font_size': 36, 'color': '007B85'})
             if 'location' in content:
-                content_items.append({'text': content['location'], 'font_name': NBG_FONT, 'color': colors['body']})
+                content_items.append({'text': content['location'], 'font_name': NBG_FONT, 'font_size': 14, 'color': colors['title']})
             if 'date' in content:
-                content_items.append({'text': content['date'], 'font_name': NBG_FONT, 'color': colors['body']})
+                content_items.append({'text': content['date'], 'font_name': NBG_FONT, 'font_size': 14, 'color': '939793'})
 
             for i, (shape_name, shape_info) in enumerate(sorted_shapes):
                 if i < len(content_items):
@@ -764,28 +923,32 @@ def build_smart_replacements(slides, inventory, resolved_types=None):
             # Get hyper title - support both 'bumper' (McKinsey) and 'hyper_title' (legacy)
             hyper_text = content.get('bumper') or content.get('hyper_title')
 
-            # Build replacements with Aptos font and accessible colors
+            # Build replacements with NBG typography hierarchy
+            # Content title: 24pt, Dark Teal, Regular weight (NOT bold)
+            # Bumper: 12pt, NBG Teal #007B85
+            # Body bullets: 14pt L1, spacing before 14pt, bullet in Arial Bright Cyan
             for shape_name, shape_info in sorted_shapes:
                 if shape_name == hyper_title_shape and hyper_text:
                     replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": hyper_text, "font_name": NBG_FONT, "color": colors['number']}]
+                        "paragraphs": [{"text": hyper_text, "font_name": NBG_FONT, "font_size": 12, "color": colors['number']}]
                     }
                 elif shape_name == title_shape and 'title' in content:
                     replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "bold": True, "color": colors['title']}]
+                        "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "font_size": 24, "color": colors['title']}]
                     }
                 elif shape_name == body_shape and body_content:
                     paras = []
                     for p in body_content:
                         if isinstance(p, dict):
-                            para = {'text': p.get('text', ''), 'font_name': NBG_FONT, 'color': colors['body']}
+                            para = {'text': p.get('text', ''), 'font_name': NBG_FONT, 'font_size': 14, 'color': colors['body']}
                             if p.get('bullet'):
                                 para['bullet'] = True
                                 para['level'] = 0
+                                para['space_before'] = 14
                             paras.append(para)
                         else:
                             # McKinsey points are strings - convert to bullet points
-                            paras.append({'text': str(p), 'font_name': NBG_FONT, 'bullet': True, 'level': 0, 'color': colors['body']})
+                            paras.append({'text': str(p), 'font_name': NBG_FONT, 'font_size': 14, 'bullet': True, 'level': 0, 'color': colors['body'], 'space_before': 14})
                     replacements[slide_key][shape_name] = {"paragraphs": paras}
                 else:
                     # Clear other shapes

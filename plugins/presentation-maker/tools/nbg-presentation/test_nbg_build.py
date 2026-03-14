@@ -21,7 +21,7 @@ def test_normalize_slide_type_passthrough():
 def test_normalize_slide_type_mckinsey_mapping():
     """McKinsey types map to catalog paths."""
     assert nbg_build.normalize_slide_type("cover") == "covers/quiet"
-    assert nbg_build.normalize_slide_type("content") == "content/text_with_bullets"
+    assert nbg_build.normalize_slide_type("content") == "content/text_only"
     assert nbg_build.normalize_slide_type("back_cover") == "back_covers/quiet"
     assert nbg_build.normalize_slide_type("divider") == "dividers/quiet_white"
 
@@ -30,12 +30,12 @@ def test_normalize_slide_type_with_visual():
     """recommended_visual hint overrides base type."""
     assert nbg_build.normalize_slide_type("content", "bar_chart") == "charts/bar_single"
     assert nbg_build.normalize_slide_type("content", "table") == "tables/half_page"
-    assert nbg_build.normalize_slide_type("content", "kpi_dashboard") == "content/text_with_bullets"
+    assert nbg_build.normalize_slide_type("content", "kpi_dashboard") == "content/text_only"
 
 
 def test_normalize_slide_type_unknown_defaults():
     """Unknown types default to content/text_with_bullets."""
-    assert nbg_build.normalize_slide_type("unknown_type") == "content/text_with_bullets"
+    assert nbg_build.normalize_slide_type("unknown_type") == "content/text_only"
 
 
 def test_load_catalog_returns_valid_structure():
