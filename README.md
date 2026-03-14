@@ -6,7 +6,7 @@ A marketplace of communication and productivity plugins for Claude Code. Install
 
 | Plugin | Version | Category | Description |
 |--------|---------|----------|-------------|
-| [presentation-maker](./plugins/presentation-maker/) | v3.1 | Presentations | Multi-agent system for McKinsey-quality, board-ready NBG presentations |
+| [presentation-maker](./plugins/presentation-maker/) | v3.2 | Presentations | Multi-agent system for McKinsey-quality, board-ready NBG presentations |
 | [creative-toolkit](./plugins/creative-toolkit/) | v1.0 | Creative | Reusable agents for icon design, data visualization, and device mockups |
 | [email-handler](./plugins/email-handler/) | v2.0 | Communications | Email command center with inbox briefings, style-matched drafts, and self-learning |
 
@@ -75,7 +75,7 @@ communications-marketplace/
 ├── .claude-plugin/
 │   └── marketplace.json         # Marketplace manifest (lists all plugins)
 ├── plugins/
-│   ├── presentation-maker/      # NBG presentation system (v3.1)
+│   ├── presentation-maker/      # NBG presentation system (v3.2)
 │   │   ├── plugin.json          # Plugin manifest
 │   │   ├── orchestrator/        # Master orchestrator (nbg-presenter)
 │   │   ├── agents/              # Storyline Architect, Storyboard Designer, Graphics Renderer
@@ -101,7 +101,14 @@ communications-marketplace/
 │   └── _template/               # Template for new plugins
 │
 ├── docs/
-│   └── creating-plugins.md      # Guide for creating new plugins
+│   ├── creating-plugins.md      # Guide for creating new plugins
+│   └── agent-contracts.md       # Cross-plugin API contracts
+│
+├── schemas/
+│   └── plugin.schema.json       # JSON Schema for plugin.json validation
+│
+├── .github/workflows/
+│   └── validate.yml             # CI validation pipeline
 │
 ├── install.sh                   # Interactive installer
 ├── uninstall.sh                 # Uninstaller

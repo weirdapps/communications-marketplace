@@ -6,7 +6,7 @@ Plugin marketplace for Claude Code providing communication and productivity work
 
 ```
 plugins/
-├── presentation-maker/      # Multi-agent presentation system (v3.1)
+├── presentation-maker/      # Multi-agent presentation system (v3.2)
 │   ├── orchestrator/        # Master workflow orchestrator
 │   ├── agents/              # Storyline, Storyboard, Graphics agents
 │   ├── shared/nbg-brand-system/  # Brand source of truth

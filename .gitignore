@@ -27,5 +27,11 @@ venv/
 *.tmp
 *.bak
 
+# Binary documents (don't track large files)
+*.pdf
+
+# Python testing
+.pytest_cache/
+
 # User-specific configuration (personal style, recipient profiles)
 plugins/email-handler/shared/style-guide.md
