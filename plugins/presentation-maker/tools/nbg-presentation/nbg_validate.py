@@ -17,7 +17,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from xml.etree import ElementTree as ET
+import defusedxml.ElementTree as ET
 
 # NBG Brand Guidelines
 NBG_GUIDELINES = {
@@ -529,13 +529,19 @@ def check_text_margins(unpacked_dir: Path) -> ValidationResult:
         tree = ET.parse(slide_file)
         root = tree.getroot()
 
-        for bodyPr in root.findall('.//{%s}bodyPr' % NAMESPACES['a']):
-            # Default margins in OOXML are 91440 EMU (0.1 inch)
-            # NBG requires 0
+        for sp in root.findall('.//{%s}sp' % NAMESPACES['p']):
+            bodyPr = sp.find('.//{%s}bodyPr' % NAMESPACES['a'])
+            if bodyPr is None:
+                continue
+
+            # Skip shapes with solid fills (bumper pills, cards) — they use
+            # intentional padding for visual alignment inside the shape
+            spPr = sp.find('.//{%s}spPr' % NAMESPACES['p'])
+            if spPr is not None and spPr.find('.//{%s}solidFill' % NAMESPACES['a']) is not None:
+                continue
+
             lIns = int(bodyPr.get('lIns', '91440'))
-            tIns = int(bodyPr.get('tIns', '45720'))
             rIns = int(bodyPr.get('rIns', '91440'))
-            bIns = int(bodyPr.get('bIns', '45720'))
 
             # If any margin is > 50000 EMU (~0.05 inch), flag it
             if lIns > 50000 or rIns > 50000:

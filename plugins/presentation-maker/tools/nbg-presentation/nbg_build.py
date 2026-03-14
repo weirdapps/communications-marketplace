@@ -1,371 +1,661 @@
 #!/usr/bin/env python3
 """
-NBG Presentation Builder - McKinsey Quality Version
+NBG Presentation Builder
 
-Creates NBG-formatted presentations from YAML storylines following McKinsey standards:
-- Pyramid Principle: Lead with the answer
-- SCQA Framework: Situation, Complication, Question, Answer
-- Action Titles: Full sentences that tell the story
-- One Message Per Slide
-
-Supports two input formats:
-1. Simple format (slides array at root)
-2. McKinsey format (presentation object with slides)
+Creates NBG-branded presentations from scratch using python-pptx.
+Every slide is built programmatically with exact NBG brand specifications:
+- White backgrounds on ALL slides
+- Aptos font throughout, margin: 0, valign: top
+- Pixel-perfect positioning per the brand system
+- Cyan bullets, proper typography hierarchy
+- Logo placement, page numbers on content slides only
 
 Usage:
     python nbg_build.py storyline.yaml output.pptx
 """
 
-import json
-import os
-import re
-import shutil
 import subprocess
 import sys
-import tempfile
-import zipfile
 from pathlib import Path
-from xml.etree import ElementTree as ET
 
 import yaml
 
-# Register namespaces to preserve them in output
-ET.register_namespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main')
-ET.register_namespace('r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships')
-ET.register_namespace('p', 'http://schemas.openxmlformats.org/presentationml/2006/main')
+# python-pptx and lxml are required for building presentations.
+# Imported conditionally so tests that only exercise normalize_slide_type()
+# and load_catalog() can run without these heavy dependencies.
+try:
+    from lxml.etree import SubElement
+    from pptx import Presentation
+    from pptx.dml.color import RGBColor
+    from pptx.enum.text import PP_ALIGN
+    from pptx.oxml.ns import qn
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
+    from pptx.enum.shapes import MSO_SHAPE
+    from pptx.util import Inches, Pt
+    _HAS_PPTX = True
+except ImportError:
+    _HAS_PPTX = False
 
+# ---------------------------------------------------------------------------
 # Paths
+# ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).parent
 ASSETS_DIR = SCRIPT_DIR.parent.parent / 'assets'
 CATALOG_PATH = ASSETS_DIR / 'slide-catalog.yaml'
 TEMPLATES_DIR = ASSETS_DIR / 'templates'
-def rearrange_slides(template_path, output_path, indices):
-    """Extract specific slides from template PPTX by index (1-based).
 
-    Creates a new PPTX containing only the slides at the given indices,
-    preserving layouts, masters, and relationships.
+# Logo assets — PNG for python-pptx compatibility (SVG not supported)
+LOGO_PNG = ASSETS_DIR / 'nbg-logo-gr.png'
+BACK_COVER_LOGO_PNG = ASSETS_DIR / 'nbg-back-cover-logo.png'
+
+# ---------------------------------------------------------------------------
+# NBG Brand Constants
+# ---------------------------------------------------------------------------
+FONT = 'Aptos'
+FONT_BULLET = 'Arial'
+
+if _HAS_PPTX:
+    # Colors (RGBColor objects)
+    C_DARK_TEAL = RGBColor(0x00, 0x38, 0x41)   # Titles, icons
+    C_TEAL = RGBColor(0x00, 0x7B, 0x85)         # Brand accent, section numbers
+    C_BRIGHT_CYAN = RGBColor(0x00, 0xDF, 0xF8)  # Bullets ONLY
+    C_DARK_TEXT = RGBColor(0x20, 0x20, 0x20)     # Body text
+    C_MEDIUM_GRAY = RGBColor(0x93, 0x97, 0x93)  # Page numbers, dates
+    C_WHITE = RGBColor(0xFF, 0xFF, 0xFF)         # Backgrounds
+
+    # Slide dimensions
+    SLIDE_WIDTH = Inches(13.33)
+    SLIDE_HEIGHT = Inches(7.5)
+
+# Logo positions (inches) — per brand system dimensions.md
+LOGO_SMALL = {'x': 0.374, 'y': 7.071, 'w': 0.822, 'h': 0.236}
+LOGO_LARGE = {'x': 0.374, 'y': 6.271, 'w': 2.191, 'h': 0.630}
+LOGO_BACK = {'x': 5.44, 'y': 2.98, 'w': 2.45, 'h': 1.54}
+
+# Page number position (equal margins from right and bottom edges)
+PAGE_NUM = {'x': 12.71, 'y': 7.1554, 'w': 0.33, 'h': 0.152}
+
+
+# ---------------------------------------------------------------------------
+# Helper functions
+# ---------------------------------------------------------------------------
+
+def _add_textbox(slide, x, y, w, h, text, *,
+                 font_size=14, color=None, bold=False,
+                 align=None, font_name=FONT):
+    """Add a text box with NBG defaults: margin=0, valign=top, Aptos."""
+    if color is None:
+        color = C_DARK_TEXT
+    if align is None:
+        align = PP_ALIGN.LEFT
+    txBox = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
+    tf = txBox.text_frame
+    tf.margin_left = 0
+    tf.margin_top = 0
+    tf.margin_right = 0
+    tf.margin_bottom = 0
+    tf.word_wrap = True
+    tf.auto_size = None
+    # python-pptx uses MSO_ANCHOR for vertical alignment
+    tf.paragraphs[0].alignment = align
+
+    # Set vertical anchor via XML (python-pptx MSO_ANCHOR)
+    bodyPr = tf._txBody.find(qn('a:bodyPr'))
+    if bodyPr is not None:
+        bodyPr.set('anchor', 't')  # top
+
+    p = tf.paragraphs[0]
+    p.text = text
+    p.font.size = Pt(font_size)
+    p.font.color.rgb = color
+    p.font.bold = bold
+    p.font.name = font_name
+
+    return txBox
+
+
+def _add_bumper_pill(slide, text, x=0.37, y=0.35):
+    """Add bumper as a filled rounded-rect pill with white text (NBG pattern).
+
+    Pill: 1.3x0.3, fill #007B85, text 9pt Bold white ALL CAPS.
     """
-    ns_map = {
-        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
-        'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-        'rel': 'http://schemas.openxmlformats.org/package/2006/relationships',
-        'ct': 'http://schemas.openxmlformats.org/package/2006/content-types',
-    }
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp = Path(tmp)
-        src = tmp / 'src'
-        with zipfile.ZipFile(template_path, 'r') as zf:
-            zf.extractall(src)
+    pill = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(x), Inches(y), Inches(1.3), Inches(0.3),
+    )
+    pill.fill.solid()
+    pill.fill.fore_color.rgb = C_TEAL
+    pill.line.fill.background()
+    pill.shadow.inherit = False
 
-        slides_dir = src / 'ppt' / 'slides'
-        rels_dir = slides_dir / '_rels'
+    # Reduce corner rounding
+    pill.adjustments[0] = 0.25
 
-        # Parse presentation.xml to get slide order
-        pres_path = src / 'ppt' / 'presentation.xml'
-        pres_tree = ET.parse(pres_path)
-        pres_root = pres_tree.getroot()
-        sld_id_lst = pres_root.find('.//{http://schemas.openxmlformats.org/presentationml/2006/main}sldIdLst')
-        if sld_id_lst is None:
-            raise RuntimeError("No sldIdLst found in presentation.xml")
+    tf = pill.text_frame
+    tf.margin_left = Inches(0.08)
+    tf.margin_top = 0
+    tf.margin_right = 0
+    tf.margin_bottom = 0
+    tf.word_wrap = False
 
-        sld_ids = list(sld_id_lst)
+    p = tf.paragraphs[0]
+    p.text = text.upper()
+    p.font.size = Pt(9)
+    p.font.color.rgb = C_WHITE
+    p.font.bold = True
+    p.font.name = FONT
+    p.alignment = PP_ALIGN.LEFT
 
-        # Parse presentation.xml.rels to map rIds to slide files
-        pres_rels_path = src / 'ppt' / '_rels' / 'presentation.xml.rels'
-        pres_rels_tree = ET.parse(pres_rels_path)
-        rid_to_target = {}
-        for rel in pres_rels_tree.getroot():
-            rid = rel.get('Id')
-            target = rel.get('Target')
-            if target and 'slides/slide' in target:
-                rid_to_target[rid] = target
+    # Vertical center
+    bodyPr = tf._txBody.find(qn('a:bodyPr'))
+    if bodyPr is not None:
+        bodyPr.set('anchor', 'ctr')
 
-        # Build ordered list of slide files from presentation
-        ordered_slides = []
-        for sld_id in sld_ids:
-            rid = sld_id.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
-            if rid and rid in rid_to_target:
-                ordered_slides.append(rid_to_target[rid])
-
-        # Select slides by 1-based index
-        keep_targets = set()
-        for idx in indices:
-            if 1 <= idx <= len(ordered_slides):
-                keep_targets.add(ordered_slides[idx - 1])
-
-        # Remove slides not in keep list
-        remove_targets = set()
-        for sld_id in list(sld_id_lst):
-            rid = sld_id.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
-            if rid and rid in rid_to_target:
-                target = rid_to_target[rid]
-                if target not in keep_targets:
-                    remove_targets.add(target)
-                    sld_id_lst.remove(sld_id)
-
-        # Reorder kept slides to match requested order
-        remaining = list(sld_id_lst)
-        for item in remaining:
-            sld_id_lst.remove(item)
-        for idx in indices:
-            target = ordered_slides[idx - 1] if 1 <= idx <= len(ordered_slides) else None
-            if target:
-                for item in remaining:
-                    rid = item.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
-                    if rid and rid_to_target.get(rid) == target:
-                        sld_id_lst.append(item)
-                        break
-
-        pres_tree.write(pres_path, xml_declaration=True, encoding='UTF-8')
-
-        # Delete removed slide files and their rels
-        for target in remove_targets:
-            slide_file = src / 'ppt' / target
-            if slide_file.exists():
-                slide_file.unlink()
-            rels_file = slides_dir / '_rels' / (Path(target).name + '.rels')
-            if rels_file.exists():
-                rels_file.unlink()
-
-        # Clean up [Content_Types].xml — remove overrides for deleted slides
-        ct_path = src / '[Content_Types].xml'
-        if ct_path.exists():
-            ct_tree = ET.parse(ct_path)
-            ct_root = ct_tree.getroot()
-            ct_ns = 'http://schemas.openxmlformats.org/package/2006/content-types'
-            keep_slide_names = set()
-            for target in keep_targets:
-                keep_slide_names.add(Path(target).name)
-            for override in list(ct_root):
-                part = override.get('PartName', '')
-                if '/ppt/slides/slide' in part:
-                    slide_name = part.split('/')[-1]
-                    if slide_name not in keep_slide_names:
-                        ct_root.remove(override)
-            ct_tree.write(ct_path, xml_declaration=True, encoding='UTF-8')
-
-        # Remove presentation.xml.rels entries for deleted slides
-        for rel in list(pres_rels_tree.getroot()):
-            target = rel.get('Target', '')
-            if target in remove_targets:
-                pres_rels_tree.getroot().remove(rel)
-        pres_rels_tree.write(pres_rels_path, xml_declaration=True, encoding='UTF-8')
-
-        # Repack
-        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-            for fp in src.rglob('*'):
-                if fp.is_file():
-                    zf.write(fp, fp.relative_to(src))
+    return pill
 
 
-def extract_inventory(pptx_path):
-    """Extract text shape inventory from PPTX.
+def _add_logo(slide, logo_type='small'):
+    """Add NBG logo to slide.
 
-    Returns dict: {"slide-0": {"Shape Name": {top, left, width, height, ...}}, ...}
+    logo_type: 'small' (content), 'large' (cover/divider), 'back_cover'
     """
-    ns = {
-        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
-        'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-    }
-    EMU_TO_INCHES = 914400
+    if logo_type == 'back_cover':
+        pos = LOGO_BACK
+        path = BACK_COVER_LOGO_PNG
+    elif logo_type == 'large':
+        pos = LOGO_LARGE
+        path = LOGO_PNG
+    else:
+        pos = LOGO_SMALL
+        path = LOGO_PNG
 
-    inventory = {}
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp = Path(tmp)
-        with zipfile.ZipFile(pptx_path, 'r') as zf:
-            zf.extractall(tmp)
+    if not path.exists():
+        return  # Skip if logo file missing
 
-        slides_dir = tmp / 'ppt' / 'slides'
-        slide_files = sorted(slides_dir.glob('slide*.xml'),
-                             key=lambda f: int(re.search(r'(\d+)', f.name).group()))
-
-        for slide_idx, slide_file in enumerate(slide_files):
-            slide_key = f"slide-{slide_idx}"
-            inventory[slide_key] = {}
-
-            tree = ET.parse(slide_file)
-            root = tree.getroot()
-
-            for sp in root.findall('.//p:sp', ns):
-                # Get shape name
-                nvSpPr = sp.find('.//p:nvSpPr/p:cNvPr', ns)
-                if nvSpPr is None:
-                    continue
-                name = nvSpPr.get('name', '')
-
-                # Get position/size
-                xfrm = sp.find('.//p:spPr/a:xfrm', ns)
-                if xfrm is None:
-                    xfrm = sp.find('.//a:xfrm', ns)
-
-                top = left = width = height = 0
-                if xfrm is not None:
-                    off = xfrm.find('a:off', ns)
-                    ext = xfrm.find('a:ext', ns)
-                    if off is not None:
-                        left = int(off.get('x', 0)) / EMU_TO_INCHES
-                        top = int(off.get('y', 0)) / EMU_TO_INCHES
-                    if ext is not None:
-                        width = int(ext.get('cx', 0)) / EMU_TO_INCHES
-                        height = int(ext.get('cy', 0)) / EMU_TO_INCHES
-
-                # Get placeholder type
-                nvPr = sp.find('.//p:nvSpPr/p:nvPr', ns)
-                ph_type = ''
-                if nvPr is not None:
-                    ph = nvPr.find('p:ph', ns)
-                    if ph is not None:
-                        ph_type = ph.get('type', '')
-
-                # Check for text body
-                txBody = sp.find('.//p:txBody', ns)
-                if txBody is None:
-                    txBody = sp.find('.//a:txBody', ns)
-                if txBody is None:
-                    continue
-
-                # Extract paragraphs info
-                paras = []
-                default_font_size = 11
-                for para in txBody.findall('a:p', ns):
-                    text_parts = []
-                    for r_elem in para.findall('a:r', ns):
-                        t = r_elem.find('a:t', ns)
-                        if t is not None and t.text:
-                            text_parts.append(t.text)
-                        rPr = r_elem.find('a:rPr', ns)
-                        if rPr is not None:
-                            sz = rPr.get('sz')
-                            if sz:
-                                default_font_size = int(sz) / 100
-                    paras.append({'text': ''.join(text_parts)})
-
-                inventory[slide_key][name] = {
-                    'top': round(top, 2),
-                    'left': round(left, 2),
-                    'width': round(width, 2),
-                    'height': round(height, 2),
-                    'placeholder_type': ph_type,
-                    'default_font_size': default_font_size,
-                    'paragraphs': paras,
-                }
-
-    return inventory
+    slide.shapes.add_picture(
+        str(path),
+        Inches(pos['x']), Inches(pos['y']),
+        Inches(pos['w']), Inches(pos['h']),
+    )
 
 
-def apply_replacements(pptx_path, replacements, output_path):
-    """Apply text replacements to PPTX shapes.
+def _add_page_number(slide, number):
+    """Add page number to bottom-right corner."""
+    _add_textbox(
+        slide,
+        PAGE_NUM['x'], PAGE_NUM['y'], PAGE_NUM['w'], PAGE_NUM['h'],
+        str(number),
+        font_size=10, color=C_MEDIUM_GRAY, align=PP_ALIGN.RIGHT,
+    )
 
-    replacements: {"slide-0": {"Shape Name": {"paragraphs": [{"text": "...", ...}]}}}
+
+def _add_bullets(slide, x, y, w, h, points, *, font_size=14):
+    """Add bullet points with NBG styling: cyan bullet char, Aptos text."""
+    txBox = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
+    tf = txBox.text_frame
+    tf.margin_left = 0
+    tf.margin_top = 0
+    tf.margin_right = 0
+    tf.margin_bottom = 0
+    tf.word_wrap = True
+    tf.auto_size = None
+
+    # Vertical anchor: top
+    bodyPr = tf._txBody.find(qn('a:bodyPr'))
+    if bodyPr is not None:
+        bodyPr.set('anchor', 't')
+
+    for i, point_text in enumerate(points):
+        if isinstance(point_text, dict):
+            point_text = point_text.get('text', str(point_text))
+
+        if i == 0:
+            p = tf.paragraphs[0]
+        else:
+            p = tf.add_paragraph()
+
+        p.text = str(point_text)
+        p.font.size = Pt(font_size)
+        p.font.color.rgb = C_DARK_TEXT
+        p.font.name = FONT
+        p.alignment = PP_ALIGN.LEFT
+
+        # NBG bullet styling via OOXML: • in Arial, Bright Cyan #00DFF8
+        pPr = p._p.get_or_add_pPr()
+        pPr.set('lvl', '0')
+
+        buFont = SubElement(pPr, qn('a:buFont'))
+        buFont.set('typeface', FONT_BULLET)
+
+        buClr = SubElement(pPr, qn('a:buClr'))
+        srgbClr = SubElement(buClr, qn('a:srgbClr'))
+        srgbClr.set('val', '00DFF8')
+
+        buChar = SubElement(pPr, qn('a:buChar'))
+        buChar.set('char', '\u2022')
+
+        # Paragraph spacing: 14pt before (except first)
+        if i > 0:
+            spcBef = SubElement(pPr, qn('a:spcBef'))
+            spcPts = SubElement(spcBef, qn('a:spcPts'))
+            spcPts.set('val', '1400')
+
+    return txBox
+
+
+# NBG chart color palette (hex strings for series coloring, per charts.md)
+CHART_COLORS = ['00ADBF', '003841', '007B85', '939793', 'BEC1BE', '00DFF8']
+
+# Light gray for axis lines and borders
+C_LIGHT_GRAY_HEX = 'BEC1BE'
+
+
+def _style_chart(chart):
+    """Apply NBG brand styling to a chart: no title, hidden value axis,
+    no gridlines, no plot border, data labels on bars, Aptos throughout."""
+    # No chart title — use slide title textbox instead
+    chart.has_title = False
+
+    # No legend by default (single-series); caller enables if multi-series
+    chart.has_legend = False
+
+    # Category axis: visible, Aptos 12pt, light gray line (per charts.md)
+    cat_ax = chart.category_axis
+    cat_ax.tick_labels.font.size = Pt(12)
+    cat_ax.tick_labels.font.name = FONT
+    cat_ax.tick_labels.font.color.rgb = C_DARK_TEXT
+    cat_ax.has_major_gridlines = False
+    cat_ax.has_minor_gridlines = False
+    cat_ax.format.line.fill.solid()
+    cat_ax.format.line.fill.fore_color.rgb = RGBColor.from_string(C_LIGHT_GRAY_HEX)
+
+    # Value axis: HIDDEN (per brand spec: valAxisHidden: true)
+    val_ax = chart.value_axis
+    val_ax.visible = False
+    val_ax.has_major_gridlines = False
+    val_ax.has_minor_gridlines = False
+
+    # Plot area: no border, no fill
+    plot = chart.plots[0]
+    plot.has_data_labels = True
+    data_labels = plot.data_labels
+    data_labels.font.size = Pt(11)
+    data_labels.font.name = FONT
+    data_labels.font.bold = True
+    data_labels.font.color.rgb = C_DARK_TEXT
+    data_labels.show_value = True
+    data_labels.show_category_name = False
+    data_labels.show_series_name = False
+
+    # Color each series with NBG palette
+    for i, series in enumerate(plot.series):
+        color_hex = CHART_COLORS[i % len(CHART_COLORS)]
+        series.format.fill.solid()
+        series.format.fill.fore_color.rgb = RGBColor.from_string(color_hex)
+
+
+def create_chart_slide(prs, content, page_number, chart_type='bar'):
+    """Create a chart slide with NBG styling.
+
+    Bumper:    Pill at (0.37, 0.35)
+    Title:     24pt Dark Teal at (0.37, 0.75)
+    Chart:     at (0.37, 1.3) — 12.59" x 5.0"
+    Logo + page number.
     """
-    ns = {
-        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = C_WHITE
+
+    bumper = content.get('bumper') or content.get('hyper_title')
+    if bumper:
+        _add_bumper_pill(slide, bumper)
+
+    title_y = 0.75 if bumper else 0.5
+    if content.get('title'):
+        _add_textbox(slide, 0.37, title_y, 12.59, 0.4, content['title'],
+                     font_size=24, color=C_DARK_TEAL, bold=False)
+
+    # Build chart data
+    chart_data = CategoryChartData()
+    categories = content.get('categories', [])
+    series_list = content.get('series', [])
+    chart_data.categories = categories
+
+    for s in series_list:
+        chart_data.add_series(s.get('name', ''), s.get('values', []))
+
+    # Map chart_type string to XL_CHART_TYPE
+    type_map = {
+        'bar': XL_CHART_TYPE.COLUMN_CLUSTERED,
+        'bar_stacked': XL_CHART_TYPE.COLUMN_STACKED,
+        'bar_horizontal': XL_CHART_TYPE.BAR_CLUSTERED,
+        'line': XL_CHART_TYPE.LINE_MARKERS,
+        'pie': XL_CHART_TYPE.PIE,
     }
+    xl_type = type_map.get(chart_type, XL_CHART_TYPE.COLUMN_CLUSTERED)
 
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp = Path(tmp)
-        with zipfile.ZipFile(pptx_path, 'r') as zf:
-            zf.extractall(tmp)
+    chart_y = 1.3 if bumper else 1.1
+    chart_h = 5.0 if bumper else 5.2
+    chart_frame = slide.shapes.add_chart(
+        xl_type, Inches(0.37), Inches(chart_y), Inches(12.59), Inches(chart_h),
+        chart_data,
+    )
 
-        slides_dir = tmp / 'ppt' / 'slides'
-        slide_files = sorted(slides_dir.glob('slide*.xml'),
-                             key=lambda f: int(re.search(r'(\d+)', f.name).group()))
+    chart = chart_frame.chart
+    _style_chart(chart)
 
-        for slide_idx, slide_file in enumerate(slide_files):
-            slide_key = f"slide-{slide_idx}"
-            if slide_key not in replacements:
-                continue
+    # Bar gap (per brand: barGapWidthPct: 35)
+    chart.plots[0].gap_width = 35
 
-            tree = ET.parse(slide_file)
-            root = tree.getroot()
-            modified = False
+    # Enable legend only for multi-series charts
+    if len(series_list) > 1:
+        chart.has_legend = True
+        chart.legend.position = XL_LEGEND_POSITION.BOTTOM
+        chart.legend.include_in_layout = False
+        chart.legend.font.size = Pt(10)
+        chart.legend.font.name = FONT
+        chart.legend.font.color.rgb = C_DARK_TEXT
 
-            for sp in root.findall('.//p:sp', ns):
-                nvSpPr = sp.find('.//p:nvSpPr/p:cNvPr', ns)
-                if nvSpPr is None:
-                    continue
-                name = nvSpPr.get('name', '')
+    _add_logo(slide, 'small')
+    _add_page_number(slide, page_number)
+    return slide
 
-                if name not in replacements[slide_key]:
-                    continue
 
-                repl = replacements[slide_key][name]
-                new_paras = repl.get('paragraphs', [])
+def create_waterfall_slide(prs, content, page_number):
+    """Create a waterfall chart slide using stacked bars.
 
-                txBody = sp.find('.//p:txBody', ns)
-                if txBody is None:
-                    txBody = sp.find('.//a:txBody', ns)
-                if txBody is None:
-                    continue
+    python-pptx has no native waterfall type, so we simulate it
+    with an invisible base series + positive/negative series.
 
-                # Remove existing paragraphs
-                for p_elem in txBody.findall('a:p', ns):
-                    txBody.remove(p_elem)
+    Bumper:    Pill at (0.37, 0.35)
+    Title:     24pt Dark Teal at (0.37, 0.75)
+    Chart:     at (0.37, 1.3) — 12.59" x 5.0"
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = C_WHITE
 
-                # Add new paragraphs
-                if not new_paras:
-                    # Empty paragraph to keep valid XML
-                    p_elem = ET.SubElement(txBody, '{http://schemas.openxmlformats.org/drawingml/2006/main}p')
-                    ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}endParaRPr')
-                else:
-                    for para_spec in new_paras:
-                        p_elem = ET.SubElement(txBody, '{http://schemas.openxmlformats.org/drawingml/2006/main}p')
+    bumper = content.get('bumper') or content.get('hyper_title')
+    if bumper:
+        _add_bumper_pill(slide, bumper)
 
-                        # Paragraph properties (bullets, spacing)
-                        if para_spec.get('bullet') or para_spec.get('space_before'):
-                            pPr = ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}pPr')
-                            if para_spec.get('bullet'):
-                                level = para_spec.get('level', 0)
-                                pPr.set('lvl', str(level))
-                                # NBG bullet: • in Arial, Bright Cyan #00DFF8
-                                buFont = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buFont')
-                                buFont.set('typeface', para_spec.get('bullet_font', 'Arial'))
-                                buClr = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buClr')
-                                buSrgb = ET.SubElement(buClr, '{http://schemas.openxmlformats.org/drawingml/2006/main}srgbClr')
-                                buSrgb.set('val', para_spec.get('bullet_color', '00DFF8'))
-                                buChar = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}buChar')
-                                buChar.set('char', '\u2022')
-                            if para_spec.get('space_before'):
-                                spcBef = ET.SubElement(pPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}spcBef')
-                                spcPts = ET.SubElement(spcBef, '{http://schemas.openxmlformats.org/drawingml/2006/main}spcPts')
-                                spcPts.set('val', str(int(para_spec['space_before'] * 100)))
+    title_y = 0.75 if bumper else 0.5
+    if content.get('title'):
+        _add_textbox(slide, 0.37, title_y, 12.59, 0.4, content['title'],
+                     font_size=24, color=C_DARK_TEAL, bold=False)
 
-                        # Run with text
-                        r_elem = ET.SubElement(p_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}r')
+    # Waterfall data: list of {label, value} items
+    # First and last are totals, middle items are deltas
+    items = content.get('waterfall_items', [])
+    if not items:
+        _add_logo(slide, 'small')
+        _add_page_number(slide, page_number)
+        return slide
 
-                        # Run properties
-                        rPr = ET.SubElement(r_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}rPr')
-                        rPr.set('lang', 'el-GR')
-                        rPr.set('dirty', '0')
-                        if para_spec.get('bold'):
-                            rPr.set('b', '1')
-                        if para_spec.get('font_size'):
-                            rPr.set('sz', str(int(para_spec['font_size'] * 100)))
-                        if para_spec.get('font_name'):
-                            latin = ET.SubElement(rPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}latin')
-                            latin.set('typeface', para_spec['font_name'])
-                        if para_spec.get('color'):
-                            solidFill = ET.SubElement(rPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}solidFill')
-                            srgbClr = ET.SubElement(solidFill, '{http://schemas.openxmlformats.org/drawingml/2006/main}srgbClr')
-                            srgbClr.set('val', para_spec['color'])
+    categories = [item.get('label', '') for item in items]
+    values = [item.get('value', 0) for item in items]
 
-                        # Text
-                        t = ET.SubElement(r_elem, '{http://schemas.openxmlformats.org/drawingml/2006/main}t')
-                        t.text = para_spec.get('text', '')
+    # Build invisible base + increase + decrease series
+    base = []
+    increase = []
+    decrease = []
+    running = 0
 
-                modified = True
+    for i, val in enumerate(values):
+        is_total = items[i].get('total', False)
+        if i == 0 or is_total:
+            # Total bars start from 0
+            base.append(0)
+            increase.append(val)
+            decrease.append(0)
+            running = val
+        elif val >= 0:
+            base.append(running)
+            increase.append(val)
+            decrease.append(0)
+            running += val
+        else:
+            base.append(running + val)
+            increase.append(0)
+            decrease.append(abs(val))
+            running += val
 
-            if modified:
-                tree.write(slide_file, xml_declaration=True, encoding='UTF-8')
+    chart_data = CategoryChartData()
+    chart_data.categories = categories
+    chart_data.add_series('Base', base)
+    chart_data.add_series('Increase', increase)
+    chart_data.add_series('Decrease', decrease)
 
-        # Repack
-        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-            for fp in tmp.rglob('*'):
-                if fp.is_file():
-                    zf.write(fp, fp.relative_to(tmp))
+    chart_y = 1.3 if bumper else 1.1
+    chart_h = 5.0 if bumper else 5.2
+    chart_frame = slide.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_STACKED,
+        Inches(0.37), Inches(chart_y), Inches(12.59), Inches(chart_h),
+        chart_data,
+    )
 
+    chart = chart_frame.chart
+    chart.has_title = False
+    chart.has_legend = False
+    plot = chart.plots[0]
+    plot.gap_width = 100
+    plot.overlap = 100
+
+    # Base series: invisible (no fill, no border, no data labels)
+    base_series = plot.series[0]
+    base_series.format.fill.background()
+    base_series.format.line.fill.background()
+
+    # Increase series: NBG Cyan (per charts.md waterfall spec)
+    inc_series = plot.series[1]
+    inc_series.format.fill.solid()
+    inc_series.format.fill.fore_color.rgb = RGBColor.from_string('00ADBF')
+    inc_series.format.line.fill.background()
+
+    # Decrease series: NBG Red (per charts.md/ooxml-charts.md)
+    dec_series = plot.series[2]
+    dec_series.format.fill.solid()
+    dec_series.format.fill.fore_color.rgb = RGBColor.from_string('AA0028')
+    dec_series.format.line.fill.background()
+
+    # Data labels: show values on Increase and Decrease series
+    for s in [inc_series, dec_series]:
+        s.has_data_labels = True
+        s.data_labels.font.size = Pt(10)
+        s.data_labels.font.name = FONT
+        s.data_labels.font.bold = True
+        s.data_labels.font.color.rgb = C_DARK_TEXT
+        s.data_labels.show_value = True
+        s.data_labels.show_category_name = False
+        s.data_labels.show_series_name = False
+
+    # Category axis: visible, Aptos, light gray line, no tick marks
+    cat_ax = chart.category_axis
+    cat_ax.tick_labels.font.size = Pt(9)
+    cat_ax.tick_labels.font.name = FONT
+    cat_ax.tick_labels.font.color.rgb = C_DARK_TEXT
+    cat_ax.has_major_gridlines = False
+    cat_ax.has_minor_gridlines = False
+    cat_ax.format.line.fill.solid()
+    cat_ax.format.line.fill.fore_color.rgb = RGBColor.from_string(C_LIGHT_GRAY_HEX)
+
+    # Value axis: HIDDEN
+    val_ax = chart.value_axis
+    val_ax.visible = False
+    val_ax.has_major_gridlines = False
+    val_ax.has_minor_gridlines = False
+
+    _add_logo(slide, 'small')
+    _add_page_number(slide, page_number)
+    return slide
+
+
+# ---------------------------------------------------------------------------
+# Slide creation functions
+# ---------------------------------------------------------------------------
+
+def create_cover_slide(prs, content):
+    """Create cover slide with NBG typography hierarchy.
+
+    Title:    48pt Dark Teal at (0.37, 1.39)
+    Subtitle: 36pt NBG Teal at (0.37, 2.27)
+    Location: 14pt Dark Teal at (0.37, 4.58)
+    Date:     14pt Medium Gray at (0.37, 4.97)
+    Logo:     Large logo at bottom-left (covers use large)
+    NO page number.
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])  # Blank layout
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = C_WHITE
+
+    if content.get('title'):
+        _add_textbox(slide, 0.37, 1.39, 7.86, 1.00,
+                     content['title'],
+                     font_size=48, color=C_DARK_TEAL)
+
+    if content.get('subtitle'):
+        _add_textbox(slide, 0.37, 2.27, 7.86, 0.80,
+                     content['subtitle'],
+                     font_size=36, color=C_TEAL)
+
+    if content.get('location'):
+        _add_textbox(slide, 0.37, 4.58, 4, 0.4,
+                     content['location'],
+                     font_size=14, color=C_DARK_TEAL)
+
+    if content.get('date'):
+        _add_textbox(slide, 0.37, 4.97, 4, 0.4,
+                     content['date'],
+                     font_size=14, color=C_MEDIUM_GRAY)
+
+    _add_logo(slide, 'large')
+    return slide
+
+
+def create_divider_slide(prs, content):
+    """Create section divider slide.
+
+    Number: 60pt NBG Teal at (0.37, 2.84)
+    Title:  48pt Dark Teal at (1.86, 2.84)
+    Logo:   Large logo at bottom-left (dividers use large)
+    NO page number.
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = C_WHITE
+
+    number = content.get('number', '')
+    if isinstance(number, int):
+        number = str(number).zfill(2)
+
+    if number:
+        _add_textbox(slide, 0.37, 2.84, 1.2, 1.0,
+                     number,
+                     font_size=60, color=C_TEAL)
+
+    if content.get('title'):
+        _add_textbox(slide, 1.86, 2.84, 9.5, 1.0,
+                     content['title'],
+                     font_size=48, color=C_DARK_TEAL)
+
+    _add_logo(slide, 'large')
+    return slide
+
+
+def create_content_slide(prs, content, page_number):
+    """Create content slide with optional bumper pill and bullet points.
+
+    Bumper:  Pill shape at (0.37, 0.35) — 1.3x0.3, #007B85, 9pt Bold white
+    Title:   24pt Dark Teal Regular at (0.37, 0.75)
+    Bullets: 14pt Dark Text at (0.37, 1.3), cyan bullets
+    Logo:    Small logo at bottom-left
+    Page number at bottom-right.
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = C_WHITE
+
+    # Bumper pill (optional section tag above title)
+    bumper = content.get('bumper') or content.get('hyper_title')
+    if bumper:
+        _add_bumper_pill(slide, bumper)
+
+    # Action title — 24pt Regular (NOT bold, NOT SemiBold)
+    title_y = 0.75 if bumper else 0.5
+    if content.get('title'):
+        _add_textbox(slide, 0.37, title_y, 12.59, 0.4,
+                     content['title'],
+                     font_size=24, color=C_DARK_TEAL, bold=False)
+
+    # Body content — bullet points
+    points = content.get('points') or content.get('paragraphs') or []
+    body_y = 1.3 if bumper else 1.1
+    if points:
+        _add_bullets(slide, 0.37, body_y, 12.59, 5.0, points)
+
+    _add_logo(slide, 'small')
+    _add_page_number(slide, page_number)
+    return slide
+
+
+def create_contents_slide(prs, sections, page_number):
+    """Create table of contents slide.
+
+    Header: 32pt Dark Teal Bold at (0.37, 0.36)
+    Items:  Number (18pt Teal) + Title (16pt Dark Teal Bold) + Desc (12pt)
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = C_WHITE
+
+    _add_textbox(slide, 0.37, 0.36, 10, 0.70,
+                 'Contents',
+                 font_size=32, color=C_DARK_TEAL, bold=True)
+
+    for i, section in enumerate(sections):
+        y = 1.48 + (i * 0.85)
+
+        number = section.get('number', str(i + 1).zfill(2))
+        _add_textbox(slide, 0.37, y, 0.60, 0.60,
+                     str(number),
+                     font_size=18, color=C_TEAL, bold=True)
+
+        if section.get('title'):
+            _add_textbox(slide, 1.10, y, 8, 0.35,
+                         section['title'],
+                         font_size=16, color=C_DARK_TEAL, bold=True)
+
+        if section.get('description'):
+            _add_textbox(slide, 1.10, y + 0.35, 8, 0.30,
+                         section['description'],
+                         font_size=12, color=RGBColor(0x59, 0x59, 0x59))
+
+    _add_logo(slide, 'small')
+    _add_page_number(slide, page_number)
+    return slide
+
+
+def create_back_cover_slide(prs):
+    """Create back cover slide.
+
+    IMPORTANT:
+    - NO "Thank You" text
+    - NO corner logo
+    - NO page number
+    - White background with centered oval NBG building logo ONLY
+    """
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = C_WHITE
+
+    _add_logo(slide, 'back_cover')
+    return slide
+
+
+# ---------------------------------------------------------------------------
+# Catalog and type normalization (kept for backward compatibility + tests)
+# ---------------------------------------------------------------------------
 
 def load_catalog():
     """Load the slide catalog."""
@@ -374,7 +664,7 @@ def load_catalog():
 
 
 def resolve_slide_index(catalog, template, slide_type):
-    """Resolve a slide type path (e.g., 'covers/simple_white') to template index."""
+    """Resolve a slide type path to template index (for legacy compatibility)."""
     parts = slide_type.split('/')
     slides = catalog['templates'][template]['slides']
 
@@ -390,11 +680,6 @@ def resolve_slide_index(catalog, template, slide_type):
     raise ValueError(f"Slide type {slide_type} does not resolve to an index")
 
 
-def get_template_path(template):
-    """Get template file path."""
-    return TEMPLATES_DIR / f'NBG-Template-{template}.pptx'
-
-
 def normalize_slide_type(slide_type, recommended_visual=None):
     """Convert McKinsey slide types to catalog paths.
 
@@ -404,230 +689,98 @@ def normalize_slide_type(slide_type, recommended_visual=None):
 
     Uses recommended_visual hint when available for smarter selection.
     """
-    # If it already has a slash, it's a catalog path
     if '/' in slide_type:
         return slide_type
 
-    # Visual-based mapping for content slides (McKinsey format)
-    # Using simpler layouts to avoid decorative elements (ellipses, triangles)
     visual_mapping = {
         'bar_chart': 'charts/bar_single',
         'pie_chart': 'charts/pie_single',
         'line_chart': 'charts/line_single',
-        'waterfall_chart': 'charts/bar_single',  # Use bar_single to avoid decorative triangles
+        'waterfall_chart': 'charts/bar_single',
         'comparison_chart': 'charts/bar_dual',
-        'kpi_dashboard': 'content/text_only',                 # Clean layout, no decorative elements
-        'numbered_infographic': 'content/text_only',         # Clean layout, no decorative elements
-        'timeline': 'content/text_only',                     # Clean layout, no decorative elements
-        'process': 'content/text_only',                      # Clean layout, no decorative elements
-        'funnel': 'content/text_only',                       # Clean layout, no decorative elements
+        'kpi_dashboard': 'content/text_only',
+        'numbered_infographic': 'content/text_only',
+        'timeline': 'content/text_only',
+        'process': 'content/text_only',
+        'funnel': 'content/text_only',
         'table': 'tables/half_page',
         'comparison_table': 'tables/comparison',
-        'icons': 'content/text_only',                         # Clean layout, no decorative elements
+        'icons': 'content/text_only',
         'none': 'content/text_only',
     }
 
-    # If recommended_visual is provided and matches, use it
     if recommended_visual and recommended_visual in visual_mapping:
         return visual_mapping[recommended_visual]
 
-    # Map base McKinsey types to catalog paths
-    # Using "quiet" variants by default - cleaner designs without decorative elements
     type_mapping = {
-        'cover': 'covers/quiet',              # Minimal cover (slide 21)
-        'divider': 'dividers/quiet_white',    # Clean divider with simple rect (slide 72)
+        'cover': 'covers/quiet',
+        'divider': 'dividers/quiet_white',
         'content': 'content/text_only',
         'chart': 'charts/bar_dual',
         'infographic': 'infographics/numbered_6',
         'table': 'tables/half_page',
-        'thankyou': 'back_covers/quiet',      # Truly empty slide (slide 190)
-        'back_cover': 'back_covers/quiet',    # Truly empty slide (slide 190)
+        'thankyou': 'back_covers/quiet',
+        'back_cover': 'back_covers/quiet',
         'summary': 'content/text_with_bullets',
     }
 
     return type_mapping.get(slide_type, 'content/text_only')
 
 
-def clean_template_artifacts(pptx_path):
-    """Remove template artifacts that violate NBG guidelines.
+# ---------------------------------------------------------------------------
+# Slide type detection
+# ---------------------------------------------------------------------------
 
-    1. Strip decorative shapes (triangles, ellipses) that aren't content
-    2. Remove orphaned chart files not referenced by kept slides
-    3. Set text box margins to 0 (NBG requirement)
+def _classify_slide(slide_def):
+    """Classify a slide definition into a build category.
+
+    Returns one of: 'cover', 'divider', 'contents', 'content', 'back_cover'
     """
-    ns = {
-        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
-    }
+    raw_type = slide_def.get('type', 'content')
 
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp = Path(tmp)
-        with zipfile.ZipFile(pptx_path, 'r') as zf:
-            zf.extractall(tmp)
+    # Direct match on raw type
+    if raw_type in ('cover', 'covers') or raw_type.startswith('covers/'):
+        return 'cover'
+    if raw_type in ('back_cover', 'thankyou') or raw_type.startswith('back_covers/'):
+        return 'back_cover'
+    if raw_type in ('divider',) or raw_type.startswith('dividers/'):
+        return 'divider'
+    if raw_type in ('contents', 'toc'):
+        return 'contents'
+    if raw_type in ('chart', 'bar_chart', 'line_chart', 'pie_chart'):
+        return 'chart'
+    if raw_type in ('waterfall', 'waterfall_chart'):
+        return 'waterfall'
 
-        slides_dir = tmp / 'ppt' / 'slides'
-        rels_dir = slides_dir / '_rels'
+    # Check recommended_visual for chart hints
+    visual = slide_def.get('recommended_visual', '')
+    if visual in ('bar_chart', 'comparison_chart'):
+        return 'chart'
+    if visual == 'waterfall_chart':
+        return 'waterfall'
 
-        # Collect all chart/media references from kept slides
-        referenced_charts = set()
-        for slide_file in slides_dir.glob('slide*.xml'):
-            rels_file = rels_dir / (slide_file.name + '.rels')
-            if rels_file.exists():
-                rels_tree = ET.parse(rels_file)
-                for rel in rels_tree.getroot():
-                    target = rel.get('Target', '')
-                    if 'chart' in target:
-                        referenced_charts.add(target.split('/')[-1])
-
-        # Remove orphaned chart files
-        charts_dir = tmp / 'ppt' / 'charts'
-        if charts_dir.exists():
-            for chart_file in charts_dir.glob('chart*.xml'):
-                if chart_file.name not in referenced_charts:
-                    chart_file.unlink()
-                    # Also remove chart rels
-                    chart_rels = charts_dir / '_rels' / (chart_file.name + '.rels')
-                    if chart_rels.exists():
-                        chart_rels.unlink()
-
-        # Process each slide
-        for slide_file in slides_dir.glob('slide*.xml'):
-            tree = ET.parse(slide_file)
-            root = tree.getroot()
-            modified = False
-
-            sp_tree = root.find('.//{http://schemas.openxmlformats.org/presentationml/2006/main}spTree')
-            if sp_tree is None:
-                continue
-
-            # Remove decorative shapes (triangles, rounded rects with no text)
-            # Check both direct sp children AND group shapes (grpSp)
-            decorative_geoms = ('triangle', 'rtTriangle', 'ellipse', 'roundRect')
-            for child in list(sp_tree):
-                tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
-
-                if tag == 'grpSp':
-                    # Group shape — check if it contains only decorative elements
-                    geoms = [g.get('prst', '') for g in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}prstGeom')]
-                    texts = [t.text for t in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}t') if t.text and t.text.strip()]
-                    if geoms and all(g in decorative_geoms for g in geoms) and not texts:
-                        sp_tree.remove(child)
-                        modified = True
-                        continue
-
-                if tag != 'sp':
-                    continue
-
-                # Check if shape is a decorative element
-                prstGeom = child.find('.//{http://schemas.openxmlformats.org/drawingml/2006/main}prstGeom')
-                if prstGeom is not None:
-                    prst = prstGeom.get('prst', '')
-                    if prst in decorative_geoms:
-                        texts = [t.text for t in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}t') if t.text and t.text.strip()]
-                        if not texts:
-                            sp_tree.remove(child)
-                            modified = True
-                            continue
-
-                # Set text box margins to 0 (NBG requirement: margin: 0 always)
-                # Must explicitly set all four — OOXML defaults are non-zero
-                for bodyPr in child.findall('.//{http://schemas.openxmlformats.org/drawingml/2006/main}bodyPr'):
-                    for attr in ('lIns', 'tIns', 'rIns', 'bIns'):
-                        bodyPr.set(attr, '0')
-                    modified = True
-
-            if modified:
-                tree.write(slide_file, xml_declaration=True, encoding='UTF-8')
-
-        # Clean up content types for orphaned charts
-        ct_path = tmp / '[Content_Types].xml'
-        if ct_path.exists():
-            ct_tree = ET.parse(ct_path)
-            ct_root = ct_tree.getroot()
-            for override in list(ct_root):
-                part = override.get('PartName', '')
-                if '/ppt/charts/chart' in part:
-                    chart_name = part.split('/')[-1]
-                    if chart_name not in referenced_charts:
-                        ct_root.remove(override)
-            ct_tree.write(ct_path, xml_declaration=True, encoding='UTF-8')
-
-        # Repack
-        with zipfile.ZipFile(pptx_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-            for fp in tmp.rglob('*'):
-                if fp.is_file():
-                    zf.write(fp, fp.relative_to(tmp))
+    # Everything else is content (text, infographics, tables)
+    return 'content'
 
 
-def clear_slide_numbers(pptx_path):
-    """Clear static slide number text from all slides.
-
-    NBG template slides have hardcoded slide numbers (e.g., "93" on slide 93).
-    This function clears those placeholders to avoid showing incorrect numbers.
-    """
-    ns = {
-        'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
-        'p': 'http://schemas.openxmlformats.org/presentationml/2006/main',
-        'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
-    }
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp = Path(temp_dir)
-        unpacked = temp / 'unpacked'
-
-        # Unpack
-        with zipfile.ZipFile(pptx_path, 'r') as zf:
-            zf.extractall(unpacked)
-
-        slides_dir = unpacked / 'ppt' / 'slides'
-        modified = False
-
-        for slide_file in sorted(slides_dir.glob('slide*.xml')):
-            tree = ET.parse(slide_file)
-            root = tree.getroot()
-
-            # Find all shapes
-            for sp in root.findall('.//p:sp', ns):
-                # Check if this is a slide number placeholder
-                nvPr = sp.find('.//p:nvSpPr/p:nvPr', ns)
-                if nvPr is not None:
-                    ph = nvPr.find('p:ph', ns)
-                    if ph is not None and ph.get('type') == 'sldNum':
-                        # Clear all text in this shape
-                        for t in sp.findall('.//a:t', ns):
-                            if t.text and t.text.strip().isdigit():
-                                t.text = ''
-                                modified = True
-
-            if modified:
-                tree.write(slide_file, xml_declaration=True, encoding='UTF-8')
-
-        if modified:
-            # Repack
-            with zipfile.ZipFile(pptx_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-                for file_path in unpacked.rglob('*'):
-                    if file_path.is_file():
-                        arcname = file_path.relative_to(unpacked)
-                        zf.write(file_path, arcname)
-
+# ---------------------------------------------------------------------------
+# Main build function
+# ---------------------------------------------------------------------------
 
 def build_presentation(outline_path, output_path):
-    """Build NBG presentation from outline.
+    """Build NBG presentation from YAML outline.
 
-    Supports two formats:
-    1. Simple: { template: GR, slides: [...] }
-    2. McKinsey: { presentation: { slides: [...] }, template: GR }
+    Creates every slide from scratch with python-pptx. No template extraction.
+    White backgrounds, exact NBG positioning, proper typography.
     """
     outline_path = Path(outline_path).expanduser().resolve()
     output_path = Path(output_path).expanduser().resolve()
 
-    # Load outline
     with open(outline_path, 'r') as f:
         outline = yaml.safe_load(f)
 
-    # Support both simple and McKinsey formats
+    # Support both McKinsey and simple formats
     if 'presentation' in outline:
-        # McKinsey format
         presentation = outline['presentation']
         slides = presentation.get('slides', [])
         template = outline.get('template', 'GR')
@@ -635,18 +788,11 @@ def build_presentation(outline_path, output_path):
         if presentation.get('main_recommendation'):
             print(f"  Main recommendation: {presentation['main_recommendation'][:60]}...")
     else:
-        # Simple format
         template = outline.get('template', 'GR')
         slides = outline.get('slides', [])
 
     if not slides:
         raise ValueError("No slides defined in outline")
-
-    template_path = get_template_path(template)
-    if not template_path.exists():
-        raise FileNotFoundError(f"Template not found: {template_path}")
-
-    catalog = load_catalog()
 
     print(f"\nNBG Presentation Builder")
     print(f"{'='*50}")
@@ -655,396 +801,65 @@ def build_presentation(outline_path, output_path):
     print(f"Output: {output_path}")
     print(f"{'='*50}\n")
 
-    # Get slide indices and resolved types - handle both simple and McKinsey types
-    indices = []
-    resolved_types = []  # Track resolved catalog paths for each slide
-    for slide in slides:
-        raw_type = slide.get('type', 'content')
-        # McKinsey format may have recommended_visual hint
-        recommended_visual = slide.get('recommended_visual')
-        normalized_type = normalize_slide_type(raw_type, recommended_visual)
-        idx = resolve_slide_index(catalog, template, normalized_type)
-        indices.append(idx)
-        resolved_types.append(normalized_type)
-        if recommended_visual:
-            print(f"  {raw_type} (visual: {recommended_visual}) -> {normalized_type} -> slide {idx}")
-        elif raw_type != normalized_type:
-            print(f"  {raw_type} -> {normalized_type} -> slide {idx}")
-        else:
-            print(f"  {raw_type} -> slide {idx}")
+    # Create presentation from scratch
+    prs = Presentation()
+    prs.slide_width = SLIDE_WIDTH
+    prs.slide_height = SLIDE_HEIGHT
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp = Path(temp_dir)
-        working = temp / 'working.pptx'
+    page_number = 0
 
-        # Step 1: Rearrange slides
-        print(f"\n[1/4] Extracting slides from template...")
-        rearrange_slides(template_path, working, indices)
-        print(f"  Extracted {len(indices)} slides")
+    for slide_def in slides:
+        category = _classify_slide(slide_def)
+        content = slide_def.get('content', {})
+        raw_type = slide_def.get('type', 'content')
 
-        # Step 2: Extract inventory
-        print(f"\n[2/4] Analyzing slide structure...")
-        inventory = extract_inventory(working)
-        print(f"  Found shapes in {len(inventory)} slides")
+        if category == 'cover':
+            create_cover_slide(prs, content)
+            print(f"  [cover] {content.get('title', '')[:50]}")
 
-        # Step 3: Build smart replacements
-        print(f"\n[3/4] Preparing content...")
-        replacements = build_smart_replacements(slides, inventory, resolved_types)
+        elif category == 'divider':
+            create_divider_slide(prs, content)
+            print(f"  [divider] {content.get('number', '')} {content.get('title', '')[:50]}")
 
-        # Step 4: Apply replacements
-        print(f"\n[4/4] Applying content...")
-        final = temp / 'final.pptx'
-        apply_replacements(working, replacements, final)
+        elif category == 'contents':
+            page_number += 1
+            sections = content.get('sections', [])
+            create_contents_slide(prs, sections, page_number)
+            print(f"  [contents] {len(sections)} sections")
 
-        # Use the best available output
-        if final.exists():
-            shutil.copy(final, output_path)
-        else:
-            shutil.copy(working, output_path)
-            print("  Using template (text replacement skipped)")
+        elif category == 'chart':
+            page_number += 1
+            chart_subtype = raw_type.replace('_chart', '') if '_chart' in raw_type else 'bar'
+            create_chart_slide(prs, content, page_number, chart_type=chart_subtype)
+            print(f"  [chart:{chart_subtype}] {content.get('title', '')[:50]}")
 
-    # Clean template artifacts (decorative shapes, orphaned charts, margins)
-    print("\n[5/6] Cleaning template artifacts...")
-    try:
-        clean_template_artifacts(output_path)
-        print("  Removed decorative shapes, orphaned charts, fixed margins")
-    except Exception as e:
-        print(f"  Warning: Could not clean artifacts: {e}")
+        elif category == 'waterfall':
+            page_number += 1
+            create_waterfall_slide(prs, content, page_number)
+            print(f"  [waterfall] {content.get('title', '')[:50]}")
 
-    # Clear static slide numbers from template
-    print("\n[6/6] Cleaning up slide numbers...")
-    try:
-        clear_slide_numbers(output_path)
-        print("  Cleared static slide numbers")
-    except Exception as e:
-        print(f"  Warning: Could not clear slide numbers: {e}")
+        elif category == 'back_cover':
+            create_back_cover_slide(prs)
+            print(f"  [back_cover]")
+
+        else:  # content
+            page_number += 1
+            create_content_slide(prs, content, page_number)
+            visual = slide_def.get('recommended_visual', '')
+            label = f" ({visual})" if visual else ''
+            print(f"  [content{label}] {content.get('title', '')[:50]}")
+
+    prs.save(str(output_path))
 
     print(f"\n{'='*50}")
     print(f"Created: {output_path}")
     print(f"{'='*50}\n")
 
     # Validate
-    print("Validating...")
-    cmd = ['python', str(SCRIPT_DIR / 'nbg_validate.py'), str(output_path)]
-    subprocess.run(cmd)
-
-
-def build_smart_replacements(slides, inventory, resolved_types=None):
-    """Build replacement JSON with smart content mapping.
-
-    Uses a simple positional approach: shapes are sorted top-to-bottom,
-    and content is assigned in order. This works reliably with NBG templates.
-    All text uses Aptos font to match NBG brand guidelines.
-
-    Accessibility: Automatically selects font colors based on background:
-    - Light backgrounds: Dark Teal (#003841) for titles, Dark Text (#202020) for body
-    - Dark backgrounds: White (#FFFFFF) for all text
-
-    Args:
-        slides: List of slide definitions from YAML
-        inventory: Shape inventory from the working presentation
-        resolved_types: List of resolved catalog paths for each slide (for smarter detection)
-    """
-    NBG_FONT = "Aptos"  # NBG brand font
-
-    # Accessibility: Color settings for different backgrounds
-    COLORS_LIGHT_BG = {
-        'title': '003841',    # Dark Teal
-        'body': '202020',     # Dark Text
-        'number': '007B85',   # NBG Teal
-    }
-    COLORS_DARK_BG = {
-        'title': 'FFFFFF',    # White
-        'body': 'FFFFFF',     # White
-        'number': 'FFFFFF',   # White
-    }
-
-    # Slide types that use dark backgrounds
-    DARK_BG_TYPES = ['covers/simple_dark', 'dividers/section_dark', 'dividers/quiet_dark',
-                     'back_covers/plain_dark']
-
-    replacements = {}
-
-    for slide_idx, slide in enumerate(slides):
-        slide_key = f"slide-{slide_idx}"
-        content = slide.get('content', {})
-        raw_type = slide.get('type', '')
-
-        # Use resolved type if available for better category detection
-        resolved_type = resolved_types[slide_idx] if resolved_types else raw_type
-
-        # Accessibility: Select colors based on background
-        is_dark_bg = resolved_type in DARK_BG_TYPES
-        colors = COLORS_DARK_BG if is_dark_bg else COLORS_LIGHT_BG
-
-        if slide_key not in inventory:
-            continue
-
-        shapes = inventory[slide_key]
-        replacements[slide_key] = {}
-
-        # Sort shapes by position (top to bottom, left to right)
-        sorted_shapes = sorted(
-            shapes.items(),
-            key=lambda x: (x[1].get('top', 0), x[1].get('left', 0))
-        )
-
-        # Determine slide category based on resolved catalog path (not raw_type)
-        # resolved_type is the definitive type after visual recommendations are applied
-        is_cover = 'cover' in resolved_type and 'back_cover' not in resolved_type
-        is_back_cover = 'back_cover' in resolved_type
-        is_divider = 'divider' in resolved_type
-        is_chart = 'chart' in resolved_type
-        is_infographic = 'infographic' in resolved_type
-        is_timeline = 'timeline' in resolved_type
-        is_table = 'table' in resolved_type
-        # Content only if resolved path is content/ AND not a visual type
-        is_content = 'content/' in resolved_type and not (is_chart or is_infographic or is_timeline or is_table)
-
-        if is_back_cover:
-            # Back cover: clear all text
-            for shape_name, shape_info in sorted_shapes:
-                replacements[slide_key][shape_name] = {"paragraphs": []}
-            continue
-
-        if is_divider:
-            # Section divider: number and title
-            # Find shapes - typically one for number, one for title
-            number_shape = None
-            title_shape = None
-
-            for shape_name, shape_info in sorted_shapes:
-                font_size = shape_info.get('default_font_size', 11)
-                width = shape_info.get('width', 5)
-
-                # Number is typically in a narrow shape or has large font
-                if width < 2 and number_shape is None:
-                    number_shape = shape_name
-                elif title_shape is None:
-                    title_shape = shape_name
-
-            for shape_name, shape_info in sorted_shapes:
-                if shape_name == number_shape and 'number' in content:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['number'], "font_name": NBG_FONT, "font_size": 60, "color": colors['number']}]
-                    }
-                elif shape_name == title_shape and 'title' in content:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "font_size": 48, "color": colors['title']}]
-                    }
-                else:
-                    replacements[slide_key][shape_name] = {"paragraphs": []}
-            continue
-
-        if is_chart:
-            # Chart slides: set title and description, leave chart placeholders
-            # Use accessible colors based on background
-            title_set = False
-            desc_set = False
-
-            for shape_name, shape_info in sorted_shapes:
-                height = shape_info.get('height', 1)
-                placeholder = shape_info.get('placeholder_type', '')
-
-                # Skip chart/picture placeholders
-                if placeholder in ('OBJECT', 'CHART', 'PICTURE'):
-                    continue
-
-                if not title_set and 'title' in content and height < 1:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "bold": True, "color": colors['title']}]
-                    }
-                    title_set = True
-                elif not desc_set and 'description' in content:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['description'], "font_name": NBG_FONT, "color": colors['body']}]
-                    }
-                    desc_set = True
-                else:
-                    replacements[slide_key][shape_name] = {"paragraphs": []}
-            continue
-
-        if is_cover:
-            # Cover slides: NBG typography hierarchy
-            # Title: 48pt, Dark Teal #003841, Regular weight
-            # Subtitle: 36pt, NBG Teal #007B85
-            # Location: 14pt, Dark Teal #003841
-            # Date: 14pt, Medium Gray #939793
-            content_items = []
-            if 'title' in content:
-                content_items.append({'text': content['title'], 'font_name': NBG_FONT, 'font_size': 48, 'color': colors['title']})
-            if 'subtitle' in content:
-                content_items.append({'text': content['subtitle'], 'font_name': NBG_FONT, 'font_size': 36, 'color': '007B85'})
-            if 'location' in content:
-                content_items.append({'text': content['location'], 'font_name': NBG_FONT, 'font_size': 14, 'color': colors['title']})
-            if 'date' in content:
-                content_items.append({'text': content['date'], 'font_name': NBG_FONT, 'font_size': 14, 'color': '939793'})
-
-            for i, (shape_name, shape_info) in enumerate(sorted_shapes):
-                if i < len(content_items):
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [content_items[i]]
-                    }
-                else:
-                    replacements[slide_key][shape_name] = {"paragraphs": []}
-            continue
-
-        if is_content:
-            # Content slides: McKinsey format support
-            # - 'points' (McKinsey) or 'paragraphs' (legacy) for body content
-            # - 'title' is action title (full sentence for McKinsey)
-            # - 'hyper_title' or 'bumper' for section tag above title
-
-            # Find shapes by their likely purpose
-            hyper_title_shape = None
-            title_shape = None
-            body_shape = None
-
-            for shape_name, shape_info in sorted_shapes:
-                height = shape_info.get('height', 1)
-
-                if height < 0.5 and hyper_title_shape is None:
-                    hyper_title_shape = shape_name
-                elif height < 1.0 and title_shape is None and shape_name != hyper_title_shape:
-                    title_shape = shape_name
-                elif height > 1.0 and body_shape is None:
-                    body_shape = shape_name
-
-            # If we didn't find by height, use position
-            if title_shape is None and len(sorted_shapes) >= 2:
-                title_shape = sorted_shapes[1][0] if sorted_shapes[0][0] == hyper_title_shape else sorted_shapes[0][0]
-            if body_shape is None and len(sorted_shapes) >= 2:
-                # Use the largest shape
-                body_shape = max(sorted_shapes, key=lambda x: x[1].get('height', 0) * x[1].get('width', 0))[0]
-
-            # Get body content - support both McKinsey 'points' and legacy 'paragraphs'
-            body_content = content.get('points') or content.get('paragraphs') or []
-
-            # Get hyper title - support both 'bumper' (McKinsey) and 'hyper_title' (legacy)
-            hyper_text = content.get('bumper') or content.get('hyper_title')
-
-            # Build replacements with NBG typography hierarchy
-            # Content title: 24pt, Dark Teal, Regular weight (NOT bold)
-            # Bumper: 12pt, NBG Teal #007B85
-            # Body bullets: 14pt L1, spacing before 14pt, bullet in Arial Bright Cyan
-            for shape_name, shape_info in sorted_shapes:
-                if shape_name == hyper_title_shape and hyper_text:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": hyper_text, "font_name": NBG_FONT, "font_size": 12, "color": colors['number']}]
-                    }
-                elif shape_name == title_shape and 'title' in content:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "font_size": 24, "color": colors['title']}]
-                    }
-                elif shape_name == body_shape and body_content:
-                    paras = []
-                    for p in body_content:
-                        if isinstance(p, dict):
-                            para = {'text': p.get('text', ''), 'font_name': NBG_FONT, 'font_size': 14, 'color': colors['body']}
-                            if p.get('bullet'):
-                                para['bullet'] = True
-                                para['level'] = 0
-                                para['space_before'] = 14
-                            paras.append(para)
-                        else:
-                            # McKinsey points are strings - convert to bullet points
-                            paras.append({'text': str(p), 'font_name': NBG_FONT, 'font_size': 14, 'bullet': True, 'level': 0, 'color': colors['body'], 'space_before': 14})
-                    replacements[slide_key][shape_name] = {"paragraphs": paras}
-                else:
-                    # Clear other shapes
-                    replacements[slide_key][shape_name] = {"paragraphs": []}
-            continue
-
-        # Handle infographic slides specially (numbered items in grid)
-        if is_infographic:
-            body_content = content.get('points') or content.get('items') or []
-            title_text = content.get('title', '')
-
-            # Find title shape (first shape at top with short height)
-            title_shape = None
-            number_shapes = []  # Shapes with single numbers (1, 2, 3...)
-            text_shapes = []    # Text shapes next to numbers
-
-            for shape_name, shape_info in sorted_shapes:
-                height = shape_info.get('height', 1)
-                width = shape_info.get('width', 1)
-                top = shape_info.get('top', 5)
-                paras = shape_info.get('paragraphs', [])
-                first_text = paras[0].get('text', '') if paras else ''
-
-                # Title is at top with short height
-                if top < 1.2 and height < 0.5 and title_shape is None:
-                    title_shape = shape_name
-                # Number shapes are small squares with single digit
-                elif width < 1.5 and height > 0.8 and first_text.isdigit():
-                    number_shapes.append((shape_name, int(first_text)))
-                # Text shapes are wider boxes next to numbers
-                elif width > 2.5 and height > 0.8:
-                    text_shapes.append(shape_name)
-
-            # Sort number shapes by their number value
-            number_shapes.sort(key=lambda x: x[1])
-
-            # Apply replacements with accessible colors
-            for shape_name, shape_info in sorted_shapes:
-                if shape_name == title_shape and title_text:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": title_text, "font_name": NBG_FONT, "bold": True, "color": colors['title']}]
-                    }
-                elif shape_name in [ns[0] for ns in number_shapes]:
-                    # Keep the numbers as-is (they're part of the visual design)
-                    pass
-                elif shape_name in text_shapes and body_content:
-                    # Map content items to text shapes
-                    idx = text_shapes.index(shape_name)
-                    if idx < len(body_content):
-                        item = body_content[idx]
-                        text = item.get('text', item.get('title', '')) if isinstance(item, dict) else str(item)
-                        replacements[slide_key][shape_name] = {
-                            "paragraphs": [{"text": text, "font_name": NBG_FONT, "color": colors['body']}]
-                        }
-                    else:
-                        # Clear unused text shapes
-                        replacements[slide_key][shape_name] = {"paragraphs": []}
-                else:
-                    # Clear other shapes (like description text)
-                    replacements[slide_key][shape_name] = {"paragraphs": []}
-            continue
-
-        # Handle chart and timeline slides
-        # These have visual elements we want to preserve - only update title
-        if is_chart or is_timeline or is_table:
-            title_text = content.get('title', '')
-
-            # Find title shape (first shape at top with short height)
-            title_shape = None
-            for shape_name, shape_info in sorted_shapes:
-                height = shape_info.get('height', 1)
-                top = shape_info.get('top', 5)
-                if top < 1.2 and height < 0.5 and title_shape is None:
-                    title_shape = shape_name
-                    break
-
-            # Apply replacements - only update title, preserve other content
-            for shape_name, shape_info in sorted_shapes:
-                if shape_name == title_shape and title_text:
-                    replacements[slide_key][shape_name] = {
-                        "paragraphs": [{"text": title_text, "font_name": NBG_FONT, "bold": True, "color": colors['title']}]
-                    }
-                # Preserve other shapes - don't add to replacements
-            continue
-
-        # Default: for unknown slide types, preserve template content
-        # This handles edge cases where slide type isn't recognized
-        for shape_name, shape_info in sorted_shapes:
-            # Only set title if we have one
-            if 'title' in content and shape_info.get('top', 5) < 1.5 and shape_info.get('height', 1) < 0.5:
-                replacements[slide_key][shape_name] = {
-                    "paragraphs": [{"text": content['title'], "font_name": NBG_FONT, "bold": True, "color": colors['title']}]
-                }
-                break
-
-    return replacements
+    validate_script = SCRIPT_DIR / 'nbg_validate.py'
+    if validate_script.exists():
+        print("Validating...")
+        subprocess.run([sys.executable, str(validate_script), str(output_path)])
 
 
 def main():
@@ -1052,27 +867,36 @@ def main():
         print("NBG Presentation Builder")
         print("=" * 40)
         print("\nUsage: python nbg_build.py <outline.yaml> <output.pptx>")
+        print("\nCreates presentations from scratch with NBG brand guidelines.")
+        print("White backgrounds, Aptos font, pixel-perfect positioning.")
         print("\nExample outline.yaml:")
         print("""
 template: GR
 
-slides:
-  - type: covers/simple_white
-    content:
-      title: "Presentation Title"
-      subtitle: "Subtitle"
-      date: "February 2026"
+presentation:
+  title: "Presentation Title"
+  audience: "Board of Directors"
+  main_recommendation: "Lead with the answer"
 
-  - type: content/text_with_bullets
-    content:
-      title: "Section Title"
-      paragraphs:
-        - text: "First bullet point"
-          bullet: true
-        - text: "Second bullet point"
-          bullet: true
+  slides:
+    - type: cover
+      content:
+        title: "Presentation Title"
+        subtitle: "Subtitle"
+        date: "March 2026"
 
-  - type: back_covers/plain_logo
+    - type: content
+      key_message: "The key insight"
+      so_what: "Why it matters"
+      content:
+        title: "Action title that tells the story"
+        bumper: "SECTION TAG"
+        points:
+          - "First bullet point"
+          - "Second bullet point"
+
+    - type: back_cover
+      content: {}
 """)
         sys.exit(1)
 

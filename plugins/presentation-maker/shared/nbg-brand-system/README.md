@@ -60,6 +60,9 @@ aspect_ratio: 16:9
 | **Cover subtitle** | 36pt (NOT 48pt) |
 | **Line charts** | Smooth curves, 3pt lines, visible markers |
 | **Chart colors** | ALWAYS specify explicit NBG colors |
+| **NO shadows** | All shapes, pills, boxes must have no shadow |
+| **Bumper is a pill** | Rounded rect 1.3x0.3, fill 007B85, 9pt Bold white ALL CAPS |
+| **Charts are native** | Use proper Excel/python-pptx charts, NOT shape-drawn boxes |
 
 ## Typography Hierarchy
 
@@ -72,8 +75,9 @@ aspect_ratio: 16:9
 | Contents header | **32pt** | 003841 | Bold |
 | Content title | **24pt** | 003841 | Regular |
 | Body text | 11-12pt | 202020 | Regular |
-| Metric value | **18pt** | 007B85 | Bold |
-| Metric label | **9pt** | 202020 | Regular |
+| Bumper (pill) | 9pt | FFFFFF on 007B85 | Bold |
+| Metric value | **50pt** | 003841 | Bold |
+| Metric label | **16pt** | 5A5F5A | Regular |
 | Page number | 10pt | 939793 | Regular |
 
 ## Chart Color Sequence

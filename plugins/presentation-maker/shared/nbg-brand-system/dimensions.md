@@ -213,19 +213,25 @@ divider:
 ### Content Slide
 ```yaml
 content:
+  bumper_pill:   # Optional — rounded rect, fill 007B85, 9pt Bold white ALL CAPS
+    x: 0.37"
+    y: 0.35"
+    w: 1.3"
+    h: 0.3"
+    shadow: none  # NO shadow on any element
   title:
     x: 0.37"
-    y: 0.5"
+    y: 0.75"     # 0.5" if no bumper
     w: 12.59"
-    h: 0.4"      # Tight fit for single-line
-    valign: top  # ALWAYS top-aligned
+    h: 0.4"
+    valign: top
     margin: 0
   body:
     x: 0.37"
-    y: 1.1"      # Starts close to title
+    y: 1.3"      # 1.1" if no bumper
     w: 12.59"
-    h: 5.2"
-    valign: top  # ALWAYS top-aligned
+    h: 5.0"
+    valign: top
     margin: 0
 ```
 

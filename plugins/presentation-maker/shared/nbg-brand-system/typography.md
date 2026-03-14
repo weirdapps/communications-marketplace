@@ -59,8 +59,8 @@
 
 | Element | Font | Size | Color | Weight |
 |---------|------|------|-------|--------|
-| Metric Value | Aptos | **18pt** | #007B85 | Bold |
-| Metric Label | Aptos | **9pt** | #202020 | Regular |
+| Metric Value | Aptos | **50pt** | #003841 | Bold |
+| Metric Label | Aptos | **16pt** | #5A5F5A | Regular |
 
 ### Charts & Tables
 
