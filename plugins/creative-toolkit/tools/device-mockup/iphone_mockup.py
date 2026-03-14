@@ -226,7 +226,7 @@ Available frames:
         """
     )
 
-    parser.add_argument("screenshot", help="Path to screenshot image")
+    parser.add_argument("screenshot", nargs="?", help="Path to screenshot image")
     parser.add_argument("output", nargs="?", help="Output path (optional)")
     parser.add_argument(
         "--frame", "-f",
@@ -251,6 +251,9 @@ Available frames:
         for key, config in FRAMES.items():
             print(f"  {key}: {config['path']}")
         return
+
+    if not args.screenshot:
+        parser.error("the following arguments are required: screenshot")
 
     create_mockup(args.screenshot, args.output, args.frame, args.frames_dir)
 

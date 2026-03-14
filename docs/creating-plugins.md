@@ -264,7 +264,7 @@ generate_plugin_config() {
 
 ## Example Plugins
 
-See `plugins/nbg-presentations/` for a complete example of a production plugin with:
+See `plugins/presentation-maker/` for a complete example of a production plugin with:
 - Multiple agents in a pipeline
 - Multiple commands
 - Brand system in `shared/`

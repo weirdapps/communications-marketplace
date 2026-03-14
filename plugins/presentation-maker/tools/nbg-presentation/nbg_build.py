@@ -39,7 +39,25 @@ SCRIPT_DIR = Path(__file__).parent
 ASSETS_DIR = SCRIPT_DIR.parent.parent / 'assets'
 CATALOG_PATH = ASSETS_DIR / 'slide-catalog.yaml'
 TEMPLATES_DIR = ASSETS_DIR / 'templates'
-PPTX_SCRIPTS = Path.home() / '.claude/plugins/cache/anthropic-agent-skills/document-skills/c74d647e56e6/document-skills/pptx/scripts'
+def _find_pptx_scripts():
+    """Discover PPTX scripts directory dynamically."""
+    # Environment variable override
+    env_path = os.environ.get('PPTX_SCRIPTS_DIR')
+    if env_path:
+        p = Path(env_path)
+        if p.exists():
+            return p
+
+    # Dynamic discovery via glob
+    base = Path.home() / '.claude/plugins/cache/anthropic-agent-skills/document-skills'
+    candidates = sorted(base.glob('*/document-skills/pptx/scripts'), key=lambda p: p.stat().st_mtime, reverse=True)
+    if candidates:
+        return candidates[0]
+
+    return None
+
+
+PPTX_SCRIPTS = _find_pptx_scripts()
 
 
 def load_catalog():
@@ -212,6 +230,12 @@ def build_presentation(outline_path, output_path):
         # Simple format
         template = outline.get('template', 'GR')
         slides = outline.get('slides', [])
+
+    if PPTX_SCRIPTS is None:
+        raise RuntimeError(
+            "PPTX scripts not found. Install the document-skills plugin or set PPTX_SCRIPTS_DIR environment variable.\n"
+            f"Expected location: {Path.home() / '.claude/plugins/cache/anthropic-agent-skills/document-skills/*/document-skills/pptx/scripts'}"
+        )
 
     if not slides:
         raise ValueError("No slides defined in outline")

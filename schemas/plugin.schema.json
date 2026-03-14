@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/weirdapps/communications-marketplace/schemas/plugin.schema.json",
+  "title": "Plugin Manifest",
+  "description": "Schema for plugin.json files in the communications marketplace",
+  "type": "object",
+  "required": ["name", "description", "version", "type"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique plugin identifier (lowercase, hyphens)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description shown in marketplace"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (MAJOR.MINOR.PATCH)"
+    },
+    "type": {
+      "type": "string",
+      "const": "plugin"
+    },
+    "author": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "license": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "commands": {
+      "type": "string",
+      "description": "Path to commands directory"
+    },
+    "agents": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["path", "description"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative path to agent SKILL.md"
+          },
+          "description": {
+            "type": "string"
+          },
+          "triggers": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["path", "description"],
+        "properties": {
+          "path": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "assets": {
+      "type": "object"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Other plugins this plugin depends on"
+    },
+    "workflow": {
+      "type": "object",
+      "properties": {
+        "pipeline": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "orchestrator": {
+          "type": ["string", "null"]
+        },
+        "parallel": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "shared": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "description"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "path"]
+          },
+          "default": {},
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

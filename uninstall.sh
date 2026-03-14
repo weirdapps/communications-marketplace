@@ -70,7 +70,7 @@ if [ -f "$CLAUDE_MD" ]; then
     for plugin_dir in "$INSTALL_DIR/plugins"/*/; do
         if [ -d "$plugin_dir" ]; then
             plugin_name=$(basename "$plugin_dir")
-            if [ "$plugin_name" != "_template" ] && [ "$plugin_name" != "nbg-presentations" ]; then
+            if [ "$plugin_name" != "_template" ]; then
                 marker="${plugin_name^^} Plugin"
                 if grep -q "$marker" "$CLAUDE_MD" 2>/dev/null; then
                     perl -i -0pe "s/\n---\n\n## ${marker}.*?---\n//s" "$CLAUDE_MD" 2>/dev/null || true

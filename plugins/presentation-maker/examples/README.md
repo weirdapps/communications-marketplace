@@ -16,7 +16,7 @@ Sample YAML storylines for different presentation types. Use these as templates 
 
 ```bash
 # Navigate to the tools directory
-cd plugins/nbg-presentations/tools/nbg-presentation
+cd plugins/presentation-maker/tools/nbg-presentation
 
 # Build a presentation from an example
 python nbg_build.py ../../examples/executive-summary.yaml output.pptx

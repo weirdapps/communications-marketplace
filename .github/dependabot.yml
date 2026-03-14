@@ -5,6 +5,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/plugins/nbg-presentations/tools/nbg-presentation"
+    directory: "/plugins/presentation-maker/tools/nbg-presentation"
     schedule:
       interval: "weekly"

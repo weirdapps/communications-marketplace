@@ -16,6 +16,8 @@ User request: $ARGUMENTS
 ## Workflow
 
 ### 0. Learn from Previous Drafts (AUTOMATIC — runs silently every time)
+**First run**: If `~/.claude/drafts/` directory structure doesn't exist, create it automatically. If no `inbox-state.json` exists, treat all emails as NEW. Skip learning if no pending drafts.
+
 Check `~/.claude/drafts/pending/` for unprocessed draft files.
 If pending drafts exist:
 1. Read Sent Items via Apple Mail AppleScript to find matching sent emails:

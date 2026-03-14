@@ -93,6 +93,23 @@
     "quarterlyReport": "./examples/quarterly-report.yaml",
     "strategyDeck": "./examples/strategy-deck.yaml"
   },
+  "settings": {
+    "brand": {
+      "type": "path",
+      "default": "./shared/nbg-brand-system/README.md",
+      "description": "Path to brand system specification"
+    },
+    "defaultLanguage": {
+      "type": "string",
+      "default": "GR",
+      "description": "Default template language (GR or EN)"
+    },
+    "defaultCoverStyle": {
+      "type": "string",
+      "default": "quiet",
+      "description": "Default cover slide style (quiet, simple_white, simple_dark)"
+    }
+  },
   "workflow": {
     "pipeline": [
       "storyline-architect",

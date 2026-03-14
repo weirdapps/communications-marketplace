@@ -16,7 +16,7 @@ plugins/
 │   ├── agents/              # Icon Designer, Infographic Specialist, Device Mockup
 │   └── commands/            # /create-icon, /create-infographic
 ├── email-handler/           # Email command center with self-learning (v2.0)
-│   ├── agents/email-drafter/  # 10-phase workflow agent
+│   ├── agents/email-handler/  # 10-phase workflow agent
 │   ├── commands/            # /mail-review, /draft-review, /send-mail
 │   └── shared/              # Style guide, recipient profiles
 └── _template/               # Template for new plugins

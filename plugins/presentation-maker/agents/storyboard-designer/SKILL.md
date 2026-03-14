@@ -502,30 +502,7 @@ Executive audiences need visuals:
 
 ## Color Reference
 
-### Text Colors
-| Element | Color | Hex |
-|---------|-------|-----|
-| Title | Dark Teal | 003841 |
-| Body text | Dark Text | 202020 |
-| Subtitle | NBG Teal | 007B85 |
-| Bullet | Bright Cyan | 00DFF8 |
-| Muted | Medium Gray | 939793 |
-
-### Shape Colors
-| Usage | Color | Hex |
-|-------|-------|-----|
-| Primary accent | NBG Teal | 007B85 |
-| Secondary accent | Bright Cyan | 00DFF8 |
-| Subtle background | Off-white | F5F8F6 |
-| Divider lines | Light Gray | BEC1BE |
-
-### Chart Colors (in order)
-1. `00ADBF` - Cyan (primary)
-2. `003841` - Dark Teal
-3. `007B85` - NBG Teal
-4. `939793` - Medium Gray
-5. `BEC1BE` - Light Gray
-6. `00DFF8` - Bright Cyan
+For the complete NBG color palette, text colors, shape colors, and chart color sequence, see `shared/nbg-brand-system/README.md`. Use only colors from the brand system.
 
 ---
 

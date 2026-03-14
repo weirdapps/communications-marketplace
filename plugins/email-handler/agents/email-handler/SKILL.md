@@ -33,12 +33,23 @@ You MUST read and internalize the style guide at `shared/style-guide.md` before 
 
 ### Phase 1: LEARN (automatic, runs first)
 
+#### First Run Handling
+
+Before processing, ensure the required directory structure exists:
+1. If `~/.claude/drafts/` doesn't exist, create it along with `pending/`, `reviewed/`, and `style-guide-backups/` subdirectories
+2. If `~/.claude/drafts/inbox-state.json` doesn't exist or is corrupted, treat all emails as NEW
+3. If `~/.claude/drafts/pending/` is empty, skip learning phase silently
+4. Log: `"FIRST RUN: No previous state found. All emails treated as new."` (only on first run)
+
 Check `~/.claude/drafts/pending/` for unprocessed drafts from previous runs.
 If found:
 1. Search Sent Items via Apple Mail AppleScript for matching sent emails by subject keywords + date
 2. Extract actual reply text (strip signature/quoted text)
 3. Compare draft vs actual — classify: SENT_AS_IS | MODIFIED | REWRITTEN | NOT_SENT
 4. Scan last 10 sent items for organic emails (user wrote without our help)
+   4b. Before updating `shared/style-guide.md`, save a timestamped backup:
+       - Save to `~/.claude/drafts/style-guide-backups/style-guide-YYYY-MM-DD.md`
+       - Track accuracy score over time in `~/.claude/drafts/learnings.md`
 5. Update `shared/style-guide.md` with corrections
 6. Move processed drafts to `~/.claude/drafts/reviewed/`
 7. Append learnings to `~/.claude/drafts/learnings.md`

@@ -205,8 +205,8 @@ generate_plugin_config() {
         "creative-toolkit")
             generate_creative_toolkit_config
             ;;
-        "email-drafter")
-            generate_email_drafter_config
+        "email-handler")
+            generate_email_handler_config
             ;;
         *)
             generate_generic_config "$plugin_name" "$plugin_dir"
@@ -308,35 +308,33 @@ Reusable creative agents for icon design, data visualization, and device mockups
 CLAUDE_CONTENT
 }
 
-# Generate email-drafter configuration
-generate_email_drafter_config() {
+# Generate email-handler configuration
+generate_email_handler_config() {
     cat << 'CLAUDE_CONTENT'
 
 ---
 
-## EMAIL-DRAFTER Plugin
+## EMAIL-HANDLER Plugin
 
-**Location**: `~/.claude/plugins/marketplaces/communications-marketplace/plugins/email-drafter/`
+**Location**: `~/.claude/plugins/marketplaces/communications-marketplace/plugins/email-handler/`
 
 ### What It Does
-Reads Outlook 365 emails via Playwright browser automation, triages them, and drafts replies matching your communication style. Learns from comparing drafts to actual responses.
+Email command center — reviews inbox via Apple Mail, drafts replies via Outlook, with briefings, insights, action recommendations, style-matched replies, and self-learning.
 
-### Dependencies
-Requires the `outlook-mailer` plugin for creating draft emails in Outlook.
+### Architecture
+Hybrid approach — Apple Mail AppleScript for reading (full Exchange mailbox access), Microsoft Outlook for sending/replying (UI scripting for proper signatures, threading, formatting).
 
 ### Commands Available
 | Command | When to Use |
 |---------|-------------|
-| `/draft` | Read inbox emails, triage, draft replies |
-| `/draft-review` | Compare drafts to actual responses, update style guide |
+| `/mail-review` | Full workflow: briefing + insights + draft replies |
+| `/inbox-briefing` | Quick read-only inbox scan with summaries |
+| `/draft-review` | Compare drafts to actual responses, improve style |
+| `/send-mail` | Send a new email via Outlook |
 
 ### Key Files
-- **Style Guide**: `plugins/email-drafter/shared/style-guide.md` — your communication patterns
-- **Agent**: `plugins/email-drafter/agents/email-drafter/SKILL.md` — 5-phase workflow
-
-### Prerequisites
-- Outlook Web access (logged into https://outlook.office.com)
-- Playwright MCP server (for browser automation)
+- **Agent**: `plugins/email-handler/agents/email-handler/SKILL.md` — 10-phase workflow
+- **Style Guide**: `plugins/email-handler/shared/style-guide.md` — communication patterns
 
 ---
 CLAUDE_CONTENT
@@ -360,6 +358,41 @@ See \`plugins/$plugin_name/README.md\` for documentation.
 
 ---
 CLAUDE_CONTENT
+}
+
+# Resolve plugin dependencies
+resolve_dependencies() {
+    local additions=()
+
+    for plugin in "${SELECTED_PLUGINS[@]}"; do
+        local plugin_json="$INSTALL_DIR/plugins/$plugin/plugin.json"
+        if [ -f "$plugin_json" ]; then
+            # Extract dependencies array
+            local deps=""
+            if command_exists jq; then
+                deps=$(jq -r '.dependencies[]? // empty' "$plugin_json" 2>/dev/null)
+            else
+                deps=$(grep -o '"dependencies"[[:space:]]*:[[:space:]]*\[[^]]*\]' "$plugin_json" 2>/dev/null | grep -o '"[^"]*"' | tr -d '"' | grep -v dependencies)
+            fi
+
+            for dep in $deps; do
+                # Check if dependency is already selected
+                local found=0
+                for sel in "${SELECTED_PLUGINS[@]}" "${additions[@]}"; do
+                    if [ "$sel" = "$dep" ]; then
+                        found=1
+                        break
+                    fi
+                done
+                if [ $found -eq 0 ] && [ -d "$INSTALL_DIR/plugins/$dep" ]; then
+                    print_warning "$plugin requires $dep — adding automatically."
+                    additions+=("$dep")
+                fi
+            done
+        fi
+    done
+
+    SELECTED_PLUGINS+=("${additions[@]}")
 }
 
 # Update CLAUDE.md with selected plugins
@@ -495,6 +528,7 @@ main() {
 
     list_plugins
     select_plugins
+    resolve_dependencies
     update_claude_md
     verify_installation
     print_completion

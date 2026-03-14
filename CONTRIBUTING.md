@@ -196,7 +196,7 @@ git push origin feature/my-new-plugin
 [plugin-name] Brief description
 
 Examples:
-[nbg-presentations] Fix Thank You slide contradiction
+[presentation-maker] Fix Thank You slide contradiction
 [my-plugin] Add new feature X
 [docs] Update contributing guide
 ```

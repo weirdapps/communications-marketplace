@@ -1,6 +1,6 @@
 # NBG Iconography Library — Index
 
-**Base path:** `plugins/nbg-presentations/assets/icons/`
+**Base path:** `plugins/presentation-maker/assets/icons/`
 **Total:** 338 icons across 20 categories
 **Format:** PNG with transparent background
 

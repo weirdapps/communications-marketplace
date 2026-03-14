@@ -132,7 +132,7 @@ jobs:
 
       - name: Validate brand system (NBG plugin)
         run: |
-          brand_system="plugins/nbg-presentations/shared/nbg-brand-system"
+          brand_system="plugins/presentation-maker/shared/nbg-brand-system"
 
           if [ -d "$brand_system" ]; then
             required_files=("README.md" "colors.md" "typography.md" "layouts.md" "dimensions.md" "charts.md" "icons.md")
@@ -147,6 +147,62 @@ jobs:
             done
             echo "✓ Brand system complete"
           fi
+
+      - name: Validate plugin.json against schema
+        run: |
+          if [ -f "schemas/plugin.schema.json" ]; then
+            echo "Schema found, validating plugin manifests..."
+            # Basic JSON structure validation (full schema validation requires additional tooling)
+            for dir in plugins/*/; do
+              if [ -d "$dir" ] && [ "$(basename "$dir")" != "_template" ]; then
+                plugin_json="${dir}plugin.json"
+                if [ -f "$plugin_json" ]; then
+                  # Check required fields exist
+                  for field in name description version type; do
+                    if ! python3 -c "import json; d=json.load(open('$plugin_json')); assert '$field' in d" 2>/dev/null; then
+                      echo "✗ Missing required field '$field' in $plugin_json"
+                      exit 1
+                    fi
+                  done
+                  echo "✓ $plugin_json has all required fields"
+                fi
+              fi
+            done
+          else
+            echo "⚠ Schema not found, skipping schema validation"
+          fi
+
+      - name: Validate command frontmatter
+        run: |
+          errors=0
+          for cmd_file in plugins/*/commands/*.md; do
+            if [ -f "$cmd_file" ]; then
+              if head -1 "$cmd_file" | grep -q "^---$"; then
+                echo "✓ $cmd_file has frontmatter"
+              else
+                echo "✗ $cmd_file missing frontmatter"
+                errors=$((errors + 1))
+              fi
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            exit 1
+          fi
+          echo "✓ All command files have frontmatter"
+
+      - name: Validate example YAML files
+        run: |
+          for yaml_file in plugins/*/examples/*.yaml plugins/*/examples/*.yml; do
+            if [ -f "$yaml_file" ]; then
+              python3 -c "import yaml; yaml.safe_load(open('$yaml_file'))" 2>/dev/null
+              if [ $? -eq 0 ]; then
+                echo "✓ $yaml_file parses correctly"
+              else
+                echo "✗ $yaml_file failed to parse"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Summary
         run: |

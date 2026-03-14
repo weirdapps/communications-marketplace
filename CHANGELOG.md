@@ -5,6 +5,25 @@ All notable changes to the Communications Marketplace are documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-03-12
+
+### Added
+- **email-handler**: Hybrid Apple Mail + Outlook architecture (replaced Playwright browser automation)
+- **email-handler**: New `/send-mail` command for composing new emails via Outlook AppleScript
+- **email-handler**: Self-learning style guide system with draft-vs-actual comparison
+- **email-handler**: Per-recipient tone profiles in style guide
+- **creative-toolkit**: Device Mockup agent for pixel-perfect iPhone mockups
+- **presentation-maker**: v3.1 — improved slide type normalization and accessibility colors
+
+### Changed
+- **Breaking**: email-drafter plugin renamed to email-handler
+- **Breaking**: Playwright browser automation replaced with native Apple Mail + Outlook AppleScript
+- **email-handler**: `/draft` command replaced by `/mail-review` (expanded with briefing and insights)
+
+### Removed
+- Playwright MCP server dependency for email reading
+- Outlook Web (outlook.office.com) requirement
+
 ## [1.1.0] - 2026-03-11
 
 ### Added
