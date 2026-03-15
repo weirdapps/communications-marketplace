@@ -705,6 +705,13 @@ Frame specifications:
 
 ---
 
+## File Naming (Mandatory)
+
+Output filenames MUST follow: `YYYYMMDDHHMM_descriptive_name.pptx`
+- Timestamp in Athens time: `TZ='Europe/Athens' date '+%Y%m%d%H%M'`
+- All lowercase, spaces/hyphens → underscores
+- Timestamp = save time (updates on re-save)
+
 ## Pre-Save Validation Pass (Mandatory)
 
 **Run these checks before saving any presentation:**

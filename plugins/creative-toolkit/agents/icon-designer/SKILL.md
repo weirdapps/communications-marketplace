@@ -234,6 +234,13 @@ If not, simplify.
 
 ---
 
+## File Naming (Mandatory)
+
+Output filenames MUST follow: `YYYYMMDDHHMM_descriptive_name.svg`
+- Timestamp in Athens time: `TZ='Europe/Athens' date '+%Y%m%d%H%M'`
+- All lowercase, spaces/hyphens → underscores
+- Timestamp = save time (updates on re-save)
+
 ## Output Rules
 
 ### Default Behavior

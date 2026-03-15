@@ -39,6 +39,20 @@ Email command center. Reviews inbox with briefings and insights, recommends acti
 - Entry points: `/mail-review`, `/draft-review`, `/send-mail`
 - Persistent state: `~/.claude/drafts/` (pending drafts, reviewed drafts, inbox state, learnings)
 
+## File Naming Convention
+
+All output files (presentations, icons, infographics, mockups, exports) MUST use this naming format:
+
+```
+YYYYMMDDHHMM_descriptive_name.ext
+```
+
+- **Timezone**: Europe/Athens (`TZ='Europe/Athens' date '+%Y%m%d%H%M'`)
+- **Case**: all lowercase
+- **Separators**: spaces and hyphens → underscores (`_`)
+- **Timestamp**: always the save/export time (updates on re-save)
+- **Examples**: `202603150208_quarterly_results.pptx`, `202603141030_payment_icon.svg`
+
 ## Install / Test
 
 ```bash

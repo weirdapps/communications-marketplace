@@ -101,6 +101,13 @@ Simple alpha checking would include both. Flood-fill from the center only finds 
 - **Dimensions**: Any size (will be resized to fit)
 - **Format**: PNG with or without alpha channel
 
+## File Naming (Mandatory)
+
+Output filenames MUST follow: `YYYYMMDDHHMM_descriptive_name.png`
+- Timestamp in Athens time: `TZ='Europe/Athens' date '+%Y%m%d%H%M'`
+- All lowercase, spaces/hyphens → underscores
+- Timestamp = save time (updates on re-save)
+
 ## Output Format
 
 - **Format**: PNG with transparency

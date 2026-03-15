@@ -560,6 +560,13 @@ const altRowStyle = {
 
 ---
 
+## File Naming (Mandatory)
+
+Output filenames MUST follow: `YYYYMMDDHHMM_descriptive_name.{png,svg}`
+- Timestamp in Athens time: `TZ='Europe/Athens' date '+%Y%m%d%H%M'`
+- All lowercase, spaces/hyphens → underscores
+- Timestamp = save time (updates on re-save)
+
 ## Output Format
 
 ### For Standard Charts
